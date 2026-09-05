@@ -1,0 +1,31 @@
+---
+description: PersonaAI MVP scope lock — follow implementation plan phases and screens only
+alwaysApply: true
+---
+
+# PersonaAI MVP lock
+
+Source of truth:
+
+- Product: `PersonaAI_MVP_Product_Design.md`
+- Build: `PersonaAI_Implementation_Plan.md`
+
+## Do not expand MVP
+
+Out of scope until post-validation: Gmail/Calendar, voice cloning, WhatsApp, autonomous agents, fine-tuning, mobile app, marketplace, multi-LLM routing, category packs.
+
+Frontend never calls the LLM. All AI goes through FastAPI.
+
+## Build order
+
+Implement Phase 0 → 5 only. Do not start the next phase until the previous deliverable works.
+
+## Screens
+
+Only routes in Implementation Plan §5. If a feature is not listed, it waits.
+
+## Stack
+
+- `apps/web` — Next.js App Router + TypeScript + Tailwind
+- `apps/api` — FastAPI
+- Postgres + pgvector, Redis for jobs

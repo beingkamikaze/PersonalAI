@@ -1,0 +1,6 @@
+{
+  "name": "@persona-ai/shared",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Optional shared types between web and API (Phase 0 stub)."
+}

@@ -1,0 +1,35 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #eef2f4;
+  --bg-elevated: #f7f9fa;
+  --fg: #12181f;
+  --muted: #5c6b7a;
+  --accent: #0f766e;
+  --accent-hover: #0d9488;
+  --border: #d5dde3;
+  --radius: 10px;
+  --atmosphere-1: #dce8ea;
+  --atmosphere-2: #c5d9e0;
+}
+
+body {
+  color: var(--fg);
+  background: var(--bg);
+  font-family: var(--font-figtree), ui-sans-serif, sans-serif;
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .atmosphere {
+    background:
+      radial-gradient(ellipse 80% 60% at 70% 10%, var(--atmosphere-2), transparent 55%),
+      radial-gradient(ellipse 70% 50% at 10% 80%, var(--atmosphere-1), transparent 50%),
+      var(--bg);
+  }
+}

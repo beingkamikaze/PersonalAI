@@ -1,0 +1,47 @@
+---
+description: PersonaAI visual language and UI patterns for Next.js screens
+globs: apps/web/**/*.{tsx,ts,css}
+alwaysApply: false
+---
+
+# PersonaAI UI
+
+Professional presence product — calm, credible, personal. Not a chatbot toy or generic SaaS.
+
+## Surfaces (three modes, one system)
+
+| Mode | Routes | Feel |
+| --- | --- | --- |
+| Marketing | `/`, `/pricing` | Brand-first, one hero job, one CTA |
+| Product | `/onboarding/*`, `/app/*` | Quiet chrome, content-first, clear next step |
+| Public | `/u/[username]` | Profile + chat as one composition |
+
+Do not invent screens outside `PersonaAI_Implementation_Plan.md` §5.
+
+## Tokens (use CSS variables from `globals.css`)
+
+- Background: cool ink wash (`--bg`, `--bg-elevated`) — not flat white, not cream `#F4F1EA`
+- Text: near-black ink (`--fg`); muted secondary (`--muted`)
+- Accent: teal (`--accent`) — never purple/indigo gradients
+- Radius: `--radius` (8–12px). Avoid pill clusters and multi-layer shadows
+- Fonts: **Fraunces** (brand/display) + **Figtree** (UI/body). No Inter/Roboto/Arial/system default stacks
+
+## Layout rules
+
+- Landing first viewport: brand + one headline + one support line + one CTA group + dominant atmosphere. No stats strips, feature card grids, or badge overlays in the hero
+- One job per section; default to no cards unless the card is the interaction container
+- Prefer full-bleed atmosphere (gradient/pattern) over decorative abstract blobs as the “main idea”
+- App shell: simple top or side nav; primary action obvious (Share / Continue / Publish)
+
+## Components
+
+- Prefer shared primitives under `apps/web/src/components/ui/`
+- Forms: label + input + short helper; avoid dense settings walls
+- Chat: message list + composer; suggested questions as simple text buttons, not chips-with-glow
+
+## Anti-patterns
+
+- Purple-on-white / purple-to-indigo themes
+- Warm cream + terracotta + serif broadsheet
+- Dark-mode-by-default, neon glow, emoji decoration
+- Dashboard clutter on marketing or public pages
