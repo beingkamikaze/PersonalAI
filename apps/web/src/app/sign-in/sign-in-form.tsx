@@ -1,56 +1,51 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, useState } from "react";
 import { SiteHeader } from "@/components/site-header";
 import { ScreenIntro } from "@/components/screen-intro";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
 
-export default function SignUpPage() {
+export default function SignInForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const next = searchParams.get("next") ?? "/onboarding/create";
+  const authError = searchParams.get("error");
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [fullName, setFullName] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [message, setMessage] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(
+    authError ? "Authentication failed. Try again." : null,
+  );
   const [loading, setLoading] = useState(false);
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     setLoading(true);
     setError(null);
-    setMessage(null);
     const supabase = createClient();
-    const { data, error: signUpError } = await supabase.auth.signUp({
+    const { error: signInError } = await supabase.auth.signInWithPassword({
       email,
       password,
-      options: {
-        data: { full_name: fullName },
-        emailRedirectTo: `${window.location.origin}/auth/callback?next=/onboarding/create`,
-      },
     });
     setLoading(false);
-    if (signUpError) {
-      setError(signUpError.message);
+    if (signInError) {
+      setError(signInError.message);
       return;
     }
-    if (data.session) {
-      router.push("/onboarding/create");
-      router.refresh();
-      return;
-    }
-    setMessage("Check your email to confirm your account, then sign in.");
+    router.push(next);
+    router.refresh();
   }
 
-  async function signUpWithGoogle() {
+  async function signInWithGoogle() {
     setError(null);
     const supabase = createClient();
     const { error: oauthError } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/auth/callback?next=/onboarding/create`,
+        redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`,
       },
     });
     if (oauthError) {
@@ -60,20 +55,13 @@ export default function SignUpPage() {
 
   return (
     <div className="atmosphere min-h-screen">
-      <SiteHeader ctaHref="/sign-in" ctaLabel="Sign in" />
+      <SiteHeader ctaHref="/sign-up" ctaLabel="Sign up" />
       <main className="px-6 py-16 md:px-10">
         <ScreenIntro
-          title="Create your account"
-          description="After sign-up you will create a draft AI profile."
+          title="Sign in"
+          description="Use email and password, or Google if enabled in your Supabase project."
         >
           <form onSubmit={onSubmit} className="space-y-4">
-            <Field
-              label="Full name"
-              type="text"
-              value={fullName}
-              onChange={setFullName}
-              autoComplete="name"
-            />
             <Field
               label="Email"
               type="email"
@@ -86,31 +74,26 @@ export default function SignUpPage() {
               type="password"
               value={password}
               onChange={setPassword}
-              autoComplete="new-password"
+              autoComplete="current-password"
             />
             {error ? (
               <p className="text-sm text-red-700" role="alert">
                 {error}
               </p>
             ) : null}
-            {message ? (
-              <p className="text-sm text-accent" role="status">
-                {message}
-              </p>
-            ) : null}
             <div className="flex flex-wrap gap-3 pt-1">
               <Button type="submit" disabled={loading}>
-                {loading ? "Creating…" : "Sign up"}
+                {loading ? "Signing in…" : "Sign in"}
               </Button>
-              <Button type="button" variant="secondary" onClick={signUpWithGoogle}>
+              <Button type="button" variant="secondary" onClick={signInWithGoogle}>
                 Continue with Google
               </Button>
             </div>
           </form>
           <p className="mt-6 text-sm text-muted">
-            Already have an account?{" "}
-            <Link href="/sign-in" className="text-accent hover:text-accent-hover">
-              Sign in
+            No account?{" "}
+            <Link href="/sign-up" className="text-accent hover:text-accent-hover">
+              Sign up
             </Link>
           </p>
         </ScreenIntro>
@@ -132,7 +115,7 @@ function Field({
   onChange: (v: string) => void;
   autoComplete?: string;
 }) {
-  const id = label.toLowerCase().replace(/\s+/g, "-");
+  const id = label.toLowerCase();
   return (
     <div>
       <label htmlFor={id} className="text-sm font-medium text-fg">
@@ -144,7 +127,6 @@ function Field({
         value={value}
         autoComplete={autoComplete}
         required
-        minLength={type === "password" ? 6 : undefined}
         onChange={(e) => onChange(e.target.value)}
         className="mt-2 w-full rounded border border-border bg-elevated px-3 py-2.5 text-sm text-fg focus:border-accent focus:outline-none"
       />

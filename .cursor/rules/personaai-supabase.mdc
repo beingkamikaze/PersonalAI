@@ -1,0 +1,14 @@
+---
+description: Supabase auth + hosted Postgres conventions for PersonaAI Phase 0+
+globs: apps/{web,api}/**/*.{ts,tsx,py}
+alwaysApply: false
+---
+
+# Supabase (PersonaAI)
+
+- Auth: Supabase only (email + Google). No Clerk.
+- DB: Supabase hosted Postgres — no local Postgres in docker-compose.
+- Next.js: session via `@supabase/ssr`; protect `/onboarding/*` and `/app/*`.
+- FastAPI: verify Supabase JWT (JWKS first, optional `SUPABASE_JWT_SECRET`); upsert `users` from `sub`.
+- Frontend never queries `ai_profiles` with anon key — all CRUD via FastAPI.
+- Never commit `.env` / `.env.local` or paste secrets into chat.

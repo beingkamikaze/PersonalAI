@@ -1,25 +1,53 @@
-import { ScaffoldNote, ScreenIntro } from "@/components/screen-intro";
+"use client";
+
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { OwnerChat } from "@/components/owner-chat";
+import { ScreenIntro } from "@/components/screen-intro";
+import { ApiError, apiFetch, type AiProfile } from "@/lib/api";
+
+const SUGGESTIONS = [
+  "What do I do professionally?",
+  "What are my main skills?",
+  "How do I prefer to communicate?",
+  "What kind of work am I open to?",
+];
 
 export default function AppChatPage() {
+  const router = useRouter();
+  const [profileId, setProfileId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const me = await apiFetch<AiProfile>("/ai/me");
+        if (!cancelled) setProfileId(me.id);
+      } catch (err) {
+        if (cancelled) return;
+        if (err instanceof ApiError && err.status === 401) {
+          router.replace("/sign-in?next=/app/chat");
+          return;
+        }
+        setError(err instanceof Error ? err.message : "Failed to load profile");
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [router]);
+
   return (
     <ScreenIntro
       title="Private chat"
-      description="Owner testing surface. Same chat pipeline as public, without publish gate."
+      description="Owner testing surface. Prompt uses identity + personality + facts (no RAG yet)."
     >
-      <div className="flex min-h-[360px] flex-col rounded border border-border bg-elevated">
-        <div className="flex-1 p-5 text-sm text-muted">
-          Conversation placeholder
-        </div>
-        <div className="border-t border-border p-3">
-          <input
-            placeholder="Message your AI…"
-            className="w-full rounded border border-border bg-white px-3 py-2.5 text-sm focus:border-accent focus:outline-none"
-          />
-        </div>
-      </div>
-      <ScaffoldNote>
-        Stream tokens from FastAPI (SSE or chunked). Persist messages server-side.
-      </ScaffoldNote>
+      {profileId ? (
+        <OwnerChat profileId={profileId} suggestions={SUGGESTIONS} />
+      ) : (
+        <p className="text-sm text-muted">{error ?? "Loading chat…"}</p>
+      )}
     </ScreenIntro>
   );
 }

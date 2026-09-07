@@ -1,35 +1,66 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { OwnerChat } from "@/components/owner-chat";
 import { OnboardingProgress } from "@/components/onboarding-progress";
-import { ScaffoldNote, ScreenIntro } from "@/components/screen-intro";
+import { ScreenIntro } from "@/components/screen-intro";
 import { ButtonLink } from "@/components/ui/button";
+import { ApiError, apiFetch, type AiProfile } from "@/lib/api";
+
+const SUGGESTIONS = [
+  "What do I do professionally?",
+  "What are my main skills?",
+  "How do I prefer to work?",
+];
 
 export default function OnboardingTestPage() {
+  const router = useRouter();
+  const [profileId, setProfileId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const me = await apiFetch<AiProfile>("/ai/me");
+        if (!cancelled) setProfileId(me.id);
+      } catch (err) {
+        if (cancelled) return;
+        if (err instanceof ApiError && err.status === 401) {
+          router.replace("/sign-in?next=/onboarding/test");
+          return;
+        }
+        setError(err instanceof Error ? err.message : "Failed to load profile");
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [router]);
+
   return (
     <ScreenIntro
       title="Test your AI"
-      description="Private owner chat. Done when you get a first useful answer."
+      description="Private owner chat using your interview personality and facts. Documents come in Phase 2."
     >
       <OnboardingProgress step={4} />
-      <div className="mt-8 flex min-h-[320px] flex-col rounded border border-border bg-elevated">
-        <div className="flex-1 space-y-3 p-5 text-sm text-muted">
-          <p className="text-fg">You: What do I do professionally?</p>
-          <p>Your AI will answer here once chat streaming is wired (Phase 1+).</p>
-        </div>
-        <div className="border-t border-border p-3">
-          <input
-            placeholder="Ask your AI…"
-            className="w-full rounded border border-border bg-white px-3 py-2.5 text-sm focus:border-accent focus:outline-none"
-          />
-        </div>
+      <div className="mt-8">
+        {profileId ? (
+          <OwnerChat profileId={profileId} suggestions={SUGGESTIONS} />
+        ) : (
+          <p className="text-sm text-muted">{error ?? "Loading chat…"}</p>
+        )}
       </div>
       <div className="mt-6 flex flex-wrap gap-3">
-        <ButtonLink href="/onboarding/publish">Looks good — publish</ButtonLink>
+        <ButtonLink href="/onboarding/publish">Looks good — continue</ButtonLink>
         <ButtonLink href="/onboarding/knowledge" variant="ghost">
           Back
         </ButtonLink>
+        <ButtonLink href="/app/chat" variant="secondary">
+          Open full chat
+        </ButtonLink>
       </div>
-      <ScaffoldNote>
-        Owner chat uses POST /ai/:id/chat — never call the LLM from the browser.
-      </ScaffoldNote>
     </ScreenIntro>
   );
 }

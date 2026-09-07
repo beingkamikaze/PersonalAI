@@ -5,6 +5,8 @@ __pycache__/
 *.pyc
 .env
 .env.local
+apps/api/.venv/
+apps/web/.env*.local
 .DS_Store
 dist/
 *.egg-info/

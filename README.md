@@ -4,48 +4,77 @@ Monorepo for the PersonaAI MVP. Product and build docs:
 
 - `PersonaAI_MVP_Product_Design.md`
 - `PersonaAI_Implementation_Plan.md`
+- `docs/API.md` — shipped + planned HTTP API
+- `docs/AUTH_AND_SUPABASE.md` — login flow and Supabase wiring
 
 ## Layout
 
 ```text
-apps/web          Next.js (App Router) + Tailwind
-apps/api          FastAPI
+apps/web          Next.js (App Router) + Tailwind + Supabase Auth
+apps/api          FastAPI → Supabase Postgres
 packages/shared   Shared types (stub)
-docker-compose.yml  Postgres+pgvector + Redis
+docker-compose.yml  Redis only (Phase 2+); no local Postgres
 .cursor/rules     UI + MVP scope rules for the agent
 ```
 
-## Phase 0 — run locally
+## Phase 0 — Supabase hosted DB
 
-### Web
+### 1. Env files
+
+Copy examples and fill from Supabase dashboard:
 
 ```bash
-npm install
-npm run dev:web
+copy apps\web\.env.local.example apps\web\.env.local
+copy apps\api\.env.example apps\api\.env
 ```
 
-Open [http://localhost:3000](http://localhost:3000). Routes match Implementation Plan §5.
+Required:
 
-### API
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY` (anon JWT **or** `sb_publishable_…` key)
+- `NEXT_PUBLIC_API_URL=http://localhost:8000`
+- `DATABASE_URL=postgresql+psycopg://…` (Supabase connection string)
+- `SUPABASE_URL`
+
+Optional: `SUPABASE_JWT_SECRET` if JWKS verification fails (legacy HS256).
+
+### 2. Schema
+
+Run `apps/api/migrations/001_phase0.sql` in the Supabase SQL Editor (if not already).
+
+### 3. Auth redirects
+
+In Supabase Auth URL config:
+
+- Site URL: `http://localhost:3000`
+- Redirect URLs: `http://localhost:3000/**`
+
+### 4. Run
 
 ```bash
-cd apps/api
+# Web
+npm install
+npm run dev:web
+
+# API (from apps/api)
 python -m venv .venv
-# Windows: .venv\Scripts\activate
+.venv\Scripts\activate
 pip install -r requirements.txt
 uvicorn app.main:app --reload --port 8000
 ```
 
-Health: [http://localhost:8000/health](http://localhost:8000/health)
+**Done when:** sign up → `/onboarding/create` → submit → row in `ai_profiles` (draft).
 
-### Data services
+### Phase 1
 
-```bash
-docker compose up -d
-```
+1. Run `apps/api/migrations/002_phase1.sql` in Supabase SQL Editor.
+2. Ensure `OPENAI_API_KEY` and `OPENAI_MODEL=gpt-4o-mini` are in `apps/api/.env`.
+3. Restart API, complete interview, test `/onboarding/test` or `/app/chat`.
 
-## Next
+Docs: `docs/API.md`, `docs/AUTH_AND_SUPABASE.md`
 
-1. Wire Clerk or Supabase Auth
-2. `users` + `ai_profiles` CRUD on FastAPI
-3. Connect onboarding create form to API
+## Notes
+
+- Frontend never calls the LLM; only FastAPI.
+- Do not put the Supabase secret key in Next.js.
+- Rotate any credentials that were pasted into chat or committed by mistake.
