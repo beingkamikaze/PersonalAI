@@ -124,3 +124,31 @@ class ConversationDetailOut(BaseModel):
     created_at: datetime
     updated_at: datetime
     messages: list[ChatMessageOut]
+
+
+# --- Phase 2: Knowledge ---
+
+
+class DocumentOut(BaseModel):
+    id: UUID
+    ai_profile_id: UUID
+    filename: str
+    file_url: str | None = None
+    mime_type: str | None = None
+    source_type: str
+    source_url: str | None = None
+    status: str
+    error_message: str | None = None
+    created_at: datetime
+    updated_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+class NotesIn(BaseModel):
+    content: str = Field(min_length=1, max_length=50_000)
+    title: str | None = Field(default=None, max_length=200)
+
+
+class UrlIn(BaseModel):
+    url: str = Field(min_length=8, max_length=2000)

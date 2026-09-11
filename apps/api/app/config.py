@@ -20,9 +20,36 @@ class Settings(BaseSettings):
     # Legacy HS256 secret (optional if project still has shared secret)
     supabase_jwt_secret: str | None = None
     cors_origins: str = "http://localhost:3000"
-    # Phase 1 — OpenAI (change OPENAI_MODEL in .env to switch models)
+
+    # LLM provider: "openai" (default) or "azure"
+    llm_provider: str = "openai"
+
+    # Public OpenAI (platform.openai.com)
     openai_api_key: str | None = None
     openai_model: str = "gpt-4o-mini"
+
+    # Azure OpenAI — set LLM_PROVIDER=azure and these three
+    azure_openai_endpoint: str | None = None
+    azure_openai_api_key: str | None = None
+    azure_openai_deployment: str | None = None
+    azure_openai_api_version: str = "2024-08-01-preview"
+
+    # Embeddings (Phase 2 RAG) — defaults match text-embedding-3-small (1536 dims)
+    openai_embedding_model: str = "text-embedding-3-small"
+    # Azure: separate embedding deployment name (when embedding provider is azure)
+    azure_openai_embedding_deployment: str | None = None
+    # Optional override: "openai" | "azure" | blank (= same as LLM_PROVIDER)
+    # Lets you keep chat on Azure and embeddings on platform OpenAI.
+    embedding_provider: str | None = None
+    embedding_dimensions: int = 1536
+
+    # Local file storage for uploads (Supabase Storage can replace later)
+    upload_dir: str = "uploads"
+    max_upload_bytes: int = 8 * 1024 * 1024  # 8 MB
+
+    # RAG retrieval
+    rag_top_k: int = 6
+
     # DEBUG | INFO | WARNING | ERROR
     log_level: str = "INFO"
 
@@ -45,6 +72,49 @@ class Settings(BaseSettings):
     @property
     def cors_origin_list(self) -> list[str]:
         return [o.strip() for o in self.cors_origins.split(",") if o.strip()]
+
+    @property
+    def effective_llm_provider(self) -> str:
+        """Normalize provider; prefer azure when azure endpoint+key are set and provider says azure."""
+        provider = (self.llm_provider or "openai").strip().lower()
+        if provider in ("azure", "azure_openai", "azure-openai"):
+            return "azure"
+        return "openai"
+
+    @property
+    def chat_model_id(self) -> str:
+        """Model id for OpenAI, or deployment name for Azure."""
+        if self.effective_llm_provider == "azure":
+            return (self.azure_openai_deployment or self.openai_model).strip()
+        return self.openai_model
+
+    @property
+    def effective_embedding_provider(self) -> str:
+        """Provider used only for embeddings (can differ from chat)."""
+        override = (self.embedding_provider or "").strip().lower()
+        if override in ("azure", "azure_openai", "azure-openai"):
+            return "azure"
+        if override in ("openai", "platform", "oai"):
+            return "openai"
+        return self.effective_llm_provider
+
+    @property
+    def embedding_model_id(self) -> str:
+        """Embedding model id (OpenAI) or Azure embedding deployment name."""
+        if self.effective_embedding_provider == "azure":
+            return (
+                self.azure_openai_embedding_deployment
+                or self.openai_embedding_model
+            ).strip()
+        return self.openai_embedding_model.strip()
+
+    @property
+    def upload_path(self) -> Path:
+        """Absolute path for local document uploads."""
+        path = Path(self.upload_dir)
+        if not path.is_absolute():
+            path = _API_ROOT / path
+        return path
 
 
 @lru_cache

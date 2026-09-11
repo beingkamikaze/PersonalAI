@@ -76,7 +76,7 @@ export function OwnerChat({ profileId, suggestions = [] }: Props) {
         {messages.length === 0 ? (
           <p className="text-muted">
             Ask something about this professional — answers use interview
-            personality and facts only (no documents yet).
+            personality, facts, and uploaded knowledge when ready.
           </p>
         ) : (
           messages.map((m) => (

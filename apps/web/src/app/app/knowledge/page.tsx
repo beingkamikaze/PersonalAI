@@ -1,22 +1,13 @@
-import { ScaffoldNote, ScreenIntro } from "@/components/screen-intro";
-import { Button } from "@/components/ui/button";
+import { KnowledgePanel } from "@/components/knowledge-panel";
+import { ScreenIntro } from "@/components/screen-intro";
 
 export default function KnowledgePage() {
   return (
     <ScreenIntro
       title="Knowledge"
-      description="Documents list with processing status, upload, and delete."
+      description="Upload documents, add notes or a URL, and track processing status."
     >
-      <div className="rounded border border-dashed border-border bg-elevated px-4 py-10 text-center text-sm text-muted">
-        No documents yet
-      </div>
-      <div className="mt-6">
-        <Button type="button">Upload</Button>
-      </div>
-      <ScaffoldNote>
-        Phase 2: S3/R2 upload + worker statuses (pending / processing / ready /
-        failed).
-      </ScaffoldNote>
+      <KnowledgePanel continueHref="/app/chat" />
     </ScreenIntro>
   );
 }

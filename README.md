@@ -6,6 +6,7 @@ Monorepo for the PersonaAI MVP. Product and build docs:
 - `PersonaAI_Implementation_Plan.md`
 - `docs/API.md` — shipped + planned HTTP API
 - `docs/AUTH_AND_SUPABASE.md` — login flow and Supabase wiring
+- `docs/PHASE_STATUS.md` — phase line-item tracker (done vs pending)
 
 ## Layout
 
@@ -68,10 +69,17 @@ uvicorn app.main:app --reload --port 8000
 ### Phase 1
 
 1. Run `apps/api/migrations/002_phase1.sql` in Supabase SQL Editor.
-2. Ensure `OPENAI_API_KEY` and `OPENAI_MODEL=gpt-4o-mini` are in `apps/api/.env`.
+2. Ensure LLM keys are in `apps/api/.env`.
 3. Restart API, complete interview, test `/onboarding/test` or `/app/chat`.
 
-Docs: `docs/API.md`, `docs/AUTH_AND_SUPABASE.md`
+### Phase 2
+
+1. Run `apps/api/migrations/003_phase2.sql` in Supabase SQL Editor.
+2. `pip install -r requirements.txt` (from `apps/api`) — needs `pgvector`, `pypdf`, `python-docx`.
+3. Azure users: either set `AZURE_OPENAI_EMBEDDING_DEPLOYMENT`, **or** `EMBEDDING_PROVIDER=openai` + `OPENAI_API_KEY` (chat stays on Azure).
+4. Restart API → `/onboarding/knowledge` or `/app/knowledge` → upload resume → wait for **Ready** → ask resume questions in chat.
+
+Docs: `docs/API.md`, `docs/AUTH_AND_SUPABASE.md`, `docs/PHASE_STATUS.md`
 
 ## Notes
 

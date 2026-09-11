@@ -14,7 +14,13 @@ Authorization: Bearer <supabase_access_token>
 
 The API verifies the token (Supabase Auth `/user`, then JWKS, then optional JWT secret), upserts a row in `users`, and scopes data by that user.
 
-**LLM (Phase 1+):** OpenAI via `OPENAI_API_KEY` + `OPENAI_MODEL` in `apps/api/.env` (default `gpt-4o-mini`).
+**LLM (Phase 1+):** configured in `apps/api/.env`
+
+- `LLM_PROVIDER=openai` → `OPENAI_API_KEY` + `OPENAI_MODEL` (default `gpt-4o-mini`) + `OPENAI_EMBEDDING_MODEL` (default `text-embedding-3-small`)
+- `LLM_PROVIDER=azure` → `AZURE_OPENAI_ENDPOINT` + `AZURE_OPENAI_API_KEY` + `AZURE_OPENAI_DEPLOYMENT` (+ optional `AZURE_OPENAI_API_VERSION`)
+- **Embeddings without Azure embedding deployment:** set `EMBEDDING_PROVIDER=openai` + `OPENAI_API_KEY` (chat stays on Azure)
+
+Frontend never calls the LLM.
 
 ---
 
@@ -199,9 +205,11 @@ Manual edit of personality scalar/JSON fields (not facts list in MVP).
 
 ---
 
-## 5. Owner chat — Shipped (Phase 1)
+## 5. Owner chat — Shipped (Phase 1 + RAG in Phase 2)
 
-Prompt v1 = system rules + identity + personality + structured facts + last messages. **No RAG / memories.**
+Prompt = system rules + identity + personality + structured facts + **retrieved document chunks (if any)** + last messages. Memories still Phase 3.
+
+When the profile has no ready chunks, chat behaves exactly as Phase 1 (RAG is a no-op).
 
 ### `POST /ai/{profile_id}/chat` — Shipped
 
@@ -256,15 +264,81 @@ Conversation detail + messages. Owner of the profile only.
 
 ---
 
-## 7. Knowledge / RAG — Planned (Phase 2)
+## 7. Knowledge / RAG — Shipped (Phase 2)
 
-| Method | Path | Status |
-| --- | --- | --- |
-| `POST` | `/ai/{id}/documents` | Planned |
-| `GET` | `/ai/{id}/documents` | Planned |
-| `DELETE` | `/documents/{id}` | Planned |
-| `POST` | `/ai/{id}/notes` | Planned |
-| `POST` | `/ai/{id}/knowledge/url` | Planned |
+Files are stored under `apps/api/uploads/` (local). Ingest runs in a FastAPI background task: extract → chunk → embed → `document_chunks` (pgvector).
+
+Supported upload types: `.pdf`, `.docx`, `.txt`, `.md`, `.html` (max 8 MB).
+
+### `POST /ai/{profile_id}/documents` — Shipped
+
+Multipart form field `file`. Returns a document with `status=pending`; poll `GET …/documents` until `ready` or `failed`.
+
+**Auth:** required · owner only
+
+**Response `201`** — `Document`
+
+**Errors:** `400` (type/size), `401`, `403`, `404`
+
+---
+
+### `GET /ai/{profile_id}/documents` — Shipped
+
+List documents newest first (includes status + `error_message` when failed).
+
+---
+
+### `DELETE /documents/{document_id}` — Shipped
+
+Deletes document, chunks, and local file. Owner of the parent profile only.
+
+**Response `204`**
+
+---
+
+### `POST /ai/{profile_id}/notes` — Shipped
+
+**Body**
+
+```json
+{ "content": "I led the checkout redesign…", "title": "notes" }
+```
+
+Stored as a `text/plain` document (`source_type=notes`) and ingested like an upload.
+
+---
+
+### `POST /ai/{profile_id}/knowledge/url` — Shipped
+
+**Body**
+
+```json
+{ "url": "https://example.com/about" }
+```
+
+Fetches the URL (20s timeout). HTML is stripped to text; PDF/text supported. Soft-fails with `400` if fetch or content is unusable.
+
+---
+
+### `Document` response schema
+
+```json
+{
+  "id": "uuid",
+  "ai_profile_id": "uuid",
+  "filename": "resume.pdf",
+  "file_url": "profile-id/doc-id_resume.pdf",
+  "mime_type": "application/pdf",
+  "source_type": "upload | notes | url",
+  "source_url": null,
+  "status": "pending | processing | ready | failed",
+  "error_message": null,
+  "created_at": "ISO-8601",
+  "updated_at": "ISO-8601"
+}
+```
+
+**Embeddings:** `text-embedding-3-small` (1536 dims). Azure needs `AZURE_OPENAI_EMBEDDING_DEPLOYMENT` pointing at an embedding deployment.
 
 ---
 
@@ -309,8 +383,8 @@ Conversation detail + messages. Owner of the profile only.
 | Phase | API focus |
 | --- | --- |
 | **0** | Health, AI profile CRUD |
-| **1** (current) | Interview, personality, owner chat |
-| **2** | Documents + RAG |
+| **1** | Interview, personality, owner chat |
+| **2** (current) | Documents + RAG in owner chat |
 | **3** | Memories |
 | **4** | Publish, public chat, analytics |
 | **5** | Harden + soft launch |
@@ -318,6 +392,7 @@ Conversation detail + messages. Owner of the profile only.
 ### SQL migrations
 
 - `apps/api/migrations/001_phase0.sql`
-- `apps/api/migrations/002_phase1.sql` ← run in Supabase SQL Editor for Phase 1 tables
+- `apps/api/migrations/002_phase1.sql`
+- `apps/api/migrations/003_phase2.sql` ← run in Supabase SQL Editor for documents + pgvector chunks
 
-When you add an endpoint, update this file and mark it **Shipped**.
+When you add an endpoint, update this file and mark it **Shipped**. Also update `docs/PHASE_STATUS.md`.

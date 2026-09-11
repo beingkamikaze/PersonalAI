@@ -24,13 +24,18 @@ export async function apiFetch<T>(
   init: RequestInit = {},
 ): Promise<T> {
   const token = await getAccessToken();
+  const headers: Record<string, string> = {
+    Authorization: `Bearer ${token}`,
+    ...(init.headers as Record<string, string> | undefined),
+  };
+  // Let the browser set multipart boundary when body is FormData
+  if (!(init.body instanceof FormData)) {
+    headers["Content-Type"] = "application/json";
+  }
+
   const res = await fetch(`${getApiUrl()}${path}`, {
     ...init,
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-      ...(init.headers ?? {}),
-    },
+    headers,
   });
 
   if (!res.ok) {
@@ -55,6 +60,17 @@ export async function apiFetch<T>(
   }
 
   return (await res.json()) as T;
+}
+
+/** Multipart upload helper — do not set Content-Type manually. */
+export async function apiUpload<T>(
+  path: string,
+  file: File,
+  fieldName = "file",
+): Promise<T> {
+  const form = new FormData();
+  form.append(fieldName, file);
+  return apiFetch<T>(path, { method: "POST", body: form });
 }
 
 export type AiProfile = {
@@ -109,4 +125,19 @@ export type ChatResult = {
   conversation_id: string;
   reply: string;
   messages: ChatMessage[];
+};
+
+/** Knowledge document (Phase 2) */
+export type KnowledgeDocument = {
+  id: string;
+  ai_profile_id: string;
+  filename: string;
+  file_url: string | null;
+  mime_type: string | null;
+  source_type: string;
+  source_url: string | null;
+  status: "pending" | "processing" | "ready" | "failed" | string;
+  error_message: string | null;
+  created_at: string;
+  updated_at: string;
 };

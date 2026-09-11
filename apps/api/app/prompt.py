@@ -1,4 +1,8 @@
-"""Prompt builder v1 — identity + personality + facts only (no RAG / memories)."""
+"""Prompt builder — identity + personality + facts + optional RAG chunks.
+
+Phase 1: identity + personality + facts
+Phase 2: adds retrieved document chunks when available (empty list = no change)
+"""
 
 from __future__ import annotations
 
@@ -11,9 +15,10 @@ def build_owner_chat_messages(
     facts: list[StructuredFact],
     history: list[Message],
     user_message: str,
+    rag_chunks: list[str] | None = None,
 ) -> list[dict[str, str]]:
     """Assemble OpenAI chat messages for an owner private reply."""
-    system = _system_prompt(profile, personality, facts)
+    system = _system_prompt(profile, personality, facts, rag_chunks or [])
     messages: list[dict[str, str]] = [{"role": "system", "content": system}]
 
     # Keep last N turns to control cost/context
@@ -29,6 +34,7 @@ def _system_prompt(
     profile: AiProfile,
     personality: PersonalityProfile | None,
     facts: list[StructuredFact],
+    rag_chunks: list[str],
 ) -> str:
     lines = [
         "You are a personal professional AI that represents a real person.",
@@ -39,6 +45,7 @@ def _system_prompt(
         "Do not invent employer secrets, private contacts, emails, phone numbers, or confidential details.",
         "If you do not know something, say you do not have that information yet.",
         "Be concise and professionally helpful.",
+        "Prefer facts from Known facts and Knowledge excerpts when they conflict with guesses.",
     ]
 
     if personality:
@@ -66,5 +73,18 @@ def _system_prompt(
 
     if profile.bio:
         lines.append(f"Bio: {profile.bio}")
+
+    # Phase 2 RAG — only present when retrieval found something
+    if rag_chunks:
+        lines.append(
+            "Knowledge excerpts from uploaded documents (may be partial; "
+            "do not invent beyond them):"
+        )
+        for i, chunk in enumerate(rag_chunks, start=1):
+            # Cap each excerpt so the system prompt stays bounded
+            excerpt = chunk.strip()
+            if len(excerpt) > 1200:
+                excerpt = excerpt[:1200] + "…"
+            lines.append(f"[Excerpt {i}]\n{excerpt}")
 
     return "\n".join(lines)

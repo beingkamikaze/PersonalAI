@@ -42,7 +42,7 @@ export default function OnboardingTestPage() {
   return (
     <ScreenIntro
       title="Test your AI"
-      description="Private owner chat using your interview personality and facts. Documents come in Phase 2."
+      description="Private owner chat using interview personality, facts, and uploaded knowledge."
     >
       <OnboardingProgress step={4} />
       <div className="mt-8">

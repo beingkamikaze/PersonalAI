@@ -1,4 +1,4 @@
-"""Owner private chat — Phase 1 (identity + personality + facts; no RAG)."""
+"""Owner private chat — Phase 1+2 (identity + personality + facts + RAG)."""
 
 from uuid import UUID
 
@@ -12,6 +12,7 @@ from app.logging_config import get_logger
 from app.models import Conversation, Message, PersonalityProfile, StructuredFact, User
 from app.ownership import get_owned_profile
 from app.prompt import build_owner_chat_messages
+from app.rag import retrieve_chunks
 from app.schemas import (
     ChatIn,
     ChatMessageOut,
@@ -79,18 +80,29 @@ def owner_chat(
         .all()
     )
 
+    # Phase 2: retrieve knowledge chunks; empty list if none / embed fails
+    user_text = body.message.strip()
+    rag_chunks = retrieve_chunks(db, profile.id, user_text)
+
     logger.info(
-        "chat request profile_id=%s conversation_id=%s history=%s facts=%s has_personality=%s message_chars=%s",
+        "chat request profile_id=%s conversation_id=%s history=%s facts=%s "
+        "has_personality=%s rag_chunks=%s message_chars=%s",
         profile.id,
         conversation.id,
         len(history),
         len(facts),
         personality is not None,
-        len(body.message.strip()),
+        len(rag_chunks),
+        len(user_text),
     )
 
     llm_messages = build_owner_chat_messages(
-        profile, personality, facts, history, body.message.strip()
+        profile,
+        personality,
+        facts,
+        history,
+        user_text,
+        rag_chunks=rag_chunks,
     )
 
     try:
@@ -109,7 +121,7 @@ def owner_chat(
     user_msg = Message(
         conversation_id=conversation.id,
         role="user",
-        content=body.message.strip(),
+        content=user_text,
     )
     assistant_msg = Message(
         conversation_id=conversation.id,
@@ -124,10 +136,11 @@ def owner_chat(
     db.refresh(conversation)
 
     logger.info(
-        "chat ok profile_id=%s conversation_id=%s reply_chars=%s",
+        "chat ok profile_id=%s conversation_id=%s reply_chars=%s rag_chunks=%s",
         profile.id,
         conversation.id,
         len(reply.strip()),
+        len(rag_chunks),
     )
 
     return ChatOut(
