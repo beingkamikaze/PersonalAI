@@ -3,7 +3,13 @@
 import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ScreenIntro } from "@/components/screen-intro";
-import { Button } from "@/components/ui/button";
+import { UserAvatar } from "@/components/user-avatar";
+import { Button, ButtonLink } from "@/components/ui/button";
+import {
+  getSessionUser,
+  notifyAccountChanged,
+  type SessionUser,
+} from "@/lib/auth";
 import {
   ApiError,
   apiFetch,
@@ -12,13 +18,19 @@ import {
 } from "@/lib/api";
 
 /**
- * Settings + simple personality editor (Phase 1).
- * Profile publish/delete remain Phase 4 scaffolds.
+ * Settings — account identity + AI profile + personality + publish (Phase 1 + 4).
  */
 export default function SettingsPage() {
   const router = useRouter();
+  const [account, setAccount] = useState<SessionUser | null>(null);
   const [profile, setProfile] = useState<AiProfile | null>(null);
   const [personality, setPersonality] = useState<Personality | null>(null);
+  const [name, setName] = useState("");
+  const [headline, setHeadline] = useState("");
+  const [bio, setBio] = useState("");
+  const [username, setUsername] = useState("");
+  const [contactEmail, setContactEmail] = useState("");
+  const [calendarLink, setCalendarLink] = useState("");
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -27,22 +39,35 @@ export default function SettingsPage() {
     let cancelled = false;
     (async () => {
       try {
+        const session = await getSessionUser();
+        if (cancelled) return;
+        setAccount(session);
         const me = await apiFetch<AiProfile>("/ai/me");
         if (cancelled) return;
         setProfile(me);
+        setName(me.name);
+        setHeadline(me.headline ?? "");
+        setBio(me.bio ?? "");
+        setUsername(me.username ?? "");
+        setContactEmail(me.contact_email ?? "");
+        setCalendarLink(me.calendar_link ?? "");
         try {
           const p = await apiFetch<Personality>(`/ai/${me.id}/personality`);
           if (!cancelled) setPersonality(p);
         } catch (err) {
-          // 404 until interview is done — that's OK
           if (!(err instanceof ApiError && err.status === 404) && !cancelled) {
-            setError(err instanceof Error ? err.message : "Failed to load personality");
+            setError(
+              err instanceof Error ? err.message : "Failed to load personality",
+            );
           }
         }
       } catch (err) {
         if (cancelled) return;
         if (err instanceof ApiError && err.status === 401) {
           router.replace("/sign-in?next=/app/settings");
+          return;
+        }
+        if (err instanceof ApiError && err.status === 404) {
           return;
         }
         setError(err instanceof Error ? err.message : "Failed to load profile");
@@ -83,17 +108,198 @@ export default function SettingsPage() {
     }
   }
 
+  async function onSaveProfile(e: FormEvent) {
+    e.preventDefault();
+    if (!profile) return;
+    setSaving(true);
+    setError(null);
+    setMessage(null);
+    try {
+      const updated = await apiFetch<AiProfile>(`/ai/${profile.id}`, {
+        method: "PATCH",
+        body: JSON.stringify({
+          name: name.trim(),
+          headline: headline.trim() || null,
+          bio: bio.trim() || null,
+        }),
+      });
+      setProfile(updated);
+      setName(updated.name);
+      setHeadline(updated.headline ?? "");
+      setBio(updated.bio ?? "");
+      notifyAccountChanged();
+      setMessage("Profile saved.");
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Save failed");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function onSavePublic(e: FormEvent) {
+    e.preventDefault();
+    if (!profile) return;
+    setSaving(true);
+    setError(null);
+    setMessage(null);
+    try {
+      const updated = await apiFetch<AiProfile>(`/ai/${profile.id}`, {
+        method: "PATCH",
+        body: JSON.stringify({
+          username: username.trim().toLowerCase() || null,
+          contact_email: contactEmail.trim() || null,
+          calendar_link: calendarLink.trim() || null,
+        }),
+      });
+      setProfile(updated);
+      setUsername(updated.username ?? "");
+      setContactEmail(updated.contact_email ?? "");
+      setCalendarLink(updated.calendar_link ?? "");
+      notifyAccountChanged();
+      setMessage("Public settings saved.");
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Save failed");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function onPublish() {
+    if (!profile) return;
+    setSaving(true);
+    setError(null);
+    setMessage(null);
+    try {
+      const updated = await apiFetch<AiProfile>(`/ai/${profile.id}/publish`, {
+        method: "POST",
+        body: JSON.stringify({
+          username: username.trim().toLowerCase() || undefined,
+          contact_email: contactEmail.trim() || null,
+          calendar_link: calendarLink.trim() || null,
+        }),
+      });
+      setProfile(updated);
+      notifyAccountChanged();
+      setMessage("Published.");
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Publish failed");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function onUnpublish() {
+    if (!profile) return;
+    setSaving(true);
+    setError(null);
+    setMessage(null);
+    try {
+      const updated = await apiFetch<AiProfile>(
+        `/ai/${profile.id}/unpublish`,
+        { method: "POST", body: "{}" },
+      );
+      setProfile(updated);
+      notifyAccountChanged();
+      setMessage("Unpublished — page is no longer public.");
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Unpublish failed");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  const displayName = profile?.name || account?.name || "You";
+  const avatarSrc = profile?.avatar_url || account?.avatarUrl;
+
   return (
     <ScreenIntro
       title="Settings"
-      description="Edit personality from your interview. Publish controls come in Phase 4."
+      description="Who you are, how the AI represents you, and publish state."
     >
+      <div className="mb-10 flex items-center gap-4">
+        <UserAvatar name={displayName} src={avatarSrc} size="md" />
+        <div className="min-w-0">
+          <p className="text-fg">{displayName}</p>
+          <p className="truncate text-sm text-muted">
+            {account?.email ?? "Signed in"}
+            {profile ? ` · ${profile.visibility}` : null}
+          </p>
+        </div>
+      </div>
+
       {profile ? (
-        <p className="mb-6 text-sm text-muted">
-          Profile: <span className="text-fg">{profile.name}</span>
-          {profile.headline ? ` — ${profile.headline}` : null}
-        </p>
+        <form onSubmit={onSaveProfile} className="mb-10 space-y-4">
+          <h2 className="font-display text-xl text-fg">Your AI profile</h2>
+          <p className="text-sm text-muted">
+            Name, headline, and bio visitors see on your public page.
+          </p>
+          <Field label="Name" value={name} onChange={setName} />
+          <Field label="Headline" value={headline} onChange={setHeadline} />
+          <div>
+            <label htmlFor="bio" className="text-sm font-medium text-fg">
+              Bio
+            </label>
+            <textarea
+              id="bio"
+              value={bio}
+              rows={4}
+              onChange={(e) => setBio(e.target.value)}
+              className="mt-2 w-full rounded border border-border bg-elevated px-3 py-2.5 text-sm focus:border-accent focus:outline-none"
+            />
+          </div>
+          <Button type="submit" disabled={saving || !name.trim()}>
+            Save profile
+          </Button>
+        </form>
       ) : null}
+
+      <form onSubmit={onSavePublic} className="mb-10 space-y-4">
+        <h2 className="font-display text-xl text-fg">Public link</h2>
+        <Field
+          label="Username"
+          value={username}
+          onChange={setUsername}
+        />
+        <Field
+          label="Contact email"
+          value={contactEmail}
+          onChange={setContactEmail}
+        />
+        <Field
+          label="Calendar link"
+          value={calendarLink}
+          onChange={setCalendarLink}
+        />
+        <div className="flex flex-wrap gap-3">
+          <Button type="submit" disabled={saving}>
+            Save public settings
+          </Button>
+          {profile?.visibility === "published" ? (
+            <Button
+              type="button"
+              variant="secondary"
+              disabled={saving}
+              onClick={() => void onUnpublish()}
+            >
+              Unpublish
+            </Button>
+          ) : (
+            <Button
+              type="button"
+              variant="secondary"
+              disabled={saving}
+              onClick={() => void onPublish()}
+            >
+              Publish
+            </Button>
+          )}
+          {profile?.username ? (
+            <ButtonLink href={`/u/${profile.username}`} variant="ghost">
+              Open /u/{profile.username}
+            </ButtonLink>
+          ) : null}
+        </div>
+      </form>
 
       {personality ? (
         <form onSubmit={onSavePersonality} className="space-y-5">

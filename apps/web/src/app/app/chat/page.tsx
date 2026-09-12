@@ -41,7 +41,7 @@ export default function AppChatPage() {
   return (
     <ScreenIntro
       title="Private chat"
-      description="Owner testing surface. Prompt uses identity + personality + facts + knowledge (RAG)."
+      description="Owner testing surface. Uses identity, personality, facts, knowledge (RAG), and memories."
     >
       {profileId ? (
         <OwnerChat profileId={profileId} suggestions={SUGGESTIONS} />

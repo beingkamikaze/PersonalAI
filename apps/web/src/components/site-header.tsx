@@ -17,6 +17,9 @@ export function SiteHeader({
         <Link href="/pricing" className="hover:text-fg">
           Pricing
         </Link>
+        <Link href="/feedback" className="hover:text-fg">
+          Feedback
+        </Link>
         <Link href="/sign-in" className="hover:text-fg">
           Sign in
         </Link>

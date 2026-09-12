@@ -2,7 +2,10 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { AccountChip } from "@/components/account-chip";
+import { SignOutButton } from "@/components/sign-out-button";
 
+/** Owner app shell nav — routes only; auth actions stay in SignOutButton. */
 const links = [
   { href: "/app", label: "Dashboard" },
   { href: "/app/knowledge", label: "Knowledge" },
@@ -41,6 +44,10 @@ export function AppNav() {
           );
         })}
       </nav>
+      <div className="flex items-center justify-between gap-3 md:mt-auto md:flex-col md:items-stretch md:gap-1">
+        <AccountChip href="/app/settings" />
+        <SignOutButton />
+      </div>
     </aside>
   );
 }

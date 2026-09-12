@@ -8,13 +8,22 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import get_settings
 from app.logging_config import get_logger, setup_logging
-from app.routers import ai, chat, interview, knowledge, personality
+from app.routers import (
+    ai,
+    chat,
+    feedback,
+    interview,
+    knowledge,
+    memory,
+    personality,
+    public,
+)
 
 settings = get_settings()
 setup_logging(settings)
 logger = get_logger(__name__)
 
-app = FastAPI(title="PersonaAI API", version="0.3.0")
+app = FastAPI(title="PersonaAI API", version="0.6.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -29,6 +38,9 @@ app.include_router(interview.router)
 app.include_router(personality.router)
 app.include_router(chat.router)
 app.include_router(knowledge.router)
+app.include_router(memory.router)
+app.include_router(public.router)
+app.include_router(feedback.router)
 
 
 @app.middleware("http")

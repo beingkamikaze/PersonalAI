@@ -1,19 +1,23 @@
 import { SiteHeader } from "@/components/site-header";
-import { ScaffoldNote, ScreenIntro } from "@/components/screen-intro";
+import { ButtonLink } from "@/components/ui/button";
+import { ScreenIntro } from "@/components/screen-intro";
 
 const plans = [
   {
     name: "Free",
     price: "₹0",
-    blurb: "One AI profile, limited chats — enough to publish and share.",
+    blurb:
+      "One AI profile, publish + share, limited private chats/day and knowledge sources. Enough to validate the loop.",
   },
   {
     name: "Plus",
-    price: "TBD",
-    blurb: "Higher limits, more documents, richer analytics. Hypothesis only.",
+    price: "Soon",
+    blurb:
+      "Higher chat and document limits, richer analytics. Billing (Razorpay/Stripe) after soft launch feedback.",
   },
 ] as const;
 
+/** Soft-launch pricing — hypothesis only; free caps enforced in the API. */
 export default function PricingPage() {
   return (
     <div className="atmosphere min-h-screen">
@@ -21,7 +25,7 @@ export default function PricingPage() {
       <main className="px-6 py-16 md:px-10">
         <ScreenIntro
           title="Simple pricing"
-          description="Static hypothesis for MVP. Payments come after the core loop works."
+          description="Start free while we soft-launch with professionals. Paid plans after we learn what limits matter."
         >
           <ul className="space-y-8">
             {plans.map((plan) => (
@@ -36,9 +40,13 @@ export default function PricingPage() {
               </li>
             ))}
           </ul>
-          <ScaffoldNote>
-            Wire Razorpay/Stripe in Phase 5/6 — not required for Phase 0.
-          </ScaffoldNote>
+          <div className="mt-10">
+            <ButtonLink href="/sign-up">Create My AI</ButtonLink>
+          </div>
+          <p className="mt-6 text-xs text-muted">
+            Free soft-launch caps (API defaults): ~40 private chats/day, ~8
+            knowledge sources, public chat rate-limited per visitor.
+          </p>
         </ScreenIntro>
       </main>
     </div>

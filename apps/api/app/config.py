@@ -50,6 +50,23 @@ class Settings(BaseSettings):
     # RAG retrieval
     rag_top_k: int = 6
 
+    # Phase 3 — memory extract / retrieve thresholds (0–1)
+    memory_min_importance: float = 0.55
+    memory_min_confidence: float = 0.6
+    memory_top_k: int = 8
+
+    # Phase 4 — public chat rate limit (in-process; Redis later)
+    public_chat_rate_limit: int = 20
+    public_chat_rate_window_seconds: int = 3600
+
+    # Phase 5 — safety + free-plan caps (billing later)
+    chat_max_input_chars: int = 2000
+    chat_max_output_chars: int = 2500
+    free_owner_chats_per_day: int = 40
+    free_max_documents: int = 8
+    # Skip temperature on first LLM call for models that only allow default (e.g. gpt-5)
+    llm_omit_temperature: bool = False
+
     # DEBUG | INFO | WARNING | ERROR
     log_level: str = "INFO"
 

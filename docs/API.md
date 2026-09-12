@@ -14,6 +14,16 @@ Authorization: Bearer <supabase_access_token>
 
 The API verifies the token (Supabase Auth `/user`, then JWKS, then optional JWT secret), upserts a row in `users`, and scopes data by that user.
 
+**Session lifecycle (web, not FastAPI):**
+
+| Action | Where | API endpoint? |
+| --- | --- | --- |
+| Sign-up / sign-in / OAuth | Next.js → Supabase Auth | No |
+| Logout | Next.js `supabase.auth.signOut()` | No — cookies cleared client-side; next Bearer call fails with `401` |
+| Password reset | Next.js `resetPasswordForEmail` + `updateUser` (`/forgot-password`, `/update-password`) | No |
+
+There is **no** `POST /auth/logout` or password-reset route on this API. Session changes are Supabase Auth only. Tracker: `docs/PHASE_STATUS.md` → Auth.
+
 **LLM (Phase 1+):** configured in `apps/api/.env`
 
 - `LLM_PROVIDER=openai` → `OPENAI_API_KEY` + `OPENAI_MODEL` (default `gpt-4o-mini`) + `OPENAI_EMBEDDING_MODEL` (default `text-embedding-3-small`)
@@ -207,9 +217,9 @@ Manual edit of personality scalar/JSON fields (not facts list in MVP).
 
 ## 5. Owner chat — Shipped (Phase 1 + RAG in Phase 2)
 
-Prompt = system rules + identity + personality + structured facts + **retrieved document chunks (if any)** + last messages. Memories still Phase 3.
+Prompt = system rules + identity + personality + structured facts + **memories** + **retrieved document chunks (if any)** + last messages.
 
-When the profile has no ready chunks, chat behaves exactly as Phase 1 (RAG is a no-op).
+When the profile has no ready chunks / no memories, those sections are omitted (Phase 1 behavior).
 
 ### `POST /ai/{profile_id}/chat` — Shipped
 
@@ -255,12 +265,37 @@ Conversation detail + messages. Owner of the profile only.
 
 ---
 
-## 6. Publish — Planned (Phase 4)
+## 6. Publish — Shipped (Phase 4)
 
-| Method | Path | Status |
-| --- | --- | --- |
-| `POST` | `/ai/{id}/publish` | Planned |
-| `POST` | `/ai/{id}/unpublish` | Planned |
+### `POST /ai/{profile_id}/publish` — Shipped
+
+Sets `visibility=published`. Requires a unique username (in body or already on profile). Optionally updates CTAs / bio / headline in the same request.
+
+**Body (all optional)**
+
+```json
+{
+  "username": "mayank",
+  "contact_email": "you@example.com",
+  "calendar_link": "https://cal.com/you",
+  "bio": "Short public bio",
+  "headline": "Optional headline"
+}
+```
+
+**Errors:** `400` (missing/invalid username), `409` (username taken)
+
+---
+
+### `POST /ai/{profile_id}/unpublish` — Shipped
+
+Sets `visibility=draft`. Public page returns 404 until published again.
+
+---
+
+### `PATCH /ai/{profile_id}` — also accepts (Phase 4)
+
+`username`, `contact_email`, `calendar_link` in addition to name/headline/bio/avatar.
 
 ---
 
@@ -342,57 +377,197 @@ Fetches the URL (20s timeout). HTML is stripped to text; PDF/text supported. Sof
 
 ---
 
-## 8. Memory — Planned (Phase 3)
+## 8. Memory — Shipped (Phase 3)
 
-| Method | Path | Status |
-| --- | --- | --- |
-| `GET` | `/ai/{id}/memories` | Planned |
-| `PATCH` | `/memories/{id}` | Planned |
-| `DELETE` | `/memories/{id}` | Planned |
+Episodic memories are extracted **after** owner chat turns (background). Only rows that clear importance/confidence thresholds are stored. Public visitor chats do **not** write memories.
 
----
+### `GET /ai/{profile_id}/memories` — Shipped
 
-## 9. Public — Planned (Phase 4)
-
-| Method | Path | Status |
-| --- | --- | --- |
-| `GET` | `/public/{username}` | Planned |
-| `POST` | `/public/{username}/chat` | Planned |
+List memories (importance desc). Owner only.
 
 ---
 
-## 10. Analytics — Planned (Phase 4/5)
+### `PATCH /memories/{memory_id}` — Shipped
 
-| Method | Path | Status |
-| --- | --- | --- |
-| `GET` | `/ai/{id}/analytics/summary` | Planned |
+Update `content`, `memory_type`, `importance`, and/or `confidence`.
+
+**Body (all optional)**
+
+```json
+{
+  "content": "Prefers async Slack updates over meetings",
+  "memory_type": "preference",
+  "importance": 0.8,
+  "confidence": 0.9
+}
+```
+
+`memory_type`: `preference` | `fact` | `boundary` | `project` | `other`
 
 ---
 
-## 11. Authorization rules
+### `DELETE /memories/{memory_id}` — Shipped
+
+**Response `204`**
+
+---
+
+### `Memory` response schema
+
+```json
+{
+  "id": "uuid",
+  "ai_profile_id": "uuid",
+  "memory_type": "preference",
+  "content": "…",
+  "importance": 0.8,
+  "confidence": 0.9,
+  "source": "owner_chat | manual",
+  "created_at": "ISO-8601",
+  "last_accessed": "ISO-8601"
+}
+```
+
+**Thresholds (env):** `MEMORY_MIN_IMPORTANCE` (default 0.55), `MEMORY_MIN_CONFIDENCE` (default 0.6), `MEMORY_TOP_K` (default 8).
+
+---
+
+## 9. Public — Shipped (Phase 4)
+
+No auth. Only profiles with `visibility=published` are visible.
+
+### `GET /public/{username}` — Shipped
+
+Returns public profile + suggested questions. Increments daily **visits**.
+
+---
+
+### `POST /public/{username}/chat` — Shipped
+
+Visitor chat (JSON reply). **Does not write memories.** Rate limit: 20 messages / hour / IP+username (configurable).
+
+**Body**
+
+```json
+{
+  "message": "What does Mayank do?",
+  "conversation_id": null,
+  "visitor_id": "optional-client-id"
+}
+```
+
+**Response:** same shape as owner `ChatOut`.
+
+**Errors:** `404` (not published), `429` (rate limited), `502`
+
+---
+
+## 10. Analytics — Shipped (Phase 4 + 5)
+
+### `GET /ai/{profile_id}/analytics/summary` — Shipped
+
+Owner-only rollup (Phase 5 adds checklist + free-plan usage):
+
+```json
+{
+  "visibility": "published",
+  "username": "mayank",
+  "completeness_score": 85,
+  "completeness_checklist": {
+    "profile_basics": true,
+    "interview_completed": true,
+    "personality": true,
+    "knowledge_ready": true,
+    "has_memory": true,
+    "username_set": true,
+    "published": true
+  },
+  "visits_today": 2,
+  "visits_7d": 10,
+  "conversations_7d": 3,
+  "messages_7d": 12,
+  "public_url_path": "/u/mayank",
+  "owner_chats_used_today": 3,
+  "owner_chats_limit": 40,
+  "owner_chats_remaining": 37,
+  "documents_used": 2,
+  "documents_limit": 8,
+  "documents_remaining": 6
+}
+```
+
+---
+
+## 11. Feedback — Shipped (Phase 5)
+
+### `POST /feedback` — Shipped
+
+Auth optional. Soft-launch qualitative notes.
+
+**Body**
+
+```json
+{
+  "message": "Public chat felt slow but answers were accurate.",
+  "email": "optional@example.com",
+  "source": "app"
+}
+```
+
+`source`: `app` | `public` | `landing`
+
+**Response `201`**
+
+```json
+{ "id": "uuid", "created_at": "ISO-8601", "message": "Thanks — we received your feedback." }
+```
+
+---
+
+## 12. Phase 5 safety / free limits (behavior)
+
+| Control | Default | Where |
+| --- | --- | --- |
+| Input truncate | 2000 chars | `CHAT_MAX_INPUT_CHARS` |
+| Output truncate | 2500 chars | `CHAT_MAX_OUTPUT_CHARS` |
+| Injection heuristic wrap | — | `app/safety.py` (does not hard-block) |
+| Owner chats / day | 40 | `FREE_OWNER_CHATS_PER_DAY` → `429` |
+| Max documents | 8 | `FREE_MAX_DOCUMENTS` → `429` |
+| Public chat rate | 20 / hour / IP+username | Phase 4 |
+
+Owner chat, RAG, and memories still work under these caps; exceeding returns `429` with a clear message.
+
+---
+
+## 13. Authorization rules
 
 | Surface | Who | Writes memories? |
 | --- | --- | --- |
-| Owner `/ai/...` | `ai_profile.user_id == current_user` | Phase 3+ |
+| Owner `/ai/...` | `ai_profile.user_id == current_user` | Yes (owner chat only) |
 | Public (Phase 4) | `visibility == published` | No in MVP |
+
+Missing / expired Bearer → `401`. Client logout clears the session; subsequent `apiFetch` calls fail with `401` until the user signs in again (see Auth session lifecycle above).
 
 ---
 
-## 12. Phase map
+## 14. Phase map
 
-| Phase | API focus |
-| --- | --- |
-| **0** | Health, AI profile CRUD |
-| **1** | Interview, personality, owner chat |
-| **2** (current) | Documents + RAG in owner chat |
-| **3** | Memories |
-| **4** | Publish, public chat, analytics |
-| **5** | Harden + soft launch |
+| Phase | API focus | Status |
+| --- | --- | --- |
+| **0** | Health, AI profile CRUD | Done |
+| **1** | Interview, personality, owner chat | Done |
+| **2** | Documents + RAG in owner chat | Done |
+| **3** | Memories | Done |
+| **4** | Publish, public chat, analytics | Done |
+| **5** | Harden + soft launch | Done (ops: seed 20 users) |
 
 ### SQL migrations
 
 - `apps/api/migrations/001_phase0.sql`
 - `apps/api/migrations/002_phase1.sql`
-- `apps/api/migrations/003_phase2.sql` ← run in Supabase SQL Editor for documents + pgvector chunks
+- `apps/api/migrations/003_phase2.sql` ← documents + pgvector chunks
+- `apps/api/migrations/004_phase3.sql` ← memories table
+- `apps/api/migrations/005_phase4.sql` ← analytics_daily
+- `apps/api/migrations/006_phase5.sql` ← feedback table
 
 When you add an endpoint, update this file and mark it **Shipped**. Also update `docs/PHASE_STATUS.md`.

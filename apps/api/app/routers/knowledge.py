@@ -30,6 +30,7 @@ from app.ownership import get_owned_profile
 from app.schemas import DocumentOut, NotesIn, UrlIn
 from app.storage import delete_file, save_bytes
 from app.text_extract import html_to_text
+from app.usage import assert_document_allowed
 
 logger = get_logger(__name__)
 
@@ -69,6 +70,7 @@ async def upload_document(
     """Multipart file upload → pending document → background ingest."""
     profile = get_owned_profile(db, user, profile_id)
     settings = get_settings()
+    assert_document_allowed(db, profile.id)
 
     filename = (file.filename or "upload.bin").strip()
     lower = filename.lower()
@@ -188,6 +190,7 @@ def add_notes(
 ) -> Document:
     """Save freeform notes as a text document and ingest."""
     profile = get_owned_profile(db, user, profile_id)
+    assert_document_allowed(db, profile.id)
     title = (body.title or "notes").strip() or "notes"
     filename = f"{title}.txt" if not title.lower().endswith(".txt") else title
     doc_id = uuid.uuid4()
@@ -232,6 +235,7 @@ def ingest_url(
     Failures return 400 with a clear message (do not crash the API).
     """
     profile = get_owned_profile(db, user, profile_id)
+    assert_document_allowed(db, profile.id)
     url = body.url.strip()
     parsed = urlparse(url)
     if parsed.scheme not in ("http", "https") or not parsed.netloc:

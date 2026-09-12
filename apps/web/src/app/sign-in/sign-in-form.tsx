@@ -76,6 +76,14 @@ export default function SignInForm() {
               onChange={setPassword}
               autoComplete="current-password"
             />
+            <p className="text-sm">
+              <Link
+                href="/forgot-password"
+                className="text-muted hover:text-fg"
+              >
+                Forgot password?
+              </Link>
+            </p>
             {error ? (
               <p className="text-sm text-red-700" role="alert">
                 {error}

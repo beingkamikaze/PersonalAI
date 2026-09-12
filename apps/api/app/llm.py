@@ -74,22 +74,26 @@ def chat_completion(
     client = get_chat_client(settings)
     model = settings.chat_model_id
     provider = settings.effective_llm_provider
+    omit_temp = settings.llm_omit_temperature or _model_rejects_temperature(model)
 
     kwargs: dict[str, Any] = {
         "model": model,
         "messages": messages,
-        "temperature": temperature,
     }
+    if not omit_temp:
+        kwargs["temperature"] = temperature
     if json_mode:
         kwargs["response_format"] = {"type": "json_object"}
 
     msg_count = len(messages)
     approx_chars = sum(len(m.get("content") or "") for m in messages)
     logger.info(
-        "llm request provider=%s model=%s json_mode=%s messages=%s approx_chars=%s",
+        "llm request provider=%s model=%s json_mode=%s omit_temp=%s "
+        "messages=%s approx_chars=%s",
         provider,
         model,
         json_mode,
+        omit_temp,
         msg_count,
         approx_chars,
     )
@@ -140,6 +144,12 @@ def chat_completion(
         getattr(usage, "completion_tokens", None),
     )
     return content
+
+
+def _model_rejects_temperature(model: str) -> bool:
+    """gpt-5 family on Azure currently only accepts default temperature."""
+    name = (model or "").lower()
+    return name.startswith("gpt-5") or "gpt-5" in name
 
 
 def _should_retry_without_extras(exc: Exception) -> bool:

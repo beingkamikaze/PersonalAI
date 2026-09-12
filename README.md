@@ -7,6 +7,7 @@ Monorepo for the PersonaAI MVP. Product and build docs:
 - `docs/API.md` — shipped + planned HTTP API
 - `docs/AUTH_AND_SUPABASE.md` — login flow and Supabase wiring
 - `docs/PHASE_STATUS.md` — phase line-item tracker (done vs pending)
+- `docs/SOFT_LAUNCH.md` — Phase 5 invite / feedback checklist
 
 ## Layout
 
@@ -80,6 +81,23 @@ uvicorn app.main:app --reload --port 8000
 4. Restart API → `/onboarding/knowledge` or `/app/knowledge` → upload resume → wait for **Ready** → ask resume questions in chat.
 
 Docs: `docs/API.md`, `docs/AUTH_AND_SUPABASE.md`, `docs/PHASE_STATUS.md`
+
+### Phase 3
+
+1. Run `apps/api/migrations/004_phase3.sql` in Supabase SQL Editor.
+2. Restart API → `/app/chat` → state a preference → check `/app/memories` → ask again in a new thread.
+
+### Phase 4
+
+1. Run `apps/api/migrations/005_phase4.sql` in Supabase SQL Editor.
+2. Restart API → `/onboarding/publish` → publish → open `/u/{username}` in incognito → chat.
+3. Confirm `/app` dashboard visits increase.
+
+### Phase 5
+
+1. Run `apps/api/migrations/006_phase5.sql` in Supabase SQL Editor.
+2. Restart API — dashboard shows completeness checklist + free-plan remaining.
+3. Soft launch ops: `docs/SOFT_LAUNCH.md` + `/feedback`.
 
 ## Notes
 

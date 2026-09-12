@@ -133,10 +133,53 @@ On each request (when env is set):
 1. Create a cookie-aware Supabase server client
 2. `supabase.auth.getUser()` — refreshes session if needed
 3. If path is `/onboarding/*` or `/app/*` and **no user** → redirect `/sign-in?next=…`
-4. If user is signed in and path is `/sign-in` or `/sign-up` → redirect `/onboarding/create`
-5. Public routes (`/`, `/pricing`, `/u/*`) stay open
+4. If path is `/update-password` and **no user** → redirect `/forgot-password`
+5. If user is signed in and path is `/sign-in` or `/sign-up` → redirect `/onboarding/create`
+6. If user is signed in and path is `/forgot-password` → redirect `/update-password`
+7. Public routes (`/`, `/pricing`, `/u/*`, `/forgot-password` when logged out) stay open
+8. `/update-password` is **not** redirected away when signed in (recovery lands here)
 
 Session lives in **HTTP cookies**, not `localStorage`, so SSR and middleware can see it.
+
+### 4.1 Logout (shipped)
+
+Logout is **client-only** (no FastAPI endpoint). Clearing the Supabase session cookies is enough; the next API call without a Bearer token gets `401`.
+
+```text
+User clicks “Sign out” (AppNav or onboarding header)
+  → supabase.auth.signOut()
+  → session cookies cleared
+  → router.replace(/sign-in) + router.refresh()
+  → middleware sees no user on /app/* or /onboarding/*
+```
+
+| Piece | Path |
+| --- | --- |
+| Helper + `[auth]` logs | `apps/web/src/lib/auth.ts` |
+| Button | `apps/web/src/components/sign-out-button.tsx` |
+| App shell | `apps/web/src/components/app-nav.tsx` |
+| Onboarding chrome | `apps/web/src/app/onboarding/layout.tsx` |
+
+### 4.2 Password reset (shipped)
+
+```text
+User → /forgot-password
+  → supabase.auth.resetPasswordForEmail({ redirectTo: /auth/callback?next=/update-password })
+  → Email link → /auth/callback?code=…&next=/update-password
+  → exchangeCodeForSession
+  → /update-password
+  → supabase.auth.updateUser({ password })
+  → /app
+```
+
+| Piece | Path |
+| --- | --- |
+| Request email UI | `apps/web/src/app/forgot-password/page.tsx` |
+| Set new password UI | `apps/web/src/app/update-password/page.tsx` |
+| Helpers | `requestPasswordReset`, `updatePassword` in `lib/auth.ts` |
+| Sign-in link | “Forgot password?” on `/sign-in` |
+
+**Supabase config:** Redirect URLs must allow `{origin}/auth/callback` (see Site URL + Additional Redirect URLs).
 
 ---
 
@@ -274,6 +317,9 @@ Browser          Supabase Auth       Next.js MW        FastAPI         Postgres
 | Redirect loop on `/sign-in` | Middleware + missing/invalid Supabase env |
 | `409` on `POST /ai` | Profile already exists — use `GET /ai/me` |
 | Signup email never arrives | Confirm email provider settings; check spam; Auth → Providers |
+| Reset email never arrives | Same as signup; also confirm Redirect URLs include `/auth/callback` |
+| Reset link opens then dumps to sign-in | Code exchange failed; check Site URL / allowlist; try request again |
+| `/update-password` instantly → forgot | No session yet — open the email link (don’t paste `/update-password` alone) |
 
 ---
 
@@ -293,9 +339,19 @@ Browser          Supabase Auth       Next.js MW        FastAPI         Postgres
 | --- | --- |
 | `apps/web/src/app/sign-in/*` | Sign-in UI |
 | `apps/web/src/app/sign-up/page.tsx` | Sign-up UI |
-| `apps/web/src/app/auth/callback/route.ts` | OAuth / email code exchange |
+| `apps/web/src/app/forgot-password/page.tsx` | Request password-reset email |
+| `apps/web/src/app/update-password/page.tsx` | Set new password after recovery |
+| `apps/web/src/components/sign-out-button.tsx` | Sign-out UI |
+| `apps/web/src/lib/auth.ts` | Client `signOut` / `requestPasswordReset` / `updatePassword` |
+| `apps/web/src/app/auth/callback/route.ts` | OAuth / email / recovery code exchange |
 | `apps/web/src/middleware.ts` | Session + route guards |
 | `apps/web/src/lib/api.ts` | Bearer token → FastAPI |
 | `apps/api/app/auth.py` | Token verify + user upsert |
 | `apps/api/app/routers/ai.py` | Profile CRUD |
 | `apps/api/app/config.py` | Env + JWKS / Auth URLs |
+
+---
+
+## 13. Auth feature status
+
+See **Auth** section in `docs/PHASE_STATUS.md` (sign-in, logout, password reset shipped).

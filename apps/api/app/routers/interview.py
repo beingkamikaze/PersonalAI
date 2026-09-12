@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.orm.attributes import flag_modified
 
 from app.auth import get_current_user
+from app.completeness import refresh_completeness
 from app.db import get_db
 from app.extract import extract_and_persist
 from app.interview_script import get_question, question_count
@@ -150,7 +151,6 @@ def answer_interview(
     if next_index >= total:
         session.current_index = total
         session.status = "completed"
-        profile.completeness_score = max(profile.completeness_score or 0, 40)
         next_question = None
         completed = True
         logger.info("interview completed profile_id=%s", profile.id)
@@ -160,6 +160,8 @@ def answer_interview(
         completed = False
 
     flag_modified(session, "answers")
+    if completed:
+        refresh_completeness(db, profile.id)
 
     db.commit()
     db.refresh(session)

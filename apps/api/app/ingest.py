@@ -11,10 +11,11 @@ from uuid import UUID
 
 from sqlalchemy.orm import Session
 
+from app.completeness import refresh_completeness
 from app.db import SessionLocal
 from app.embeddings import embed_texts
 from app.logging_config import get_logger
-from app.models import AiProfile, Document, DocumentChunk
+from app.models import Document, DocumentChunk
 from app.storage import resolve_file_url
 from app.text_extract import chunk_text, extract_text_from_bytes, read_file_bytes
 
@@ -111,7 +112,7 @@ def _ingest(db: Session, document_id: UUID) -> None:
         doc.status = "ready"
         doc.error_message = None
         doc.updated_at = datetime.now(timezone.utc)
-        _bump_completeness(db, doc.ai_profile_id)
+        refresh_completeness(db, doc.ai_profile_id)
         db.commit()
         logger.info(
             "ingest done document_id=%s profile_id=%s chunks=%s",
@@ -130,24 +131,4 @@ def _ingest(db: Session, document_id: UUID) -> None:
             db.commit()
         logger.exception(
             "ingest failed document_id=%s error=%s", document_id, exc
-        )
-
-
-def _bump_completeness(db: Session, profile_id: UUID) -> None:
-    """Raise completeness once the profile has at least one ready document."""
-    profile = db.query(AiProfile).filter(AiProfile.id == profile_id).one_or_none()
-    if profile is None:
-        return
-    ready_count = (
-        db.query(Document)
-        .filter(Document.ai_profile_id == profile_id, Document.status == "ready")
-        .count()
-    )
-    # Interview ≈ 40; first ready doc nudges toward 60+
-    if ready_count >= 1 and profile.completeness_score < 60:
-        profile.completeness_score = 60
-        logger.info(
-            "completeness bumped profile_id=%s score=%s",
-            profile_id,
-            profile.completeness_score,
         )

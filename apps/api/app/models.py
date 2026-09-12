@@ -1,8 +1,8 @@
 import uuid
-from datetime import datetime
+from datetime import date, datetime
 from typing import Any
 
-from sqlalchemy import DateTime, ForeignKey, Integer, String, Text, func
+from sqlalchemy import Date, DateTime, Float, ForeignKey, Integer, String, Text, func
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from pgvector.sqlalchemy import Vector
@@ -67,6 +67,7 @@ class AiProfile(Base):
         back_populates="ai_profile", uselist=False
     )
     documents: Mapped[list["Document"]] = relationship(back_populates="ai_profile")
+    memories: Mapped[list["Memory"]] = relationship(back_populates="ai_profile")
 
 
 class PersonalityProfile(Base):
@@ -263,3 +264,67 @@ class DocumentChunk(Base):
     )
 
     document: Mapped["Document"] = relationship(back_populates="chunks")
+
+
+class Memory(Base):
+    """Episodic memory extracted from owner chats (Phase 3).
+
+    Public visitor chats must never write rows here in MVP.
+    """
+
+    __tablename__ = "memories"
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    ai_profile_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("ai_profiles.id", ondelete="CASCADE"), nullable=False
+    )
+    memory_type: Mapped[str] = mapped_column(String, nullable=False, default="fact")
+    content: Mapped[str] = mapped_column(Text, nullable=False)
+    importance: Mapped[float] = mapped_column(Float, nullable=False, default=0.5)
+    confidence: Mapped[float] = mapped_column(Float, nullable=False, default=0.5)
+    source: Mapped[str] = mapped_column(String, nullable=False, default="owner_chat")
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    last_accessed: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+
+    ai_profile: Mapped["AiProfile"] = relationship(back_populates="memories")
+
+
+class AnalyticsDaily(Base):
+    """Per-day counters for public visits / chats (Phase 4)."""
+
+    __tablename__ = "analytics_daily"
+
+    ai_profile_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("ai_profiles.id", ondelete="CASCADE"),
+        primary_key=True,
+    )
+    date: Mapped[date] = mapped_column(Date, primary_key=True)
+    visits: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    conversations: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    messages: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+
+
+class Feedback(Base):
+    """Qualitative soft-launch feedback (Phase 5)."""
+
+    __tablename__ = "feedback"
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    user_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"), nullable=True
+    )
+    email: Mapped[str | None] = mapped_column(String, nullable=True)
+    message: Mapped[str] = mapped_column(Text, nullable=False)
+    source: Mapped[str] = mapped_column(String, nullable=False, default="app")
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )

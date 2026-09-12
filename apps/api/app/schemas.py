@@ -16,6 +16,10 @@ class AiProfileUpdate(BaseModel):
     headline: str | None = Field(default=None, max_length=500)
     avatar_url: str | None = None
     bio: str | None = None
+    # Phase 4 — public identity + external CTAs
+    username: str | None = Field(default=None, min_length=3, max_length=40)
+    contact_email: str | None = Field(default=None, max_length=320)
+    calendar_link: str | None = Field(default=None, max_length=500)
 
 
 class AiProfileOut(BaseModel):
@@ -34,6 +38,16 @@ class AiProfileOut(BaseModel):
     updated_at: datetime
 
     model_config = {"from_attributes": True}
+
+
+class PublishIn(BaseModel):
+    """Optional fields applied atomically with publish."""
+
+    username: str | None = Field(default=None, min_length=3, max_length=40)
+    contact_email: str | None = Field(default=None, max_length=320)
+    calendar_link: str | None = Field(default=None, max_length=500)
+    bio: str | None = None
+    headline: str | None = Field(default=None, max_length=500)
 
 
 class InterviewStartOut(BaseModel):
@@ -152,3 +166,80 @@ class NotesIn(BaseModel):
 
 class UrlIn(BaseModel):
     url: str = Field(min_length=8, max_length=2000)
+
+
+# --- Phase 3: Memories ---
+
+
+class MemoryOut(BaseModel):
+    id: UUID
+    ai_profile_id: UUID
+    memory_type: str
+    content: str
+    importance: float
+    confidence: float
+    source: str
+    created_at: datetime
+    last_accessed: datetime
+
+    model_config = {"from_attributes": True}
+
+
+class MemoryUpdate(BaseModel):
+    content: str | None = Field(default=None, min_length=1, max_length=2000)
+    memory_type: str | None = None
+    importance: float | None = Field(default=None, ge=0, le=1)
+    confidence: float | None = Field(default=None, ge=0, le=1)
+
+
+# --- Phase 4: Public + analytics ---
+
+
+class PublicProfileOut(BaseModel):
+    """Safe public payload — no owner user_id."""
+
+    username: str
+    name: str
+    headline: str | None = None
+    bio: str | None = None
+    avatar_url: str | None = None
+    contact_email: str | None = None
+    calendar_link: str | None = None
+    suggested_questions: list[str] = Field(default_factory=list)
+
+
+class PublicChatIn(BaseModel):
+    message: str = Field(min_length=1, max_length=2000)
+    conversation_id: UUID | None = None
+    visitor_id: str | None = Field(default=None, max_length=120)
+
+
+class AnalyticsSummaryOut(BaseModel):
+    visibility: str
+    username: str | None
+    completeness_score: int
+    completeness_checklist: dict[str, bool] = Field(default_factory=dict)
+    visits_today: int
+    visits_7d: int
+    conversations_7d: int
+    messages_7d: int
+    public_url_path: str | None = None
+    # Free-plan usage (Phase 5)
+    owner_chats_used_today: int = 0
+    owner_chats_limit: int = 40
+    owner_chats_remaining: int = 40
+    documents_used: int = 0
+    documents_limit: int = 8
+    documents_remaining: int = 8
+
+
+class FeedbackIn(BaseModel):
+    message: str = Field(min_length=5, max_length=4000)
+    email: str | None = Field(default=None, max_length=320)
+    source: str = Field(default="app", max_length=40)
+
+
+class FeedbackOut(BaseModel):
+    id: UUID
+    created_at: datetime
+    message: str = "Thanks — we received your feedback."

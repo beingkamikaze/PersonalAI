@@ -73,6 +73,46 @@ export async function apiUpload<T>(
   return apiFetch<T>(path, { method: "POST", body: form });
 }
 
+/**
+ * Unauthenticated fetch for public endpoints (Phase 4).
+ * Never sends the owner JWT.
+ */
+export async function publicApiFetch<T>(
+  path: string,
+  init: RequestInit = {},
+): Promise<T> {
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    ...(init.headers as Record<string, string> | undefined),
+  };
+  const res = await fetch(`${getApiUrl()}${path}`, {
+    ...init,
+    headers,
+  });
+
+  if (!res.ok) {
+    let detail = res.statusText;
+    try {
+      const body = (await res.json()) as {
+        detail?: string | { msg?: string }[];
+      };
+      if (typeof body.detail === "string") {
+        detail = body.detail;
+      } else if (Array.isArray(body.detail)) {
+        detail = body.detail.map((d) => d.msg ?? JSON.stringify(d)).join(", ");
+      }
+    } catch {
+      // ignore
+    }
+    throw new ApiError(res.status, detail);
+  }
+
+  if (res.status === 204) {
+    return undefined as T;
+  }
+  return (await res.json()) as T;
+}
+
 export type AiProfile = {
   id: string;
   user_id: string;
@@ -138,6 +178,56 @@ export type KnowledgeDocument = {
   source_url: string | null;
   status: "pending" | "processing" | "ready" | "failed" | string;
   error_message: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+/** Episodic memory (Phase 3) */
+export type MemoryItem = {
+  id: string;
+  ai_profile_id: string;
+  memory_type: string;
+  content: string;
+  importance: number;
+  confidence: number;
+  source: string;
+  created_at: string;
+  last_accessed: string;
+};
+
+/** Public profile payload (Phase 4) */
+export type PublicProfile = {
+  username: string;
+  name: string;
+  headline: string | null;
+  bio: string | null;
+  avatar_url: string | null;
+  contact_email: string | null;
+  calendar_link: string | null;
+  suggested_questions: string[];
+};
+
+export type AnalyticsSummary = {
+  visibility: string;
+  username: string | null;
+  completeness_score: number;
+  completeness_checklist?: Record<string, boolean>;
+  visits_today: number;
+  visits_7d: number;
+  conversations_7d: number;
+  messages_7d: number;
+  public_url_path: string | null;
+  owner_chats_used_today?: number;
+  owner_chats_limit?: number;
+  owner_chats_remaining?: number;
+  documents_used?: number;
+  documents_limit?: number;
+  documents_remaining?: number;
+};
+
+export type ConversationListItem = {
+  id: string;
+  channel: string;
   created_at: string;
   updated_at: string;
 };

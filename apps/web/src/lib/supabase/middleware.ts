@@ -38,6 +38,7 @@ export async function updateSession(request: NextRequest) {
   const isProtected =
     path.startsWith("/onboarding") || path.startsWith("/app");
 
+  // After client signOut(), cookies are gone — next navigation here sends them to sign-in
   if (isProtected && !user) {
     const url = request.nextUrl.clone();
     url.pathname = "/sign-in";
@@ -45,9 +46,25 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
+  // Recovery / change-password needs a session from the email link (or existing login)
+  if (path === "/update-password" && !user) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/forgot-password";
+    return NextResponse.redirect(url);
+  }
+
+  // Signed-in users should not see auth entry forms (logout lands on /sign-in with no session).
+  // Do NOT redirect away from /update-password — recovery lands there with a session.
   if (user && (path === "/sign-in" || path === "/sign-up")) {
     const url = request.nextUrl.clone();
     url.pathname = "/onboarding/create";
+    return NextResponse.redirect(url);
+  }
+
+  // Already signed in: skip “forgot” and go straight to set-new-password
+  if (user && path === "/forgot-password") {
+    const url = request.nextUrl.clone();
+    url.pathname = "/update-password";
     return NextResponse.redirect(url);
   }
 

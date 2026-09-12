@@ -1,18 +1,23 @@
-"""Owner private chat — Phase 1+2 (identity + personality + facts + RAG)."""
+"""Owner private chat — Phase 1–3 (identity + facts + RAG + memories)."""
 
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 from sqlalchemy.orm import Session
+from starlette.concurrency import run_in_threadpool
 
 from app.auth import get_current_user
 from app.db import get_db
 from app.llm import chat_completion
 from app.logging_config import get_logger
+from app.memory_extract import extract_memories_from_turn
+from app.memory_retrieve import retrieve_memories
 from app.models import Conversation, Message, PersonalityProfile, StructuredFact, User
 from app.ownership import get_owned_profile
 from app.prompt import build_owner_chat_messages
 from app.rag import retrieve_chunks
+from app.safety import enforce_reply_limit, prepare_user_message
+from app.usage import assert_owner_chat_allowed
 from app.schemas import (
     ChatIn,
     ChatMessageOut,
@@ -26,14 +31,26 @@ logger = get_logger(__name__)
 router = APIRouter(tags=["chat"])
 
 
+async def _run_memory_extract(
+    profile_id: UUID, user_message: str, assistant_reply: str
+) -> None:
+    """Offload memory extract so chat response is not delayed."""
+    await run_in_threadpool(
+        extract_memories_from_turn, profile_id, user_message, assistant_reply
+    )
+
+
 @router.post("/ai/{profile_id}/chat", response_model=ChatOut)
 def owner_chat(
     profile_id: UUID,
     body: ChatIn,
+    background: BackgroundTasks,
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ) -> ChatOut:
     profile = get_owned_profile(db, user, profile_id)
+    # Phase 5 free-plan daily cap (before spending LLM tokens)
+    remaining = assert_owner_chat_allowed(db, profile.id)
 
     conversation: Conversation | None = None
     if body.conversation_id:
@@ -50,7 +67,7 @@ def owner_chat(
         if conversation.channel != "owner":
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Only owner conversations are supported in Phase 1",
+                detail="Only owner conversations are supported for memory writes",
             )
     else:
         conversation = Conversation(ai_profile_id=profile.id, channel="owner")
@@ -80,20 +97,26 @@ def owner_chat(
         .all()
     )
 
-    # Phase 2: retrieve knowledge chunks; empty list if none / embed fails
-    user_text = body.message.strip()
-    rag_chunks = retrieve_chunks(db, profile.id, user_text)
+    raw_user = body.message.strip()
+    # Phase 5: truncate + wrap injection heuristics for the model only
+    user_text = prepare_user_message(raw_user)
+    # Phase 2 RAG + Phase 3 memories (both soft no-ops when empty)
+    rag_chunks = retrieve_chunks(db, profile.id, raw_user)
+    memories = retrieve_memories(db, profile.id)
 
     logger.info(
         "chat request profile_id=%s conversation_id=%s history=%s facts=%s "
-        "has_personality=%s rag_chunks=%s message_chars=%s",
+        "has_personality=%s rag_chunks=%s memories=%s message_chars=%s "
+        "chats_remaining=%s",
         profile.id,
         conversation.id,
         len(history),
         len(facts),
         personality is not None,
         len(rag_chunks),
-        len(user_text),
+        len(memories),
+        len(raw_user),
+        remaining,
     )
 
     llm_messages = build_owner_chat_messages(
@@ -103,6 +126,7 @@ def owner_chat(
         history,
         user_text,
         rag_chunks=rag_chunks,
+        memories=memories,
     )
 
     try:
@@ -118,15 +142,16 @@ def owner_chat(
             detail=f"LLM chat failed: {exc}",
         ) from exc
 
+    reply_text = enforce_reply_limit(reply)
     user_msg = Message(
         conversation_id=conversation.id,
         role="user",
-        content=user_text,
+        content=raw_user,
     )
     assistant_msg = Message(
         conversation_id=conversation.id,
         role="assistant",
-        content=reply.strip(),
+        content=reply_text,
     )
     db.add(user_msg)
     db.add(assistant_msg)
@@ -135,17 +160,27 @@ def owner_chat(
     db.refresh(assistant_msg)
     db.refresh(conversation)
 
+    # Phase 3: extract memories after response is saved (owner channel only)
+    background.add_task(_run_memory_extract, profile.id, raw_user, reply_text)
     logger.info(
-        "chat ok profile_id=%s conversation_id=%s reply_chars=%s rag_chunks=%s",
+        "memory extract enqueued profile_id=%s conversation_id=%s",
         profile.id,
         conversation.id,
-        len(reply.strip()),
+    )
+
+    logger.info(
+        "chat ok profile_id=%s conversation_id=%s reply_chars=%s "
+        "rag_chunks=%s memories=%s",
+        profile.id,
+        conversation.id,
+        len(reply_text),
         len(rag_chunks),
+        len(memories),
     )
 
     return ChatOut(
         conversation_id=conversation.id,
-        reply=reply.strip(),
+        reply=reply_text,
         messages=[
             ChatMessageOut.model_validate(user_msg),
             ChatMessageOut.model_validate(assistant_msg),
@@ -162,10 +197,7 @@ def list_conversations(
     profile = get_owned_profile(db, user, profile_id)
     rows = (
         db.query(Conversation)
-        .filter(
-            Conversation.ai_profile_id == profile.id,
-            Conversation.channel == "owner",
-        )
+        .filter(Conversation.ai_profile_id == profile.id)
         .order_by(Conversation.updated_at.desc())
         .all()
     )
