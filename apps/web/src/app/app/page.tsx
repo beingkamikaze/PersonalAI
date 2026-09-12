@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ScreenIntro } from "@/components/screen-intro";
 import { Button, ButtonLink } from "@/components/ui/button";
