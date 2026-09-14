@@ -55,6 +55,18 @@ def _enqueue(background: BackgroundTasks, document_id: UUID) -> None:
     logger.info("ingest enqueued document_id=%s", document_id)
 
 
+def _store_bytes(
+    profile_id: UUID, document_id: UUID, filename: str, data: bytes
+) -> str:
+    try:
+        return save_bytes(profile_id, document_id, filename, data)
+    except RuntimeError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=str(exc),
+        ) from exc
+
+
 @router.post(
     "/ai/{profile_id}/documents",
     response_model=DocumentOut,
@@ -103,7 +115,7 @@ async def upload_document(
         )
 
     doc_id = uuid.uuid4()
-    rel = save_bytes(profile.id, doc_id, filename, data)
+    rel = _store_bytes(profile.id, doc_id, filename, data)
     doc = Document(
         id=doc_id,
         ai_profile_id=profile.id,
@@ -195,7 +207,7 @@ def add_notes(
     filename = f"{title}.txt" if not title.lower().endswith(".txt") else title
     doc_id = uuid.uuid4()
     data = body.content.encode("utf-8")
-    rel = save_bytes(profile.id, doc_id, filename, data)
+    rel = _store_bytes(profile.id, doc_id, filename, data)
     doc = Document(
         id=doc_id,
         ai_profile_id=profile.id,
@@ -294,7 +306,7 @@ def ingest_url(
         )
 
     doc_id = uuid.uuid4()
-    rel = save_bytes(profile.id, doc_id, filename, data)
+    rel = _store_bytes(profile.id, doc_id, filename, data)
     doc = Document(
         id=doc_id,
         ai_profile_id=profile.id,

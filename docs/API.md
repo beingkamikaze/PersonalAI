@@ -79,7 +79,7 @@ Create the owner’s draft AI profile. MVP: **one profile per user**.
 | --- | --- | --- | --- |
 | `name` | string | yes | 1–200 chars |
 | `headline` | string \| null | no | max 500 |
-| `avatar_url` | string \| null | no | upload in Phase 2 |
+| `avatar_url` | string \| null | no | `POST /ai/{id}/avatar`, or a Google photo URL |
 
 **Response `201`** — `AiProfile`
 
@@ -100,6 +100,34 @@ Return the current user’s primary AI profile.
 Update `name`, `headline`, `avatar_url`, `bio`. Owner only.
 
 **Errors:** `401`, `403`, `404`
+
+---
+
+### `POST /ai/{profile_id}/avatar` — Shipped
+
+Multipart image upload (`file`). Stores the photo on **Cloudflare R2** when `R2_*` env is set; otherwise local disk. `avatar_url` is `/media/avatars/{profile_id}?v=…` (FastAPI streams the object from R2).
+
+JPEG, PNG, WebP, or GIF. Max 2 MB. Owner only.
+
+**Response `200`** — `AiProfile`
+
+**Errors:** `400` (type/size), `401`, `403`, `404`, `502` (R2 upload failed)
+
+---
+
+### `DELETE /ai/{profile_id}/avatar` — Shipped
+
+Clears `avatar_url` and deletes the stored file. Owner only.
+
+**Response `200`** — `AiProfile`
+
+---
+
+### `GET /media/avatars/{profile_id}` — Shipped
+
+Public file for the stored photo (no auth). Reads R2 first-or-local leftover. Used by the owner UI and `/u/[username]`.
+
+**Errors:** `404`
 
 ---
 
@@ -301,7 +329,7 @@ Sets `visibility=draft`. Public page returns 404 until published again.
 
 ## 7. Knowledge / RAG — Shipped (Phase 2)
 
-Files are stored under `apps/api/uploads/` (local). Ingest runs in a FastAPI background task: extract → chunk → embed → `document_chunks` (pgvector).
+Files are stored on **Cloudflare R2** (`docs/{profile_id}/…`) when `R2_*` env is set; otherwise `apps/api/uploads/`. Ingest reads the object, then extract → chunk → embed → `document_chunks` (pgvector). Existing local `file_url` rows still ingest from disk.
 
 Supported upload types: `.pdf`, `.docx`, `.txt`, `.md`, `.html` (max 8 MB).
 
@@ -313,7 +341,7 @@ Multipart form field `file`. Returns a document with `status=pending`; poll `GET
 
 **Response `201`** — `Document`
 
-**Errors:** `400` (type/size), `401`, `403`, `404`
+**Errors:** `400` (type/size), `401`, `403`, `404`, `502` (R2 upload failed)
 
 ---
 

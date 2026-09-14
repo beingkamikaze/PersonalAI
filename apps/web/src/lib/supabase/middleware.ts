@@ -59,7 +59,7 @@ export async function updateSession(request: NextRequest) {
   // Do NOT redirect away from /update-password — recovery lands there with a session.
   if (user && (path === "/sign-in" || path === "/sign-up")) {
     const url = request.nextUrl.clone();
-    url.pathname = "/onboarding/create";
+    url.pathname = "/app";
     return NextResponse.redirect(url);
   }
 

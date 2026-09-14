@@ -7,6 +7,18 @@ import { createClient } from "@/lib/supabase/client";
  * After sign-out, middleware treats `/app/*` and `/onboarding/*` as unauthenticated.
  */
 
+/** Returning owners land here. `/app` sends users with no profile to create. */
+export const POST_LOGIN_PATH = "/app";
+/** First-time sign-up still starts the wizard. */
+export const POST_SIGNUP_PATH = "/onboarding/create";
+
+export function hasFinishedOnboarding(profile: {
+  visibility: string;
+  username: string | null;
+}): boolean {
+  return profile.visibility === "published" || Boolean(profile.username);
+}
+
 export type SessionUser = {
   email: string | null;
   name: string | null;

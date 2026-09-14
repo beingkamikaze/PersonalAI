@@ -2,7 +2,7 @@
 
 Living checklist against `PersonaAI_Implementation_Plan.md`. Update this file whenever a line item ships or is deferred.
 
-Last updated: 2026-09-12 (Phase 5 harden + soft-launch tooling shipped)
+Last updated: 2026-09-14 (knowledge docs on Cloudflare R2)
 
 ---
 
@@ -36,7 +36,7 @@ Track auth line items here even though they span Phase 0+. Details: `docs/AUTH_A
 | Next.js shell + Tailwind | Done | |
 | FastAPI `/health` | Done | |
 | Supabase Auth → JWT on API | Done | |
-| `users` + `ai_profiles` CRUD | Done | `POST /ai`, `GET /ai/me`, `PATCH /ai/:id` |
+| `users` + `ai_profiles` CRUD | Done | `POST /ai`, `GET /ai/me`, `PATCH /ai/:id`; avatar upload `POST/DELETE /ai/:id/avatar` + `GET /media/avatars/:id` |
 | Deploy empty app | Pending | Local-first for now |
 
 **Done when:** signed-in user can create a draft AI profile. ✅
@@ -67,7 +67,7 @@ Track auth line items here even though they span Phase 0+. Details: `docs/AUTH_A
 | URL ingest (fail gracefully) | Done | `POST /ai/:id/knowledge/url` |
 | Owner chat uses RAG + profile | Done | Soft no-op if no ready chunks; validated with resume Q&A |
 | Knowledge UI with processing states | Done | Onboarding + `/app/knowledge` |
-| S3 / R2 / Supabase Storage | Deferred | Local disk OK for MVP; swap `storage.py` later |
+| S3 / R2 / Supabase Storage | Done | Avatars + knowledge docs on Cloudflare R2 (`docs/` prefix); local leftover still served |
 | Redis / RQ worker | Deferred | FastAPI `BackgroundTasks` for now |
 
 **Done when:** resume questions answered from uploaded file. ✅ (validated 2026-09-12 — ada-002 embeddings + RAG hits in owner chat)

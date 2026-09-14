@@ -3,6 +3,7 @@
 import { FormEvent, useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { UserAvatar } from "@/components/user-avatar";
 import {
   ApiError,
   publicApiFetch,
@@ -134,15 +135,7 @@ export default function PublicAiPage() {
     <div className="atmosphere min-h-screen">
       <main className="mx-auto flex min-h-screen w-full max-w-3xl flex-col px-6 py-12 md:px-10">
         <div className="flex items-start gap-4">
-          <div
-            aria-hidden
-            className="h-16 w-16 shrink-0 rounded-full"
-            style={{
-              background: profile.avatar_url
-                ? `center / cover url(${profile.avatar_url})`
-                : "var(--atmosphere-2)",
-            }}
-          />
+          <UserAvatar name={profile.name} src={profile.avatar_url} size="lg" />
           <div>
             <h1 className="font-display text-3xl tracking-tight text-fg md:text-4xl">
               {profile.name}

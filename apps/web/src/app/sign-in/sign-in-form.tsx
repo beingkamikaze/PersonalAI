@@ -6,12 +6,13 @@ import { FormEvent, useState } from "react";
 import { SiteHeader } from "@/components/site-header";
 import { ScreenIntro } from "@/components/screen-intro";
 import { Button } from "@/components/ui/button";
+import { POST_LOGIN_PATH } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/client";
 
 export default function SignInForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const next = searchParams.get("next") ?? "/onboarding/create";
+  const next = searchParams.get("next") ?? POST_LOGIN_PATH;
   const authError = searchParams.get("error");
 
   const [email, setEmail] = useState("");

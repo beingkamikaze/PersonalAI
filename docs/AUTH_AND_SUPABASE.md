@@ -93,7 +93,7 @@ Callback: `apps/web/src/app/auth/callback/route.ts`
 User → /sign-in
   → supabase.auth.signInWithPassword({ email, password })
   → Session stored in cookies (via @supabase/ssr)
-  → router.push(next || /onboarding/create)
+  → router.push(next || /app)
 ```
 
 Code: `apps/web/src/app/sign-in/sign-in-form.tsx`
@@ -102,10 +102,10 @@ Code: `apps/web/src/app/sign-in/sign-in-form.tsx`
 
 ```text
 User clicks “Continue with Google”
-  → supabase.auth.signInWithOAuth({ provider: "google", redirectTo: /auth/callback })
+  → supabase.auth.signInWithOAuth({ provider: "google", redirectTo: /auth/callback?next=… })
   → Google → Supabase → redirect to /auth/callback?code=…
   → exchangeCodeForSession
-  → /onboarding/create
+  → /app after sign-in, /onboarding/create after sign-up
 ```
 
 Requires Google provider enabled in Supabase Auth, and redirect URL allowlist including:
@@ -134,7 +134,7 @@ On each request (when env is set):
 2. `supabase.auth.getUser()` — refreshes session if needed
 3. If path is `/onboarding/*` or `/app/*` and **no user** → redirect `/sign-in?next=…`
 4. If path is `/update-password` and **no user** → redirect `/forgot-password`
-5. If user is signed in and path is `/sign-in` or `/sign-up` → redirect `/onboarding/create`
+5. If user is signed in and path is `/sign-in` or `/sign-up` → redirect `/app`
 6. If user is signed in and path is `/forgot-password` → redirect `/update-password`
 7. Public routes (`/`, `/pricing`, `/u/*`, `/forgot-password` when logged out) stay open
 8. `/update-password` is **not** redirected away when signed in (recovery lands here)

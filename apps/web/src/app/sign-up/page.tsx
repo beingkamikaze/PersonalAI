@@ -6,6 +6,7 @@ import { FormEvent, useState } from "react";
 import { SiteHeader } from "@/components/site-header";
 import { ScreenIntro } from "@/components/screen-intro";
 import { Button } from "@/components/ui/button";
+import { POST_SIGNUP_PATH } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/client";
 
 export default function SignUpPage() {
@@ -28,7 +29,7 @@ export default function SignUpPage() {
       password,
       options: {
         data: { full_name: fullName },
-        emailRedirectTo: `${window.location.origin}/auth/callback?next=/onboarding/create`,
+        emailRedirectTo: `${window.location.origin}/auth/callback?next=${POST_SIGNUP_PATH}`,
       },
     });
     setLoading(false);
@@ -37,7 +38,7 @@ export default function SignUpPage() {
       return;
     }
     if (data.session) {
-      router.push("/onboarding/create");
+      router.push(POST_SIGNUP_PATH);
       router.refresh();
       return;
     }
@@ -50,7 +51,7 @@ export default function SignUpPage() {
     const { error: oauthError } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/auth/callback?next=/onboarding/create`,
+        redirectTo: `${window.location.origin}/auth/callback?next=${POST_SIGNUP_PATH}`,
       },
     });
     if (oauthError) {

@@ -2,16 +2,22 @@
 
 import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { AvatarPicker } from "@/components/avatar-picker";
 import { OnboardingProgress } from "@/components/onboarding-progress";
 import { ScreenIntro } from "@/components/screen-intro";
 import { Button } from "@/components/ui/button";
-import { ApiError, apiFetch, type AiProfile } from "@/lib/api";
+import { ApiError, apiFetch, apiUpload, type AiProfile } from "@/lib/api";
+import { getSessionUser, hasFinishedOnboarding, type SessionUser } from "@/lib/auth";
 
 export default function OnboardingCreatePage() {
   const router = useRouter();
   const [name, setName] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [headline, setHeadline] = useState("");
+  const [account, setAccount] = useState<SessionUser | null>(null);
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const [omitGoogleAvatar, setOmitGoogleAvatar] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [checking, setChecking] = useState(true);
@@ -20,9 +26,13 @@ export default function OnboardingCreatePage() {
     let cancelled = false;
     (async () => {
       try {
-        await apiFetch<AiProfile>("/ai/me");
+        const session = await getSessionUser();
+        if (!cancelled) setAccount(session);
+        const me = await apiFetch<AiProfile>("/ai/me");
         if (!cancelled) {
-          router.replace("/onboarding/interview");
+          router.replace(
+            hasFinishedOnboarding(me) ? "/app" : "/onboarding/interview",
+          );
         }
       } catch (err) {
         if (err instanceof ApiError && err.status === 404) {
@@ -41,19 +51,42 @@ export default function OnboardingCreatePage() {
     };
   }, [router]);
 
+  useEffect(() => {
+    if (!avatarFile) {
+      setAvatarPreview(null);
+      return;
+    }
+    const url = URL.createObjectURL(avatarFile);
+    setAvatarPreview(url);
+    return () => URL.revokeObjectURL(url);
+  }, [avatarFile]);
+
+  const googleAvatar =
+    !omitGoogleAvatar && !avatarFile ? account?.avatarUrl : null;
+  const avatarSrc = avatarPreview || googleAvatar;
+  const previewName = name.trim() || displayName.trim() || account?.name || "You";
+
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     setLoading(true);
     setError(null);
     const profileName = name.trim() || displayName.trim();
     try {
-      await apiFetch<AiProfile>("/ai", {
+      const created = await apiFetch<AiProfile>("/ai", {
         method: "POST",
         body: JSON.stringify({
           name: profileName,
           headline: headline.trim() || null,
+          avatar_url: avatarFile ? null : googleAvatar || null,
         }),
       });
+      if (avatarFile) {
+        try {
+          await apiUpload<AiProfile>(`/ai/${created.id}/avatar`, avatarFile);
+        } catch (uploadErr) {
+          console.error("[onboarding] avatar upload failed", uploadErr);
+        }
+      }
       router.push("/onboarding/interview");
     } catch (err) {
       if (err instanceof ApiError && err.status === 409) {
@@ -78,7 +111,7 @@ export default function OnboardingCreatePage() {
   return (
     <ScreenIntro
       title="Create your AI profile"
-      description="Name, display name, and headline. Done when a draft profile exists."
+      description="Name, headline, and an optional photo. Done when a draft profile exists."
     >
       <OnboardingProgress step={1} />
       <form onSubmit={onSubmit} className="mt-8 space-y-5">
@@ -104,12 +137,25 @@ export default function OnboardingCreatePage() {
           value={headline}
           onChange={setHeadline}
         />
-        <div>
-          <label className="text-sm font-medium text-fg">Avatar</label>
-          <div className="mt-2 rounded border border-dashed border-border bg-elevated px-4 py-8 text-center text-sm text-muted">
-            Upload comes in Phase 2 (object storage)
-          </div>
-        </div>
+        <AvatarPicker
+          name={previewName}
+          src={avatarSrc}
+          busy={loading}
+          onSelect={(file) => {
+            setError(null);
+            setOmitGoogleAvatar(false);
+            setAvatarFile(file);
+          }}
+          onRemove={
+            avatarSrc
+              ? () => {
+                  setAvatarFile(null);
+                  setOmitGoogleAvatar(true);
+                }
+              : undefined
+          }
+          onError={setError}
+        />
         {error ? (
           <p className="text-sm text-red-700" role="alert">
             {error}

@@ -14,6 +14,7 @@ from app.routers import (
     feedback,
     interview,
     knowledge,
+    media,
     memory,
     personality,
     public,
@@ -38,6 +39,7 @@ app.include_router(interview.router)
 app.include_router(personality.router)
 app.include_router(chat.router)
 app.include_router(knowledge.router)
+app.include_router(media.router)
 app.include_router(memory.router)
 app.include_router(public.router)
 app.include_router(feedback.router)
@@ -94,7 +96,8 @@ def on_startup() -> None:
     logger.info(
         "API startup supabase_url=%s llm_provider=%s chat_model=%s "
         "embedding_provider=%s embedding_model=%s upload_dir=%s "
-        "openai_key_set=%s azure_key_set=%s azure_endpoint_set=%s cors=%s",
+        "openai_key_set=%s azure_key_set=%s azure_endpoint_set=%s cors=%s "
+        "r2_avatars=%s r2_bucket=%s",
         settings.supabase_url,
         provider,
         settings.chat_model_id,
@@ -105,6 +108,8 @@ def on_startup() -> None:
         bool(settings.azure_openai_api_key),
         bool(settings.azure_openai_endpoint),
         settings.cors_origin_list,
+        settings.r2_configured,
+        (settings.r2_bucket_avatars or "").strip() or None,
     )
 
 

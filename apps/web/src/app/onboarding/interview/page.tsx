@@ -11,6 +11,7 @@ import {
   type AiProfile,
   type InterviewState,
 } from "@/lib/api";
+import { hasFinishedOnboarding } from "@/lib/auth";
 
 /**
  * Fixed 10-question professional interview.
@@ -39,7 +40,11 @@ export default function OnboardingInterviewPage() {
         if (cancelled) return;
         setState(started);
         if (started.completed) {
-          router.replace("/onboarding/knowledge");
+          router.replace(
+            hasFinishedOnboarding(me)
+              ? "/app"
+              : "/onboarding/knowledge",
+          );
         }
       } catch (err) {
         if (cancelled) return;

@@ -2,13 +2,14 @@
 
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.analytics import summarize
 from app.auth import get_current_user
 from app.completeness import refresh_completeness
+from app.config import get_settings
 from app.db import get_db
 from app.logging_config import get_logger
 from app.models import AiProfile, User
@@ -19,6 +20,11 @@ from app.schemas import (
     AiProfileUpdate,
     AnalyticsSummaryOut,
     PublishIn,
+)
+from app.storage import (
+    delete_avatar_files,
+    extension_for_avatar,
+    save_avatar,
 )
 from app.usage import usage_snapshot
 from app.usernames import validate_username
@@ -142,6 +148,69 @@ def update_ai_profile(
         ) from exc
     db.refresh(profile)
     logger.info("profile updated id=%s fields=%s", profile.id, list(body.model_dump(exclude_unset=True).keys()))
+    return profile
+
+
+@router.post("/{profile_id}/avatar", response_model=AiProfileOut)
+async def upload_avatar(
+    profile_id: UUID,
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> AiProfile:
+    """Multipart image upload; stores on R2 (or local disk) and sets avatar_url."""
+    profile = get_owned_profile(db, user, profile_id)
+    settings = get_settings()
+    ext = extension_for_avatar(file.filename or "", file.content_type)
+    if ext is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Use a JPEG, PNG, WebP, or GIF image",
+        )
+
+    data = await file.read()
+    if not data:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Empty file",
+        )
+    if len(data) > settings.max_avatar_bytes:
+        max_mb = settings.max_avatar_bytes // (1024 * 1024)
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Photo too large (max {max_mb} MB)",
+        )
+
+    try:
+        profile.avatar_url = save_avatar(profile.id, ext, data)
+    except RuntimeError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=str(exc),
+        ) from exc
+    db.commit()
+    db.refresh(profile)
+    logger.info(
+        "avatar uploaded profile_id=%s bytes=%s",
+        profile.id,
+        len(data),
+    )
+    return profile
+
+
+@router.delete("/{profile_id}/avatar", response_model=AiProfileOut)
+def delete_avatar(
+    profile_id: UUID,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> AiProfile:
+    """Clear avatar_url and delete the stored file (R2 and/or local)."""
+    profile = get_owned_profile(db, user, profile_id)
+    delete_avatar_files(profile.id)
+    profile.avatar_url = None
+    db.commit()
+    db.refresh(profile)
+    logger.info("avatar deleted profile_id=%s", profile.id)
     return profile
 
 

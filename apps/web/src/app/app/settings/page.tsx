@@ -1,39 +1,116 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ScreenIntro } from "@/components/screen-intro";
-import { UserAvatar } from "@/components/user-avatar";
+import { UnsavedChangesDialog } from "@/components/unsaved-changes-dialog";
+import { AvatarPicker } from "@/components/avatar-picker";
 import { Button, ButtonLink } from "@/components/ui/button";
+import { EditableField } from "@/components/ui/editable-field";
 import {
   getSessionUser,
   notifyAccountChanged,
   type SessionUser,
 } from "@/lib/auth";
+import { useLeaveGuard } from "@/lib/use-leave-guard";
 import {
   ApiError,
   apiFetch,
+  apiUpload,
   type AiProfile,
   type Personality,
 } from "@/lib/api";
 
+type ProfileDraft = {
+  name: string;
+  headline: string;
+  bio: string;
+};
+
+type PublicDraft = {
+  username: string;
+  contactEmail: string;
+  calendarLink: string;
+};
+
+type PersonalityDraft = {
+  communication_style: string;
+  formality: string;
+  humor: string;
+  verbosity: string;
+  directness: string;
+  traits: string;
+};
+
+function profileDraftFrom(me: AiProfile): ProfileDraft {
+  return {
+    name: me.name,
+    headline: me.headline ?? "",
+    bio: me.bio ?? "",
+  };
+}
+
+function publicDraftFrom(me: AiProfile): PublicDraft {
+  return {
+    username: me.username ?? "",
+    contactEmail: me.contact_email ?? "",
+    calendarLink: me.calendar_link ?? "",
+  };
+}
+
+function personalityDraftFrom(p: Personality): PersonalityDraft {
+  return {
+    communication_style: p.communication_style ?? "",
+    formality: p.formality ?? "",
+    humor: p.humor ?? "",
+    verbosity: p.verbosity ?? "",
+    directness: p.directness ?? "",
+    traits: (p.traits ?? []).map(String).join(", "),
+  };
+}
+
+function draftsEqual<T>(a: T, b: T): boolean {
+  return JSON.stringify(a) === JSON.stringify(b);
+}
+
 /**
- * Settings — account identity + AI profile + personality + publish (Phase 1 + 4).
+ * Profile — public identity, personality, and publish (Phase 1 + 4).
+ * Route stays `/app/settings` (MVP screen list).
+ * Fields load from the DB; each section must be saved before leaving.
  */
 export default function SettingsPage() {
   const router = useRouter();
   const [account, setAccount] = useState<SessionUser | null>(null);
   const [profile, setProfile] = useState<AiProfile | null>(null);
   const [personality, setPersonality] = useState<Personality | null>(null);
-  const [name, setName] = useState("");
-  const [headline, setHeadline] = useState("");
-  const [bio, setBio] = useState("");
-  const [username, setUsername] = useState("");
-  const [contactEmail, setContactEmail] = useState("");
-  const [calendarLink, setCalendarLink] = useState("");
+  const [savedProfile, setSavedProfile] = useState<ProfileDraft | null>(null);
+  const [savedPublic, setSavedPublic] = useState<PublicDraft | null>(null);
+  const [savedPersonality, setSavedPersonality] =
+    useState<PersonalityDraft | null>(null);
+  const [profileDraft, setProfileDraft] = useState<ProfileDraft>({
+    name: "",
+    headline: "",
+    bio: "",
+  });
+  const [publicDraft, setPublicDraft] = useState<PublicDraft>({
+    username: "",
+    contactEmail: "",
+    calendarLink: "",
+  });
+  const [personalityDraft, setPersonalityDraft] = useState<PersonalityDraft>({
+    communication_style: "",
+    formality: "",
+    humor: "",
+    verbosity: "",
+    directness: "",
+    traits: "",
+  });
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [profileLock, setProfileLock] = useState(0);
+  const [publicLock, setPublicLock] = useState(0);
+  const [personalityLock, setPersonalityLock] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -45,15 +122,19 @@ export default function SettingsPage() {
         const me = await apiFetch<AiProfile>("/ai/me");
         if (cancelled) return;
         setProfile(me);
-        setName(me.name);
-        setHeadline(me.headline ?? "");
-        setBio(me.bio ?? "");
-        setUsername(me.username ?? "");
-        setContactEmail(me.contact_email ?? "");
-        setCalendarLink(me.calendar_link ?? "");
+        const nextProfile = profileDraftFrom(me);
+        const nextPublic = publicDraftFrom(me);
+        setSavedProfile(nextProfile);
+        setSavedPublic(nextPublic);
+        setProfileDraft(nextProfile);
+        setPublicDraft(nextPublic);
         try {
           const p = await apiFetch<Personality>(`/ai/${me.id}/personality`);
-          if (!cancelled) setPersonality(p);
+          if (cancelled) return;
+          setPersonality(p);
+          const nextPersonality = personalityDraftFrom(p);
+          setSavedPersonality(nextPersonality);
+          setPersonalityDraft(nextPersonality);
         } catch (err) {
           if (!(err instanceof ApiError && err.status === 404) && !cancelled) {
             setError(
@@ -78,6 +159,29 @@ export default function SettingsPage() {
     };
   }, [router]);
 
+  const profileDirty =
+    savedProfile !== null && !draftsEqual(profileDraft, savedProfile);
+  const publicDirty =
+    savedPublic !== null && !draftsEqual(publicDraft, savedPublic);
+  const personalityDirty =
+    savedPersonality !== null &&
+    !draftsEqual(personalityDraft, savedPersonality);
+  const hasUnsaved = profileDirty || publicDirty || personalityDirty;
+
+  const unsavedDetail = useMemo(() => {
+    const actions: string[] = [];
+    if (profileDirty) actions.push("Save profile");
+    if (publicDirty) actions.push("Save public settings");
+    if (personalityDirty) actions.push("Save personality");
+    if (actions.length === 0) return "";
+    if (actions.length === 1) {
+      return `You changed a field. Click ${actions[0]} before leaving this page.`;
+    }
+    return `You have unsaved edits. Click ${actions.join(", then ")} before leaving this page.`;
+  }, [profileDirty, publicDirty, personalityDirty]);
+
+  const { open, stay, leaveWithoutSaving } = useLeaveGuard(hasUnsaved);
+
   async function onSavePersonality(e: FormEvent) {
     e.preventDefault();
     if (!profile || !personality) return;
@@ -90,16 +194,24 @@ export default function SettingsPage() {
         {
           method: "PATCH",
           body: JSON.stringify({
-            communication_style: personality.communication_style,
-            formality: personality.formality,
-            humor: personality.humor,
-            verbosity: personality.verbosity,
-            directness: personality.directness,
-            traits: personality.traits,
+            communication_style:
+              personalityDraft.communication_style.trim() || null,
+            formality: personalityDraft.formality.trim() || null,
+            humor: personalityDraft.humor.trim() || null,
+            verbosity: personalityDraft.verbosity.trim() || null,
+            directness: personalityDraft.directness.trim() || null,
+            traits: personalityDraft.traits
+              .split(",")
+              .map((t) => t.trim())
+              .filter(Boolean),
           }),
         },
       );
       setPersonality(updated);
+      const next = personalityDraftFrom(updated);
+      setSavedPersonality(next);
+      setPersonalityDraft(next);
+      setPersonalityLock((n) => n + 1);
       setMessage("Personality saved.");
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Save failed");
@@ -118,15 +230,16 @@ export default function SettingsPage() {
       const updated = await apiFetch<AiProfile>(`/ai/${profile.id}`, {
         method: "PATCH",
         body: JSON.stringify({
-          name: name.trim(),
-          headline: headline.trim() || null,
-          bio: bio.trim() || null,
+          name: profileDraft.name.trim(),
+          headline: profileDraft.headline.trim() || null,
+          bio: profileDraft.bio.trim() || null,
         }),
       });
       setProfile(updated);
-      setName(updated.name);
-      setHeadline(updated.headline ?? "");
-      setBio(updated.bio ?? "");
+      const next = profileDraftFrom(updated);
+      setSavedProfile(next);
+      setProfileDraft(next);
+      setProfileLock((n) => n + 1);
       notifyAccountChanged();
       setMessage("Profile saved.");
     } catch (err) {
@@ -146,15 +259,16 @@ export default function SettingsPage() {
       const updated = await apiFetch<AiProfile>(`/ai/${profile.id}`, {
         method: "PATCH",
         body: JSON.stringify({
-          username: username.trim().toLowerCase() || null,
-          contact_email: contactEmail.trim() || null,
-          calendar_link: calendarLink.trim() || null,
+          username: publicDraft.username.trim().toLowerCase() || null,
+          contact_email: publicDraft.contactEmail.trim() || null,
+          calendar_link: publicDraft.calendarLink.trim() || null,
         }),
       });
       setProfile(updated);
-      setUsername(updated.username ?? "");
-      setContactEmail(updated.contact_email ?? "");
-      setCalendarLink(updated.calendar_link ?? "");
+      const next = publicDraftFrom(updated);
+      setSavedPublic(next);
+      setPublicDraft(next);
+      setPublicLock((n) => n + 1);
       notifyAccountChanged();
       setMessage("Public settings saved.");
     } catch (err) {
@@ -173,12 +287,16 @@ export default function SettingsPage() {
       const updated = await apiFetch<AiProfile>(`/ai/${profile.id}/publish`, {
         method: "POST",
         body: JSON.stringify({
-          username: username.trim().toLowerCase() || undefined,
-          contact_email: contactEmail.trim() || null,
-          calendar_link: calendarLink.trim() || null,
+          username: publicDraft.username.trim().toLowerCase() || undefined,
+          contact_email: publicDraft.contactEmail.trim() || null,
+          calendar_link: publicDraft.calendarLink.trim() || null,
         }),
       });
       setProfile(updated);
+      const nextPublic = publicDraftFrom(updated);
+      setSavedPublic(nextPublic);
+      setPublicDraft(nextPublic);
+      setPublicLock((n) => n + 1);
       notifyAccountChanged();
       setMessage("Published.");
     } catch (err) {
@@ -208,16 +326,54 @@ export default function SettingsPage() {
     }
   }
 
+  async function onAvatarSelect(file: File) {
+    if (!profile) return;
+    setSaving(true);
+    setError(null);
+    setMessage(null);
+    try {
+      const updated = await apiUpload<AiProfile>(
+        `/ai/${profile.id}/avatar`,
+        file,
+      );
+      setProfile(updated);
+      notifyAccountChanged();
+      setMessage("Photo updated.");
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Photo upload failed");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function onAvatarRemove() {
+    if (!profile) return;
+    setSaving(true);
+    setError(null);
+    setMessage(null);
+    try {
+      const updated = await apiFetch<AiProfile>(`/ai/${profile.id}/avatar`, {
+        method: "DELETE",
+      });
+      setProfile(updated);
+      notifyAccountChanged();
+      setMessage("Photo removed.");
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Could not remove photo");
+    } finally {
+      setSaving(false);
+    }
+  }
+
   const displayName = profile?.name || account?.name || "You";
-  const avatarSrc = profile?.avatar_url || account?.avatarUrl;
+  const avatarSrc = profile?.avatar_url;
 
   return (
     <ScreenIntro
-      title="Settings"
-      description="Who you are, how the AI represents you, and publish state."
+      title="Profile"
+      description="Who you are, how the AI represents you, and publish state. Click the pencil to edit a field, then save that section. Photo saves as soon as you pick a file."
     >
-      <div className="mb-10 flex items-center gap-4">
-        <UserAvatar name={displayName} src={avatarSrc} size="md" />
+      <div className="mb-10 space-y-4">
         <div className="min-w-0">
           <p className="text-fg">{displayName}</p>
           <p className="truncate text-sm text-muted">
@@ -225,6 +381,16 @@ export default function SettingsPage() {
             {profile ? ` · ${profile.visibility}` : null}
           </p>
         </div>
+        {profile ? (
+          <AvatarPicker
+            name={displayName}
+            src={avatarSrc}
+            busy={saving}
+            onSelect={(file) => void onAvatarSelect(file)}
+            onRemove={profile.avatar_url ? () => void onAvatarRemove() : undefined}
+            onError={setError}
+          />
+        ) : null}
       </div>
 
       {profile ? (
@@ -233,21 +399,36 @@ export default function SettingsPage() {
           <p className="text-sm text-muted">
             Name, headline, and bio visitors see on your public page.
           </p>
-          <Field label="Name" value={name} onChange={setName} />
-          <Field label="Headline" value={headline} onChange={setHeadline} />
-          <div>
-            <label htmlFor="bio" className="text-sm font-medium text-fg">
-              Bio
-            </label>
-            <textarea
-              id="bio"
-              value={bio}
-              rows={4}
-              onChange={(e) => setBio(e.target.value)}
-              className="mt-2 w-full rounded border border-border bg-elevated px-3 py-2.5 text-sm focus:border-accent focus:outline-none"
-            />
-          </div>
-          <Button type="submit" disabled={saving || !name.trim()}>
+          <EditableField
+            label="Name"
+            value={profileDraft.name}
+            lockVersion={profileLock}
+            onChange={(name) => setProfileDraft({ ...profileDraft, name })}
+          />
+          <EditableField
+            label="Headline"
+            value={profileDraft.headline}
+            lockVersion={profileLock}
+            onChange={(headline) =>
+              setProfileDraft({ ...profileDraft, headline })
+            }
+          />
+          <EditableField
+            label="Bio"
+            value={profileDraft.bio}
+            lockVersion={profileLock}
+            multiline
+            onChange={(bio) => setProfileDraft({ ...profileDraft, bio })}
+          />
+          {profileDirty ? (
+            <p className="text-sm text-fg">
+              Unsaved — click Save profile before leaving.
+            </p>
+          ) : null}
+          <Button
+            type="submit"
+            disabled={saving || !profileDraft.name.trim() || !profileDirty}
+          >
             Save profile
           </Button>
         </form>
@@ -255,23 +436,37 @@ export default function SettingsPage() {
 
       <form onSubmit={onSavePublic} className="mb-10 space-y-4">
         <h2 className="font-display text-xl text-fg">Public link</h2>
-        <Field
+        <EditableField
           label="Username"
-          value={username}
-          onChange={setUsername}
+          value={publicDraft.username}
+          lockVersion={publicLock}
+          onChange={(username) =>
+            setPublicDraft({ ...publicDraft, username })
+          }
         />
-        <Field
+        <EditableField
           label="Contact email"
-          value={contactEmail}
-          onChange={setContactEmail}
+          value={publicDraft.contactEmail}
+          lockVersion={publicLock}
+          onChange={(contactEmail) =>
+            setPublicDraft({ ...publicDraft, contactEmail })
+          }
         />
-        <Field
+        <EditableField
           label="Calendar link"
-          value={calendarLink}
-          onChange={setCalendarLink}
+          value={publicDraft.calendarLink}
+          lockVersion={publicLock}
+          onChange={(calendarLink) =>
+            setPublicDraft({ ...publicDraft, calendarLink })
+          }
         />
+        {publicDirty ? (
+          <p className="text-sm text-fg">
+            Unsaved — click Save public settings before leaving.
+          </p>
+        ) : null}
         <div className="flex flex-wrap gap-3">
-          <Button type="submit" disabled={saving}>
+          <Button type="submit" disabled={saving || !publicDirty}>
             Save public settings
           </Button>
           {profile?.visibility === "published" ? (
@@ -304,52 +499,55 @@ export default function SettingsPage() {
       {personality ? (
         <form onSubmit={onSavePersonality} className="space-y-5">
           <h2 className="font-display text-xl text-fg">Personality</h2>
-          <Field
+          <EditableField
             label="Communication style"
-            value={personality.communication_style ?? ""}
-            onChange={(v) =>
-              setPersonality({ ...personality, communication_style: v || null })
-            }
-          />
-          <Field
-            label="Formality"
-            value={personality.formality ?? ""}
-            onChange={(v) =>
-              setPersonality({ ...personality, formality: v || null })
-            }
-          />
-          <Field
-            label="Humor"
-            value={personality.humor ?? ""}
-            onChange={(v) =>
-              setPersonality({ ...personality, humor: v || null })
-            }
-          />
-          <Field
-            label="Verbosity"
-            value={personality.verbosity ?? ""}
-            onChange={(v) =>
-              setPersonality({ ...personality, verbosity: v || null })
-            }
-          />
-          <Field
-            label="Directness"
-            value={personality.directness ?? ""}
-            onChange={(v) =>
-              setPersonality({ ...personality, directness: v || null })
-            }
-          />
-          <Field
-            label="Traits (comma-separated)"
-            value={(personality.traits ?? []).map(String).join(", ")}
-            onChange={(v) =>
-              setPersonality({
-                ...personality,
-                traits: v
-                  .split(",")
-                  .map((t) => t.trim())
-                  .filter(Boolean),
+            value={personalityDraft.communication_style}
+            lockVersion={personalityLock}
+            onChange={(communication_style) =>
+              setPersonalityDraft({
+                ...personalityDraft,
+                communication_style,
               })
+            }
+          />
+          <EditableField
+            label="Formality"
+            value={personalityDraft.formality}
+            lockVersion={personalityLock}
+            onChange={(formality) =>
+              setPersonalityDraft({ ...personalityDraft, formality })
+            }
+          />
+          <EditableField
+            label="Humor"
+            value={personalityDraft.humor}
+            lockVersion={personalityLock}
+            onChange={(humor) =>
+              setPersonalityDraft({ ...personalityDraft, humor })
+            }
+          />
+          <EditableField
+            label="Verbosity"
+            value={personalityDraft.verbosity}
+            lockVersion={personalityLock}
+            onChange={(verbosity) =>
+              setPersonalityDraft({ ...personalityDraft, verbosity })
+            }
+          />
+          <EditableField
+            label="Directness"
+            value={personalityDraft.directness}
+            lockVersion={personalityLock}
+            onChange={(directness) =>
+              setPersonalityDraft({ ...personalityDraft, directness })
+            }
+          />
+          <EditableField
+            label="Traits (comma-separated)"
+            value={personalityDraft.traits}
+            lockVersion={personalityLock}
+            onChange={(traits) =>
+              setPersonalityDraft({ ...personalityDraft, traits })
             }
           />
 
@@ -366,7 +564,12 @@ export default function SettingsPage() {
             </div>
           ) : null}
 
-          <Button type="submit" disabled={saving}>
+          {personalityDirty ? (
+            <p className="text-sm text-fg">
+              Unsaved — click Save personality before leaving.
+            </p>
+          ) : null}
+          <Button type="submit" disabled={saving || !personalityDirty}>
             {saving ? "Saving…" : "Save personality"}
           </Button>
         </form>
@@ -382,31 +585,13 @@ export default function SettingsPage() {
           {error}
         </p>
       ) : null}
-    </ScreenIntro>
-  );
-}
 
-function Field({
-  label,
-  value,
-  onChange,
-}: {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-}) {
-  const id = label.toLowerCase().replace(/\s+/g, "-");
-  return (
-    <div>
-      <label htmlFor={id} className="text-sm font-medium text-fg">
-        {label}
-      </label>
-      <input
-        id={id}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="mt-2 w-full rounded border border-border bg-elevated px-3 py-2.5 text-sm focus:border-accent focus:outline-none"
+      <UnsavedChangesDialog
+        open={open}
+        detail={unsavedDetail}
+        onStay={stay}
+        onLeave={leaveWithoutSaving}
       />
-    </div>
+    </ScreenIntro>
   );
 }

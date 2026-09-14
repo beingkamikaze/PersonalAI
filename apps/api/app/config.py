@@ -43,9 +43,17 @@ class Settings(BaseSettings):
     embedding_provider: str | None = None
     embedding_dimensions: int = 1536
 
-    # Local file storage for uploads (Supabase Storage can replace later)
+    # Local file storage for knowledge uploads (avatars use R2 when configured)
     upload_dir: str = "uploads"
     max_upload_bytes: int = 8 * 1024 * 1024  # 8 MB
+    max_avatar_bytes: int = 2 * 1024 * 1024  # 2 MB
+
+    # Cloudflare R2 (S3-compatible) — avatars
+    r2_account_id: str | None = None
+    r2_access_key_id: str | None = None
+    r2_secret_access_key: str | None = None
+    r2_bucket_avatars: str | None = None
+    r2_public_base_url: str | None = None
 
     # RAG retrieval
     rag_top_k: int = 6
@@ -132,6 +140,27 @@ class Settings(BaseSettings):
         if not path.is_absolute():
             path = _API_ROOT / path
         return path
+
+    @property
+    def r2_configured(self) -> bool:
+        """True when uploads can go to Cloudflare R2."""
+        return all(
+            (
+                (self.r2_account_id or "").strip(),
+                (self.r2_access_key_id or "").strip(),
+                (self.r2_secret_access_key or "").strip(),
+                (self.r2_bucket_avatars or "").strip(),
+            )
+        )
+
+    @property
+    def r2_endpoint_url(self) -> str:
+        account = (self.r2_account_id or "").strip()
+        return f"https://{account}.r2.cloudflarestorage.com"
+
+    @property
+    def r2_public_base(self) -> str:
+        return (self.r2_public_base_url or "").strip().rstrip("/")
 
 
 @lru_cache

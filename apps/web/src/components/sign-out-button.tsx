@@ -40,6 +40,7 @@ export function SignOutButton({
         type="button"
         variant={variant}
         disabled={loading}
+        data-unsaved-leave="true"
         onClick={() => void onSignOut()}
         className="w-full justify-start md:w-auto"
         aria-label="Sign out"

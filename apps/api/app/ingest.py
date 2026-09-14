@@ -16,8 +16,8 @@ from app.db import SessionLocal
 from app.embeddings import embed_texts
 from app.logging_config import get_logger
 from app.models import Document, DocumentChunk
-from app.storage import resolve_file_url
-from app.text_extract import chunk_text, extract_text_from_bytes, read_file_bytes
+from app.storage import read_document_bytes
+from app.text_extract import chunk_text, extract_text_from_bytes
 
 logger = get_logger(__name__)
 
@@ -65,11 +65,9 @@ def _ingest(db: Session, document_id: UUID) -> None:
     db.commit()
 
     try:
-        path = resolve_file_url(doc.file_url)
-        if path is None:
-            raise RuntimeError("Stored file not found on disk")
-
-        raw = read_file_bytes(path)
+        raw = read_document_bytes(doc.file_url)
+        if raw is None:
+            raise RuntimeError("Stored file not found")
         text = extract_text_from_bytes(raw, doc.filename, doc.mime_type)
         if not text.strip():
             raise RuntimeError("No extractable text in document")
