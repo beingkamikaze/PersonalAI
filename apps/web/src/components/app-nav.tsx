@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { AccountChip } from "@/components/account-chip";
 import { SignOutButton } from "@/components/sign-out-button";
+import { ProfileIcon, SettingsIcon } from "@/components/ui/icons";
 
 /** Owner app shell — Profile is identity; Settings is public link + account. */
 const links = [
@@ -15,7 +15,7 @@ const links = [
 ] as const;
 
 function navClass(active: boolean) {
-  return `rounded px-3 py-2 text-sm transition ${
+  return `inline-flex items-center gap-2 rounded px-3 py-2 text-sm transition ${
     active
       ? "bg-white text-fg shadow-sm"
       : "text-muted hover:bg-white/70 hover:text-fg"
@@ -48,10 +48,14 @@ export function AppNav() {
             </Link>
           );
         })}
-        <AccountChip href="/app/profile" variant="nav" active={profileActive} />
       </nav>
       <div className="shrink-0 space-y-1 md:mt-auto">
+        <Link href="/app/profile" className={navClass(profileActive)}>
+          <ProfileIcon className="shrink-0" />
+          Profile
+        </Link>
         <Link href="/app/settings" className={navClass(settingsActive)}>
+          <SettingsIcon className="shrink-0" />
           Settings
         </Link>
         <SignOutButton />

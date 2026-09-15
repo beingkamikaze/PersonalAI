@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { SignOutIcon } from "@/components/ui/icons";
 import { signOut } from "@/lib/auth";
 
 /**
@@ -42,9 +43,10 @@ export function SignOutButton({
         disabled={loading}
         data-unsaved-leave="true"
         onClick={() => void onSignOut()}
-        className="w-full justify-start md:w-auto"
+        className="w-full justify-start gap-2 px-3 py-2 font-normal md:w-auto"
         aria-label="Sign out"
       >
+        <SignOutIcon className="shrink-0" />
         {loading ? "Signing out…" : "Sign out"}
       </Button>
       {error ? (

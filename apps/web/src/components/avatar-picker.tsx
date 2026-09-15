@@ -1,10 +1,11 @@
 "use client";
 
-import { useId, useRef } from "react";
+import { type ReactNode, useId, useRef, useState } from "react";
 import { UserAvatar } from "@/components/user-avatar";
 
 const ACCEPT = "image/jpeg,image/png,image/webp,image/gif,.jpg,.jpeg,.png,.webp,.gif";
 const MAX_BYTES = 2 * 1024 * 1024;
+const HELP = "JPEG, PNG, or WebP — max 2 MB. Optional.";
 
 function PencilIcon() {
   return (
@@ -34,6 +35,8 @@ export function AvatarPicker({
   onRemove,
   onError,
   error,
+  variant = "field",
+  details,
 }: {
   name: string;
   src?: string | null;
@@ -42,13 +45,20 @@ export function AvatarPicker({
   onRemove?: () => void;
   onError?: (message: string) => void;
   error?: string | null;
+  /** `field` = onboarding form. `identity` = name + photo on one row. */
+  variant?: "field" | "identity";
+  details?: ReactNode;
 }) {
   const inputId = useId();
   const inputRef = useRef<HTMLInputElement>(null);
+  const [helpRevealed, setHelpRevealed] = useState(false);
   const hasPhoto = Boolean(src);
+  const isIdentity = variant === "identity";
+  const showHelp = isIdentity ? helpRevealed : true;
 
   function openPicker() {
     if (busy) return;
+    if (isIdentity) setHelpRevealed(true);
     inputRef.current?.click();
   }
 
@@ -71,28 +81,76 @@ export function AvatarPicker({
     if (inputRef.current) inputRef.current.value = "";
   }
 
+  const avatar = (
+    <div className="relative shrink-0">
+      <UserAvatar name={name} src={src} size="lg" />
+      <button
+        type="button"
+        disabled={busy}
+        aria-label={hasPhoto ? "Change profile photo" : "Add profile photo"}
+        title={hasPhoto ? "Change photo" : "Add photo"}
+        onClick={openPicker}
+        className="absolute -bottom-0.5 -right-0.5 rounded-full border border-border bg-elevated p-1.5 text-muted hover:text-fg disabled:opacity-50"
+      >
+        <PencilIcon />
+      </button>
+    </div>
+  );
+
+  const fileInput = (
+    <input
+      ref={inputRef}
+      id={inputId}
+      type="file"
+      accept={ACCEPT}
+      className="sr-only"
+      disabled={busy}
+      onChange={(e) => onFile(e.target.files?.[0] ?? null)}
+    />
+  );
+
+  if (isIdentity) {
+    return (
+      <div>
+        <div className="flex items-center gap-4">
+          {avatar}
+          <div className="min-w-0">
+            {details}
+            {hasPhoto && onRemove ? (
+              <button
+                type="button"
+                disabled={busy}
+                onClick={onRemove}
+                className="mt-1 text-sm text-muted hover:text-fg disabled:opacity-50"
+              >
+                {busy ? "Saving…" : "Remove photo"}
+              </button>
+            ) : busy ? (
+              <p className="mt-1 text-sm text-muted">Saving…</p>
+            ) : null}
+            {showHelp ? (
+              <p className="mt-1 text-sm text-muted">{HELP}</p>
+            ) : null}
+          </div>
+        </div>
+        {fileInput}
+        {error ? (
+          <p className="mt-2 text-sm text-red-700" role="alert">
+            {error}
+          </p>
+        ) : null}
+      </div>
+    );
+  }
+
   return (
     <div>
       <label htmlFor={inputId} className="text-sm font-medium text-fg">
         Profile photo
       </label>
-      <p className="mt-1 text-sm text-muted">
-        JPEG, PNG, or WebP — max 2 MB. Optional.
-      </p>
+      <p className="mt-1 text-sm text-muted">{HELP}</p>
       <div className="mt-3 flex items-center gap-4">
-        <div className="relative shrink-0">
-          <UserAvatar name={name} src={src} size="lg" />
-          <button
-            type="button"
-            disabled={busy}
-            aria-label={hasPhoto ? "Change profile photo" : "Add profile photo"}
-            title={hasPhoto ? "Change photo" : "Add photo"}
-            onClick={openPicker}
-            className="absolute -bottom-0.5 -right-0.5 rounded-full border border-border bg-elevated p-1.5 text-muted hover:text-fg disabled:opacity-50"
-          >
-            <PencilIcon />
-          </button>
-        </div>
+        {avatar}
         <div className="min-w-0 space-y-2">
           <button
             type="button"
@@ -114,15 +172,7 @@ export function AvatarPicker({
           ) : null}
         </div>
       </div>
-      <input
-        ref={inputRef}
-        id={inputId}
-        type="file"
-        accept={ACCEPT}
-        className="sr-only"
-        disabled={busy}
-        onChange={(e) => onFile(e.target.files?.[0] ?? null)}
-      />
+      {fileInput}
       {error ? (
         <p className="mt-2 text-sm text-red-700" role="alert">
           {error}

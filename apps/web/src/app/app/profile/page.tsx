@@ -238,24 +238,36 @@ export default function ProfilePage() {
       title="Profile"
       description="Who you are and how the AI represents you. Click the pencil to edit a field, then save that section. Photo saves as soon as you pick a file."
     >
-      <div className="mb-10 space-y-4">
-        <div className="min-w-0">
-          <p className="text-fg">{displayName}</p>
-          <p className="truncate text-sm text-muted">
-            {account?.email ?? "Signed in"}
-            {profile ? ` · ${profile.visibility}` : null}
-          </p>
-        </div>
+      <div className="mb-10">
         {profile ? (
           <AvatarPicker
+            variant="identity"
             name={displayName}
             src={avatarSrc}
             busy={saving}
+            details={
+              <>
+                <p className="text-fg">{displayName}</p>
+                <p className="truncate text-sm text-muted">
+                  {account?.email ?? "Signed in"}
+                  {` · ${profile.visibility}`}
+                </p>
+              </>
+            }
             onSelect={(file) => void onAvatarSelect(file)}
-            onRemove={profile.avatar_url ? () => void onAvatarRemove() : undefined}
+            onRemove={
+              profile.avatar_url ? () => void onAvatarRemove() : undefined
+            }
             onError={setError}
           />
-        ) : null}
+        ) : (
+          <div className="min-w-0">
+            <p className="text-fg">{displayName}</p>
+            <p className="truncate text-sm text-muted">
+              {account?.email ?? "Signed in"}
+            </p>
+          </div>
+        )}
       </div>
 
       {profile ? (
