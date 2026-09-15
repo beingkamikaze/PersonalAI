@@ -12,7 +12,7 @@ import { ApiError, apiFetch, type AiProfile } from "@/lib/api";
 
 /**
  * Shows who is signed in. Uses AI profile name when it exists, else auth metadata.
- * `variant="nav"` is the app-shell Profile item (avatar + "Profile").
+ * `variant="nav"` is the app-shell Profile item (avatar + "Profile") → `/app/profile`.
  */
 export function AccountChip({
   href,

@@ -233,6 +233,12 @@ class AnalyticsSummaryOut(BaseModel):
     documents_remaining: int = 8
 
 
+class AccountDeleteIn(BaseModel):
+    """Owner must type their email (or DELETE if no email) to wipe the account."""
+
+    confirmation: str = Field(min_length=1, max_length=320)
+
+
 class FeedbackIn(BaseModel):
     message: str = Field(min_length=5, max_length=4000)
     email: str | None = Field(default=None, max_length=320)

@@ -15,7 +15,7 @@ export default function OnboardingLayout({
           PersonaAI
         </Link>
         <div className="flex items-center gap-3 sm:gap-4">
-          <AccountChip href="/app/settings" compact />
+          <AccountChip href="/app/profile" compact />
           <Link href="/app" className="hidden text-sm text-muted hover:text-fg sm:inline">
             Skip to app
           </Link>

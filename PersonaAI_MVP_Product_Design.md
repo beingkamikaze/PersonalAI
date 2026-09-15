@@ -221,6 +221,7 @@ Public page includes:
 - Memories
 - Conversations (visitor threads, read-only first)
 - Simple analytics (visits, conversations, messages)
+- Profile (photo, name, headline, bio, personality)
 - Settings (username, CTAs, publish/unpublish, delete)
 
 ---
@@ -237,7 +238,7 @@ Only these surfaces are in MVP. Routes and build order: Implementation Plan §5�
 6. **Onboarding: Test** — private chat  
 7. **Onboarding: Publish** — username + share  
 8. **App dashboard**  
-9. **Knowledge / Memories / Chat / Conversations / Settings**  
+9. **Knowledge / Memories / Chat / Conversations / Profile / Settings**  
 10. **Public AI page**  
 
 ---

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { type ButtonHTMLAttributes, type ReactNode } from "react";
 
-type Variant = "primary" | "secondary" | "ghost";
+type Variant = "primary" | "secondary" | "ghost" | "danger";
 
 const variants: Record<Variant, string> = {
   primary:
@@ -9,6 +9,8 @@ const variants: Record<Variant, string> = {
   secondary:
     "border border-border bg-elevated text-fg hover:bg-white focus-visible:outline-fg/30",
   ghost: "text-muted hover:text-fg focus-visible:outline-fg/20",
+  danger:
+    "border border-red-700 text-red-700 hover:bg-red-50 focus-visible:outline-red-700/40",
 };
 
 export function Button({

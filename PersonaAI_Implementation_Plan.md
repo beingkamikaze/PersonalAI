@@ -228,6 +228,9 @@ Public
   GET    /public/:username
   POST   /public/:username/chat       # streaming, rate limited
 
+Account
+  DELETE /account                     # owner; confirm email
+
 Analytics
   GET    /ai/:id/analytics/summary
 ```
@@ -270,7 +273,8 @@ Streaming: SSE or HTTP chunked stream from FastAPI.
 | `/app/memories` | Memories | List / edit / delete |
 | `/app/chat` | Private chat | Owner testing |
 | `/app/conversations` | Visitor threads | Read-only first |
-| `/app/settings` | Settings | Profile, username, CTAs, unpublish, delete |
+| `/app/profile` | Profile | Photo, name, headline, bio, personality |
+| `/app/settings` | Settings | Username, CTAs, publish/unpublish, delete |
 
 ### Public
 

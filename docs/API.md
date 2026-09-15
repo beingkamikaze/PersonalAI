@@ -321,6 +321,28 @@ Sets `visibility=draft`. Public page returns 404 until published again.
 
 ---
 
+### `DELETE /account` — Shipped
+
+Permanently deletes the signed-in owner: AI profile, knowledge files, memories, conversations, and the `users` row. Then deletes the Supabase Auth user (service role if `SUPABASE_SERVICE_ROLE_KEY` is set; otherwise best-effort `DELETE /auth/v1/user` with the owner JWT).
+
+**Auth:** required
+
+**Body**
+
+```json
+{ "confirmation": "you@example.com" }
+```
+
+`confirmation` must match the account email (case-insensitive). If the account has no email, type `DELETE`.
+
+**Response `204`**
+
+**Errors:** `400` (confirmation mismatch), `401`
+
+After success the web app signs out and returns to `/`.
+
+---
+
 ### `PATCH /ai/{profile_id}` — also accepts (Phase 4)
 
 `username`, `contact_email`, `calendar_link` in addition to name/headline/bio/avatar.

@@ -2,7 +2,7 @@
 
 Living checklist against `PersonaAI_Implementation_Plan.md`. Update this file whenever a line item ships or is deferred.
 
-Last updated: 2026-09-14 (knowledge docs on Cloudflare R2)
+Last updated: 2026-09-15 (Profile vs Settings split; delete account)
 
 ---
 
@@ -17,6 +17,7 @@ Track auth line items here even though they span Phase 0+. Details: `docs/AUTH_A
 | Google OAuth | Done | Needs Google enabled in Supabase project |
 | Session (cookie + middleware) | Done | `@supabase/ssr`; protects `/app/*`, `/onboarding/*` |
 | Logout | Done | Sidebar + onboarding → `supabase.auth.signOut()` → `/sign-in` |
+| Delete account | Done | Settings danger zone → `DELETE /account` + Auth user delete |
 | Password reset | Done | `/forgot-password` → email → `/auth/callback?next=/update-password` → `/update-password` |
 
 **Password reset setup (Supabase dashboard)**
@@ -49,7 +50,7 @@ Track auth line items here even though they span Phase 0+. Details: `docs/AUTH_A
 | --- | --- | --- |
 | Fixed professional interview script | Done | `interview_script.py` (10 Qs) |
 | `interview/answer` → LLM extract → DB | Done | Personality + structured facts |
-| Simple personality editor | Done | `/app/settings` |
+| Simple personality editor | Done | `/app/profile` |
 | Prompt builder v1 (identity + personality) | Done | Extended in Phase 2 with RAG |
 | Owner chat (no RAG) | Done | Still works when no docs |
 
@@ -105,7 +106,7 @@ Track auth line items here even though they span Phase 0+. Details: `docs/AUTH_A
 
 | Line item | Status | Notes |
 | --- | --- | --- |
-| Username + publish / unpublish | Done | `POST /ai/:id/publish` + unpublish; Settings + onboarding |
+| Username + publish / unpublish | Done | `POST /ai/:id/publish` + unpublish; `/app/settings` + onboarding |
 | Public page + anon chat + rate limits | Done | `/u/[username]` → `/public/:username` (+ chat); 20/hr/IP |
 | Suggested questions (live) | Done | From API `suggested_questions` |
 | Dashboard analytics counters | Done | `GET /ai/:id/analytics/summary` |

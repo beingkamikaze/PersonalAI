@@ -9,6 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.config import get_settings
 from app.logging_config import get_logger, setup_logging
 from app.routers import (
+    account,
     ai,
     chat,
     feedback,
@@ -34,6 +35,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(account.router)
 app.include_router(ai.router)
 app.include_router(interview.router)
 app.include_router(personality.router)

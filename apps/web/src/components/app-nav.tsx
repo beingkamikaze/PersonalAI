@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { AccountChip } from "@/components/account-chip";
 import { SignOutButton } from "@/components/sign-out-button";
 
-/** Owner app shell nav — Profile is the identity screen (`/app/settings`). */
+/** Owner app shell — Profile is identity; Settings is public link + account. */
 const links = [
   { href: "/app", label: "Dashboard" },
   { href: "/app/knowledge", label: "Knowledge" },
@@ -14,9 +14,18 @@ const links = [
   { href: "/app/conversations", label: "Conversations" },
 ] as const;
 
+function navClass(active: boolean) {
+  return `rounded px-3 py-2 text-sm transition ${
+    active
+      ? "bg-white text-fg shadow-sm"
+      : "text-muted hover:bg-white/70 hover:text-fg"
+  }`;
+}
+
 export function AppNav() {
   const pathname = usePathname();
-  const profileActive = pathname.startsWith("/app/settings");
+  const profileActive = pathname.startsWith("/app/profile");
+  const settingsActive = pathname.startsWith("/app/settings");
 
   return (
     <aside className="flex w-full shrink-0 flex-col gap-6 border-b border-border bg-elevated px-5 py-6 md:h-full md:w-56 md:border-b-0 md:border-r">
@@ -33,19 +42,18 @@ export function AppNav() {
             <Link
               key={link.href}
               href={link.href}
-              className={`rounded px-3 py-2 text-sm transition ${
-                active
-                  ? "bg-white text-fg shadow-sm"
-                  : "text-muted hover:bg-white/70 hover:text-fg"
-              }`}
+              className={navClass(active)}
             >
               {link.label}
             </Link>
           );
         })}
-        <AccountChip href="/app/settings" variant="nav" active={profileActive} />
+        <AccountChip href="/app/profile" variant="nav" active={profileActive} />
       </nav>
-      <div className="shrink-0 md:mt-auto">
+      <div className="shrink-0 space-y-1 md:mt-auto">
+        <Link href="/app/settings" className={navClass(settingsActive)}>
+          Settings
+        </Link>
         <SignOutButton />
       </div>
     </aside>

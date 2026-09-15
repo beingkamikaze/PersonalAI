@@ -8,14 +8,17 @@ import re
 _USERNAME_RE = re.compile(r"^[a-z0-9]([a-z0-9_-]{1,38}[a-z0-9])?$")
 
 _RESERVED = {
+    "account",
     "admin",
     "api",
     "app",
     "auth",
+    "feedback",
     "health",
     "me",
     "onboarding",
     "pricing",
+    "profile",
     "public",
     "settings",
     "sign-in",

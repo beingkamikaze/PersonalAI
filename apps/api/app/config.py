@@ -17,6 +17,8 @@ class Settings(BaseSettings):
     supabase_url: str
     # Same publishable/anon key as the web app (for Auth /user verify)
     supabase_anon_key: str | None = None
+    # Service role — used only to delete the Auth user on account deletion
+    supabase_service_role_key: str | None = None
     # Legacy HS256 secret (optional if project still has shared secret)
     supabase_jwt_secret: str | None = None
     cors_origins: str = "http://localhost:3000"

@@ -61,9 +61,10 @@ Frontend **does not** use the anon key to read/write `ai_profiles`. That goes th
 | `SUPABASE_URL` | Same Project URL as web |
 | `SUPABASE_ANON_KEY` | Same publishable/anon key (for Auth `/user` verify) |
 | `SUPABASE_JWT_SECRET` | Optional legacy HS256 fallback |
+| `SUPABASE_SERVICE_ROLE_KEY` | Optional; deletes the Auth user on `DELETE /account` |
 | `CORS_ORIGINS` | `http://localhost:3000` |
 
-**Do not** put the Supabase **secret** key in Next.js.
+**Do not** put the Supabase **secret** key in Next.js. The API may use `SUPABASE_SERVICE_ROLE_KEY` only to delete the Auth user when the owner deletes their account.
 
 If `SUPABASE_URL` does not resolve in DNS (`getaddrinfo` / `NXDOMAIN`), auth API calls fail with 401. Copy the Project URL from the dashboard; verify with `nslookup <ref>.supabase.co`.
 
