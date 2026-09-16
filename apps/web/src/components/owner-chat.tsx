@@ -3,13 +3,12 @@
 import { FormEvent, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ChatBuffering } from "@/components/chat-buffering";
-import { UserAvatar } from "@/components/user-avatar";
+import { ChatRow } from "@/components/chat-mark";
 import { ApiError, apiFetch, type ChatMessage, type ChatResult } from "@/lib/api";
 
 type Props = {
   profileId: string;
   assistantName?: string;
-  avatarUrl?: string | null;
   /** Optional suggested questions shown above the composer */
   suggestions?: string[];
 };
@@ -21,7 +20,6 @@ type Props = {
 export function OwnerChat({
   profileId,
   assistantName = "Assistant",
-  avatarUrl = null,
   suggestions = [],
 }: Props) {
   const [conversationId, setConversationId] = useState<string | null>(null);
@@ -89,35 +87,15 @@ export function OwnerChat({
           </p>
         ) : (
           messages.map((m) => (
-            <div key={m.id} className="flex items-start gap-3">
-              {m.role === "user" ? (
-                <span className="w-9 shrink-0 pt-2 text-xs font-medium text-muted">
-                  You
-                </span>
-              ) : (
-                <UserAvatar name={assistantName} src={avatarUrl} />
-              )}
-              <p
-                className={
-                  m.role === "user"
-                    ? "min-w-0 pt-1.5 text-fg whitespace-pre-wrap"
-                    : "min-w-0 rounded-2xl bg-accent-soft px-3.5 py-2.5 text-fg whitespace-pre-wrap"
-                }
-              >
-                <span className="sr-only">
-                  {m.role === "user" ? "You" : assistantName}:{" "}
-                </span>
-                {m.content}
-              </p>
-            </div>
+            <ChatRow
+              key={m.id}
+              role={m.role === "user" ? "user" : "assistant"}
+              speaker={m.role === "user" ? "You" : assistantName}
+              content={m.content}
+            />
           ))
         )}
-        {loading ? (
-          <div className="flex items-start gap-3">
-            <UserAvatar name={assistantName} src={avatarUrl} />
-            <ChatBuffering />
-          </div>
-        ) : null}
+        {loading ? <ChatBuffering /> : null}
         <div ref={bottomRef} />
       </div>
 

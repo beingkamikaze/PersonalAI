@@ -76,6 +76,9 @@ class Settings(BaseSettings):
     free_max_documents: int = 8
     # Skip temperature on first LLM call for models that only allow default (e.g. gpt-5)
     llm_omit_temperature: bool = False
+    # gpt-5 / o-series: minimal | low | medium | high (blank = omit)
+    # Default minimal = fastest / least thinking for interview extract + chat.
+    llm_reasoning_effort: str = "minimal"
 
     # DEBUG | INFO | WARNING | ERROR
     log_level: str = "INFO"

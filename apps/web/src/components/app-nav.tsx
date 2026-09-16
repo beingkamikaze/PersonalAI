@@ -75,6 +75,10 @@ export function AppNav() {
             </Link>
           );
         })}
+        <Link href="/app/settings" className={navClass(settingsActive)}>
+          <SettingsIcon className="shrink-0" />
+          Settings
+        </Link>
         <Link
           href="/app/profile"
           className={navClass(profileActive)}
@@ -82,10 +86,6 @@ export function AppNav() {
         >
           <UserAvatar name={avatarName} src={avatarSrc} />
           Profile
-        </Link>
-        <Link href="/app/settings" className={navClass(settingsActive)}>
-          <SettingsIcon className="shrink-0" />
-          Settings
         </Link>
       </nav>
       <div className="shrink-0 md:mt-auto">

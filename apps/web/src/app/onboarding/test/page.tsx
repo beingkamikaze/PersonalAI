@@ -50,7 +50,6 @@ export default function OnboardingTestPage() {
           <OwnerChat
             profileId={profile.id}
             assistantName={profile.name}
-            avatarUrl={profile.avatar_url}
             suggestions={SUGGESTIONS}
           />
         ) : (

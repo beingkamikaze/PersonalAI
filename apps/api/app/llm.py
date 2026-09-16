@@ -75,6 +75,7 @@ def chat_completion(
     model = settings.chat_model_id
     provider = settings.effective_llm_provider
     omit_temp = settings.llm_omit_temperature or _model_rejects_temperature(model)
+    reasoning_effort = _reasoning_effort_for_model(model, settings)
 
     kwargs: dict[str, Any] = {
         "model": model,
@@ -84,16 +85,19 @@ def chat_completion(
         kwargs["temperature"] = temperature
     if json_mode:
         kwargs["response_format"] = {"type": "json_object"}
+    if reasoning_effort:
+        kwargs["reasoning_effort"] = reasoning_effort
 
     msg_count = len(messages)
     approx_chars = sum(len(m.get("content") or "") for m in messages)
     logger.info(
         "llm request provider=%s model=%s json_mode=%s omit_temp=%s "
-        "messages=%s approx_chars=%s",
+        "reasoning_effort=%s messages=%s approx_chars=%s",
         provider,
         model,
         json_mode,
         omit_temp,
+        reasoning_effort,
         msg_count,
         approx_chars,
     )
@@ -102,13 +106,16 @@ def chat_completion(
         response = client.chat.completions.create(**kwargs)
     except Exception as exc:
         elapsed_ms = (time.perf_counter() - start) * 1000
-        # Some Azure deployments reject temperature / json_mode — retry once without extras
+        # Some Azure deployments reject temperature / json_mode / reasoning — retry bare
         if provider == "azure" and _should_retry_without_extras(exc):
             logger.warning(
-                "llm azure retry without temperature/json_mode error=%s",
+                "llm azure retry without extras error=%s",
                 exc,
             )
-            bare = {"model": model, "messages": messages}
+            bare: dict[str, Any] = {"model": model, "messages": messages}
+            # Keep lowest reasoning if the model accepts it (main latency win)
+            if reasoning_effort and "reasoning" not in str(exc).lower():
+                bare["reasoning_effort"] = reasoning_effort
             try:
                 response = client.chat.completions.create(**bare)
             except Exception as retry_exc:
@@ -149,7 +156,28 @@ def chat_completion(
 def _model_rejects_temperature(model: str) -> bool:
     """gpt-5 family on Azure currently only accepts default temperature."""
     name = (model or "").lower()
-    return name.startswith("gpt-5") or "gpt-5" in name
+    return name.startswith("gpt-5") or "gpt-5" in name or name.startswith("o1") or name.startswith("o3") or name.startswith("o4")
+
+
+def _reasoning_effort_for_model(model: str, settings: Settings) -> str | None:
+    """Lowest reasoning by default for gpt-5 / o-series; omit for classic chat models."""
+    effort = (settings.llm_reasoning_effort or "").strip().lower()
+    if not effort or effort in ("none", "off", "false"):
+        return None
+    if not _model_supports_reasoning_effort(model):
+        return None
+    return effort
+
+
+def _model_supports_reasoning_effort(model: str) -> bool:
+    name = (model or "").lower()
+    return (
+        name.startswith("gpt-5")
+        or "gpt-5" in name
+        or name.startswith("o1")
+        or name.startswith("o3")
+        or name.startswith("o4")
+    )
 
 
 def _should_retry_without_extras(exc: Exception) -> bool:
@@ -160,6 +188,7 @@ def _should_retry_without_extras(exc: Exception) -> bool:
             "temperature",
             "response_format",
             "json_object",
+            "reasoning_effort",
             "unsupported_parameter",
             "unsupported value",
         )

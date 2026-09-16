@@ -1,19 +1,20 @@
 """Fixed professional interview — Phase 1.
 
 POST /ai/{id}/interview/start
-POST /ai/{id}/interview/answer  → LLM extract → personality + facts
+POST /ai/{id}/interview/answer  → save answer → next Q immediately;
+  LLM extract runs in background (same pattern as owner-chat memory extract).
 """
 
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from sqlalchemy.orm.attributes import flag_modified
+from starlette.concurrency import run_in_threadpool
 
 from app.auth import get_current_user
-from app.completeness import refresh_completeness
 from app.db import get_db
-from app.extract import extract_and_persist
+from app.extract import run_interview_extract
 from app.interview_script import get_question, question_count
 from app.logging_config import get_logger
 from app.models import InterviewSession, User
@@ -23,6 +24,18 @@ from app.schemas import InterviewAnswerIn, InterviewAnswerOut, InterviewStartOut
 logger = get_logger(__name__)
 
 router = APIRouter(prefix="/ai", tags=["interview"])
+
+
+async def _run_interview_extract(
+    profile_id: UUID,
+    answers: list[dict],
+    *,
+    refresh: bool,
+) -> None:
+    """Offload extract so Continue is not blocked on the LLM."""
+    await run_in_threadpool(
+        run_interview_extract, profile_id, answers, refresh=refresh
+    )
 
 
 @router.post("/{profile_id}/interview/start", response_model=InterviewStartOut)
@@ -77,6 +90,7 @@ def start_interview(
 def answer_interview(
     profile_id: UUID,
     body: InterviewAnswerIn,
+    background: BackgroundTasks,
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ) -> InterviewAnswerOut:
@@ -132,21 +146,6 @@ def answer_interview(
     )
     session.answers = answers
 
-    # Structure answers into personality + facts (server-side LLM only)
-    try:
-        extract_and_persist(db, profile, answers)
-        extracted = True
-    except Exception as exc:  # noqa: BLE001
-        logger.exception(
-            "interview extract failed profile_id=%s q_index=%s",
-            profile.id,
-            q_index,
-        )
-        raise HTTPException(
-            status_code=status.HTTP_502_BAD_GATEWAY,
-            detail=f"LLM extract failed: {exc}",
-        ) from exc
-
     next_index = q_index + 1
     if next_index >= total:
         session.current_index = total
@@ -160,11 +159,23 @@ def answer_interview(
         completed = False
 
     flag_modified(session, "answers")
-    if completed:
-        refresh_completeness(db, profile.id)
-
     db.commit()
     db.refresh(session)
+
+    # LLM structuring happens after response — same pattern as chat memory extract
+    background.add_task(
+        _run_interview_extract,
+        profile.id,
+        answers,
+        refresh=completed,
+    )
+    logger.info(
+        "interview extract enqueued profile_id=%s q_index=%s answer_count=%s completed=%s",
+        profile.id,
+        q_index,
+        len(answers),
+        completed,
+    )
 
     return InterviewAnswerOut(
         session_id=session.id,
@@ -173,5 +184,5 @@ def answer_interview(
         total_questions=total,
         question=next_question,
         completed=completed,
-        extracted=extracted,
+        extracted=False,
     )

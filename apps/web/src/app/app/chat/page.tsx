@@ -47,7 +47,6 @@ export default function AppChatPage() {
         <OwnerChat
           profileId={profile.id}
           assistantName={profile.name}
-          avatarUrl={profile.avatar_url}
           suggestions={SUGGESTIONS}
         />
       ) : (

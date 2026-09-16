@@ -4,6 +4,7 @@ import { FormEvent, useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { ChatBuffering } from "@/components/chat-buffering";
+import { ChatRow } from "@/components/chat-mark";
 import { UserAvatar } from "@/components/user-avatar";
 import {
   ApiError,
@@ -179,35 +180,15 @@ export default function PublicAiPage() {
               </p>
             ) : (
               messages.map((m) => (
-                <div key={m.id} className="flex items-start gap-3">
-                  {m.role === "user" ? (
-                    <span className="w-9 shrink-0 pt-2 text-xs font-medium text-muted">
-                      You
-                    </span>
-                  ) : (
-                    <UserAvatar name={profile.name} src={profile.avatar_url} />
-                  )}
-                  <p
-                    className={
-                      m.role === "user"
-                        ? "min-w-0 pt-1.5 text-fg whitespace-pre-wrap"
-                        : "min-w-0 rounded-2xl bg-accent-soft px-3.5 py-2.5 text-fg whitespace-pre-wrap"
-                    }
-                  >
-                    <span className="sr-only">
-                      {m.role === "user" ? "You" : profile.name}:{" "}
-                    </span>
-                    {m.content}
-                  </p>
-                </div>
+                <ChatRow
+                  key={m.id}
+                  role={m.role === "user" ? "user" : "assistant"}
+                  speaker={m.role === "user" ? "You" : profile.name}
+                  content={m.content}
+                />
               ))
             )}
-            {loading ? (
-              <div className="flex items-start gap-3">
-                <UserAvatar name={profile.name} src={profile.avatar_url} />
-                <ChatBuffering />
-              </div>
-            ) : null}
+            {loading ? <ChatBuffering /> : null}
             <div ref={bottomRef} />
           </div>
           <form

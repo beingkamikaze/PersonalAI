@@ -7,9 +7,12 @@ contacts, or secrets.
 from __future__ import annotations
 
 from typing import Any
+from uuid import UUID
 
 from sqlalchemy.orm import Session
 
+from app.completeness import refresh_completeness
+from app.db import SessionLocal
 from app.llm import chat_completion_json
 from app.logging_config import get_logger
 from app.models import AiProfile, PersonalityProfile, StructuredFact
@@ -40,6 +43,30 @@ Rules:
 - Prefer concise facts (role, skills, projects, audience, openness, boundaries).
 - Merge thoughtfully: later answers can refine earlier fields.
 """
+
+
+def run_interview_extract(
+    profile_id: UUID,
+    answers: list[dict[str, Any]],
+    *,
+    refresh: bool = False,
+) -> None:
+    """Background entrypoint — opens its own DB session (like memory extract)."""
+    db = SessionLocal()
+    try:
+        profile = db.query(AiProfile).filter(AiProfile.id == profile_id).one_or_none()
+        if profile is None:
+            logger.warning("interview extract missing profile_id=%s", profile_id)
+            return
+        extract_and_persist(db, profile, answers)
+        if refresh:
+            refresh_completeness(db, profile.id)
+        db.commit()
+    except Exception:
+        logger.exception("interview extract crashed profile_id=%s", profile_id)
+        db.rollback()
+    finally:
+        db.close()
 
 
 def extract_and_persist(
