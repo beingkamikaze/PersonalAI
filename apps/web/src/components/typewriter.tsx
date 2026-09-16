@@ -14,11 +14,21 @@ export function Typewriter({
 }) {
   const reduceMotion = useReducedMotion();
   const [index, setIndex] = useState(0);
-  const [text, setText] = useState(reduceMotion ? phrases[0] : "");
+  const [text, setText] = useState("");
   const [deleting, setDeleting] = useState(false);
+  const [active, setActive] = useState(false);
 
   useEffect(() => {
-    if (reduceMotion || phrases.length === 0) return;
+    setActive(true);
+  }, []);
+
+  useEffect(() => {
+    if (!active || phrases.length === 0) return;
+
+    if (reduceMotion) {
+      setText(phrases[0]);
+      return;
+    }
 
     const full = phrases[index % phrases.length];
 
@@ -39,17 +49,17 @@ export function Typewriter({
       setText(full.slice(0, text.length + (deleting ? -1 : 1)));
     }, delay);
     return () => window.clearTimeout(tick);
-  }, [deleting, index, loop, phrases, reduceMotion, text]);
+  }, [active, deleting, index, loop, phrases, reduceMotion, text]);
 
   return (
     <span className={className} aria-live="polite">
       <span>{text}</span>
-      {reduceMotion ? null : (
+      {active && !reduceMotion ? (
         <span
           className="ml-0.5 inline-block h-[0.9em] w-px align-[-0.08em] bg-accent"
           aria-hidden
         />
-      )}
+      ) : null}
     </span>
   );
 }
