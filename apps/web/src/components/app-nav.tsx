@@ -1,11 +1,15 @@
 "use client";
 
 import Link from "next/link";
+import { useCallback, useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { SignOutButton } from "@/components/sign-out-button";
-import { ProfileIcon, SettingsIcon } from "@/components/ui/icons";
+import { UserAvatar } from "@/components/user-avatar";
+import { SettingsIcon } from "@/components/ui/icons";
+import { ACCOUNT_CHANGED_EVENT, getSessionUser } from "@/lib/auth";
+import { apiFetch, type AiProfile } from "@/lib/api";
 
-/** Owner app shell — Profile is identity; Settings is public link + account. */
+/** Owner app shell — Profile is identity + public link; Settings is personality + account. */
 const links = [
   { href: "/app", label: "Dashboard" },
   { href: "/app/knowledge", label: "Knowledge" },
@@ -26,6 +30,29 @@ export function AppNav() {
   const pathname = usePathname();
   const profileActive = pathname.startsWith("/app/profile");
   const settingsActive = pathname.startsWith("/app/settings");
+  const [avatarName, setAvatarName] = useState("Profile");
+  const [avatarSrc, setAvatarSrc] = useState<string | null>(null);
+
+  const loadAvatar = useCallback(async () => {
+    const session = await getSessionUser();
+    let name = session?.name || "Profile";
+    let src = session?.avatarUrl || null;
+    try {
+      const me = await apiFetch<AiProfile>("/ai/me");
+      name = me.name || name;
+      src = me.avatar_url || src;
+    } catch {
+      /* keep session fallback */
+    }
+    setAvatarName(name);
+    setAvatarSrc(src);
+  }, []);
+
+  useEffect(() => {
+    void loadAvatar();
+    window.addEventListener(ACCOUNT_CHANGED_EVENT, loadAvatar);
+    return () => window.removeEventListener(ACCOUNT_CHANGED_EVENT, loadAvatar);
+  }, [loadAvatar]);
 
   return (
     <aside className="flex w-full shrink-0 flex-col gap-6 border-b border-border bg-elevated px-5 py-6 md:h-full md:w-56 md:border-b-0 md:border-r">
@@ -48,16 +75,20 @@ export function AppNav() {
             </Link>
           );
         })}
-      </nav>
-      <div className="shrink-0 space-y-1 md:mt-auto">
-        <Link href="/app/profile" className={navClass(profileActive)}>
-          <ProfileIcon className="shrink-0" />
-          Profile
-        </Link>
         <Link href="/app/settings" className={navClass(settingsActive)}>
           <SettingsIcon className="shrink-0" />
           Settings
         </Link>
+        <Link
+          href="/app/profile"
+          className={navClass(profileActive)}
+          aria-current={profileActive ? "page" : undefined}
+        >
+          <UserAvatar name={avatarName} src={avatarSrc} />
+          Profile
+        </Link>
+      </nav>
+      <div className="shrink-0 md:mt-auto">
         <SignOutButton />
       </div>
     </aside>

@@ -2,10 +2,13 @@
 
 import { FormEvent, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { ChatBuffering } from "@/components/chat-buffering";
+import { ChatRow } from "@/components/chat-mark";
 import { ApiError, apiFetch, type ChatMessage, type ChatResult } from "@/lib/api";
 
 type Props = {
   profileId: string;
+  assistantName?: string;
   /** Optional suggested questions shown above the composer */
   suggestions?: string[];
 };
@@ -14,7 +17,11 @@ type Props = {
  * Owner chat UI — preview answers and state preferences.
  * Calls FastAPI POST /ai/{id}/chat — the browser never talks to OpenAI.
  */
-export function OwnerChat({ profileId, suggestions = [] }: Props) {
+export function OwnerChat({
+  profileId,
+  assistantName = "Assistant",
+  suggestions = [],
+}: Props) {
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
@@ -81,18 +88,15 @@ export function OwnerChat({ profileId, suggestions = [] }: Props) {
           </p>
         ) : (
           messages.map((m) => (
-            <div
+            <ChatRow
               key={m.id}
-              className={m.role === "user" ? "text-fg" : "text-muted"}
-            >
-              <span className="font-medium text-fg">
-                {m.role === "user" ? "You" : "AI"}:{" "}
-              </span>
-              <span className="whitespace-pre-wrap">{m.content}</span>
-            </div>
+              role={m.role === "user" ? "user" : "assistant"}
+              speaker={m.role === "user" ? "You" : assistantName}
+              content={m.content}
+            />
           ))
         )}
-        {loading ? <p className="text-muted">Thinking…</p> : null}
+        {loading ? <ChatBuffering /> : null}
         <div ref={bottomRef} />
       </div>
 
@@ -116,7 +120,7 @@ export function OwnerChat({ profileId, suggestions = [] }: Props) {
         <input
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="Message your AI…"
+          placeholder="Message…"
           disabled={loading}
           className="flex-1 rounded border border-border bg-white px-3 py-2.5 text-sm focus:border-accent focus:outline-none disabled:opacity-50"
         />

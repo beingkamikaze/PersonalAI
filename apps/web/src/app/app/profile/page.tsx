@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { ScreenIntro } from "@/components/screen-intro";
 import { UnsavedChangesDialog } from "@/components/unsaved-changes-dialog";
 import { AvatarPicker } from "@/components/avatar-picker";
-import { Button } from "@/components/ui/button";
+import { Button, ButtonLink } from "@/components/ui/button";
 import { EditableField } from "@/components/ui/editable-field";
 import {
   getSessionUser,
@@ -13,51 +13,45 @@ import {
   type SessionUser,
 } from "@/lib/auth";
 import { useLeaveGuard } from "@/lib/use-leave-guard";
-import {
-  ApiError,
-  apiFetch,
-  apiUpload,
-  type AiProfile,
-  type Personality,
-} from "@/lib/api";
+import { ApiError, apiFetch, apiUpload, type AiProfile } from "@/lib/api";
 import {
   draftsEqual,
-  personalityDraftFrom,
   profileDraftFrom,
-  type PersonalityDraft,
+  publicDraftFrom,
   type ProfileDraft,
+  type PublicDraft,
 } from "@/lib/profile-forms";
 
 /**
- * Profile — who you are and how the AI represents you.
- * Public link, publish, and delete live on `/app/settings`.
+ * Profile — who you are, how the AI represents you, and publish state.
+ * Personality and delete account live on `/app/settings`.
  */
 export default function ProfilePage() {
   const router = useRouter();
   const [account, setAccount] = useState<SessionUser | null>(null);
   const [profile, setProfile] = useState<AiProfile | null>(null);
-  const [personality, setPersonality] = useState<Personality | null>(null);
   const [savedProfile, setSavedProfile] = useState<ProfileDraft | null>(null);
-  const [savedPersonality, setSavedPersonality] =
-    useState<PersonalityDraft | null>(null);
+  const [savedPublic, setSavedPublic] = useState<PublicDraft | null>(null);
   const [profileDraft, setProfileDraft] = useState<ProfileDraft>({
     name: "",
     headline: "",
     bio: "",
   });
-  const [personalityDraft, setPersonalityDraft] = useState<PersonalityDraft>({
-    communication_style: "",
-    formality: "",
-    humor: "",
-    verbosity: "",
-    directness: "",
-    traits: "",
+  const [publicDraft, setPublicDraft] = useState<PublicDraft>({
+    username: "",
+    contactEmail: "",
+    calendarLink: "",
   });
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [profileLock, setProfileLock] = useState(0);
-  const [personalityLock, setPersonalityLock] = useState(0);
+  const [publicLock, setPublicLock] = useState(0);
+  const [origin, setOrigin] = useState("");
+
+  useEffect(() => {
+    setOrigin(window.location.origin);
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -72,20 +66,9 @@ export default function ProfilePage() {
         const nextProfile = profileDraftFrom(me);
         setSavedProfile(nextProfile);
         setProfileDraft(nextProfile);
-        try {
-          const p = await apiFetch<Personality>(`/ai/${me.id}/personality`);
-          if (cancelled) return;
-          setPersonality(p);
-          const nextPersonality = personalityDraftFrom(p);
-          setSavedPersonality(nextPersonality);
-          setPersonalityDraft(nextPersonality);
-        } catch (err) {
-          if (!(err instanceof ApiError && err.status === 404) && !cancelled) {
-            setError(
-              err instanceof Error ? err.message : "Failed to load personality",
-            );
-          }
-        }
+        const nextPublic = publicDraftFrom(me);
+        setSavedPublic(nextPublic);
+        setPublicDraft(nextPublic);
       } catch (err) {
         if (cancelled) return;
         if (err instanceof ApiError && err.status === 401) {
@@ -96,7 +79,14 @@ export default function ProfilePage() {
           router.replace("/onboarding/create");
           return;
         }
-        setError(err instanceof Error ? err.message : "Failed to load profile");
+        const fallback =
+          err instanceof TypeError ||
+          (err instanceof Error && err.message === "Failed to fetch")
+            ? "Can't reach the API. Start it with npm run dev:api, then refresh."
+            : err instanceof Error
+              ? err.message
+              : "Failed to load profile";
+        setError(fallback);
       }
     })();
     return () => {
@@ -106,59 +96,46 @@ export default function ProfilePage() {
 
   const profileDirty =
     savedProfile !== null && !draftsEqual(profileDraft, savedProfile);
-  const personalityDirty =
-    savedPersonality !== null &&
-    !draftsEqual(personalityDraft, savedPersonality);
-  const hasUnsaved = profileDirty || personalityDirty;
+  const publicDirty =
+    savedPublic !== null && !draftsEqual(publicDraft, savedPublic);
+  const hasUnsaved = profileDirty || publicDirty;
 
   const unsavedDetail = useMemo(() => {
     const actions: string[] = [];
     if (profileDirty) actions.push("Save profile");
-    if (personalityDirty) actions.push("Save personality");
+    if (publicDirty) actions.push("Save public settings");
     if (actions.length === 0) return "";
     if (actions.length === 1) {
       return `You changed a field. Click ${actions[0]} before leaving this page.`;
     }
     return `You have unsaved edits. Click ${actions.join(", then ")} before leaving this page.`;
-  }, [profileDirty, personalityDirty]);
+  }, [profileDirty, publicDirty]);
 
   const { open, stay, leaveWithoutSaving } = useLeaveGuard(hasUnsaved);
 
-  async function onSavePersonality(e: FormEvent) {
-    e.preventDefault();
-    if (!profile || !personality) return;
-    setSaving(true);
-    setError(null);
-    setMessage(null);
+  const usernameSlug = (
+    publicDraft.username ||
+    profile?.username ||
+    ""
+  )
+    .trim()
+    .toLowerCase();
+
+  const shareableLink = useMemo(() => {
+    if (!usernameSlug) return "";
+    const path = `/u/${usernameSlug}`;
+    return origin ? `${origin}${path}` : path;
+  }, [origin, usernameSlug]);
+
+  async function onCopyShareableLink() {
+    if (!shareableLink) return;
     try {
-      const updated = await apiFetch<Personality>(
-        `/ai/${profile.id}/personality`,
-        {
-          method: "PATCH",
-          body: JSON.stringify({
-            communication_style:
-              personalityDraft.communication_style.trim() || null,
-            formality: personalityDraft.formality.trim() || null,
-            humor: personalityDraft.humor.trim() || null,
-            verbosity: personalityDraft.verbosity.trim() || null,
-            directness: personalityDraft.directness.trim() || null,
-            traits: personalityDraft.traits
-              .split(",")
-              .map((t) => t.trim())
-              .filter(Boolean),
-          }),
-        },
-      );
-      setPersonality(updated);
-      const next = personalityDraftFrom(updated);
-      setSavedPersonality(next);
-      setPersonalityDraft(next);
-      setPersonalityLock((n) => n + 1);
-      setMessage("Personality saved.");
-    } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Save failed");
-    } finally {
-      setSaving(false);
+      await navigator.clipboard.writeText(shareableLink);
+      setError(null);
+      setMessage("Shareable link copied.");
+    } catch {
+      setMessage(null);
+      setError("Could not copy — select and copy the link manually.");
     }
   }
 
@@ -186,6 +163,83 @@ export default function ProfilePage() {
       setMessage("Profile saved.");
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Save failed");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function onSavePublic(e: FormEvent) {
+    e.preventDefault();
+    if (!profile) return;
+    setSaving(true);
+    setError(null);
+    setMessage(null);
+    try {
+      const updated = await apiFetch<AiProfile>(`/ai/${profile.id}`, {
+        method: "PATCH",
+        body: JSON.stringify({
+          username: publicDraft.username.trim().toLowerCase() || null,
+          contact_email: publicDraft.contactEmail.trim() || null,
+          calendar_link: publicDraft.calendarLink.trim() || null,
+        }),
+      });
+      setProfile(updated);
+      const next = publicDraftFrom(updated);
+      setSavedPublic(next);
+      setPublicDraft(next);
+      setPublicLock((n) => n + 1);
+      notifyAccountChanged();
+      setMessage("Public settings saved.");
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Save failed");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function onPublish() {
+    if (!profile) return;
+    setSaving(true);
+    setError(null);
+    setMessage(null);
+    try {
+      const updated = await apiFetch<AiProfile>(`/ai/${profile.id}/publish`, {
+        method: "POST",
+        body: JSON.stringify({
+          username: publicDraft.username.trim().toLowerCase() || undefined,
+          contact_email: publicDraft.contactEmail.trim() || null,
+          calendar_link: publicDraft.calendarLink.trim() || null,
+        }),
+      });
+      setProfile(updated);
+      const nextPublic = publicDraftFrom(updated);
+      setSavedPublic(nextPublic);
+      setPublicDraft(nextPublic);
+      setPublicLock((n) => n + 1);
+      notifyAccountChanged();
+      setMessage("Published.");
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Publish failed");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function onUnpublish() {
+    if (!profile) return;
+    setSaving(true);
+    setError(null);
+    setMessage(null);
+    try {
+      const updated = await apiFetch<AiProfile>(`/ai/${profile.id}/unpublish`, {
+        method: "POST",
+        body: "{}",
+      });
+      setProfile(updated);
+      notifyAccountChanged();
+      setMessage("Unpublished — page is no longer public.");
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Unpublish failed");
     } finally {
       setSaving(false);
     }
@@ -236,7 +290,7 @@ export default function ProfilePage() {
   return (
     <ScreenIntro
       title="Profile"
-      description="Who you are and how the AI represents you. Click the pencil to edit a field, then save that section. Photo saves as soon as you pick a file."
+      description="Who you are, how the AI represents you, and publish state. Click the pencil to edit a field, then save that section. Photo saves as soon as you pick a file."
     >
       <div className="mb-10">
         {profile ? (
@@ -311,88 +365,80 @@ export default function ProfilePage() {
         </form>
       ) : null}
 
-      {personality ? (
-        <form onSubmit={onSavePersonality} className="space-y-5">
-          <h2 className="font-display text-xl text-fg">Personality</h2>
-          <EditableField
-            label="Communication style"
-            value={personalityDraft.communication_style}
-            lockVersion={personalityLock}
-            onChange={(communication_style) =>
-              setPersonalityDraft({
-                ...personalityDraft,
-                communication_style,
-              })
-            }
-          />
-          <EditableField
-            label="Formality"
-            value={personalityDraft.formality}
-            lockVersion={personalityLock}
-            onChange={(formality) =>
-              setPersonalityDraft({ ...personalityDraft, formality })
-            }
-          />
-          <EditableField
-            label="Humor"
-            value={personalityDraft.humor}
-            lockVersion={personalityLock}
-            onChange={(humor) =>
-              setPersonalityDraft({ ...personalityDraft, humor })
-            }
-          />
-          <EditableField
-            label="Verbosity"
-            value={personalityDraft.verbosity}
-            lockVersion={personalityLock}
-            onChange={(verbosity) =>
-              setPersonalityDraft({ ...personalityDraft, verbosity })
-            }
-          />
-          <EditableField
-            label="Directness"
-            value={personalityDraft.directness}
-            lockVersion={personalityLock}
-            onChange={(directness) =>
-              setPersonalityDraft({ ...personalityDraft, directness })
-            }
-          />
-          <EditableField
-            label="Traits (comma-separated)"
-            value={personalityDraft.traits}
-            lockVersion={personalityLock}
-            onChange={(traits) =>
-              setPersonalityDraft({ ...personalityDraft, traits })
-            }
-          />
-
-          {personality.facts.length > 0 ? (
-            <div>
-              <p className="text-sm font-medium text-fg">Facts from interview</p>
-              <ul className="mt-2 divide-y divide-border border-t border-border text-sm text-muted">
-                {personality.facts.map((f) => (
-                  <li key={f.key} className="py-2">
-                    <span className="text-fg">{f.key}</span>: {f.value}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ) : null}
-
-          {personalityDirty ? (
-            <p className="text-sm text-fg">
-              Unsaved — click Save personality before leaving.
-            </p>
-          ) : null}
-          <Button type="submit" disabled={saving || !personalityDirty}>
-            {saving ? "Saving…" : "Save personality"}
+      <form onSubmit={onSavePublic} className="space-y-4">
+        <h2 className="font-display text-xl text-fg">Public link</h2>
+        <EditableField
+          label="Username"
+          value={publicDraft.username}
+          lockVersion={publicLock}
+          onChange={(username) => setPublicDraft({ ...publicDraft, username })}
+        />
+        <EditableField
+          label="Contact email"
+          value={publicDraft.contactEmail}
+          lockVersion={publicLock}
+          onChange={(contactEmail) =>
+            setPublicDraft({ ...publicDraft, contactEmail })
+          }
+        />
+        <EditableField
+          label="Calendar link"
+          value={publicDraft.calendarLink}
+          lockVersion={publicLock}
+          onChange={(calendarLink) =>
+            setPublicDraft({ ...publicDraft, calendarLink })
+          }
+        />
+        {publicDirty ? (
+          <p className="text-sm text-fg">
+            Unsaved — click Save public settings before leaving.
+          </p>
+        ) : null}
+        <div className="flex flex-wrap gap-3">
+          <Button type="submit" disabled={saving || !publicDirty}>
+            Save public settings
           </Button>
-        </form>
-      ) : (
-        <p className="text-sm text-muted">
-          Complete the onboarding interview to unlock the personality editor.
-        </p>
-      )}
+          {profile?.visibility === "published" ? (
+            <Button
+              type="button"
+              variant="secondary"
+              disabled={saving}
+              onClick={() => void onUnpublish()}
+            >
+              Unpublish
+            </Button>
+          ) : (
+            <Button
+              type="button"
+              variant="secondary"
+              disabled={saving}
+              onClick={() => void onPublish()}
+            >
+              Publish
+            </Button>
+          )}
+          {usernameSlug ? (
+            <Button
+              type="button"
+              variant="secondary"
+              aria-label={`Copy u/${usernameSlug}`}
+              onClick={() => void onCopyShareableLink()}
+            >
+              u/{usernameSlug}
+            </Button>
+          ) : null}
+        </div>
+      </form>
+
+      <p className="mt-10 text-sm text-muted">
+        Communication style, formality, humor, and interview facts are in
+        Settings — not on this page.
+      </p>
+      <div className="mt-3">
+        <ButtonLink href="/app/settings" variant="secondary">
+          Edit personality in Settings
+        </ButtonLink>
+      </div>
 
       {message ? <p className="mt-4 text-sm text-accent">{message}</p> : null}
       {error ? (

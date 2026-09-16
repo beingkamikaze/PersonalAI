@@ -3,6 +3,8 @@
 import { FormEvent, useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { ChatBuffering } from "@/components/chat-buffering";
+import { ChatRow } from "@/components/chat-mark";
 import { UserAvatar } from "@/components/user-avatar";
 import {
   ApiError,
@@ -178,22 +180,15 @@ export default function PublicAiPage() {
               </p>
             ) : (
               messages.map((m) => (
-                <div
+                <ChatRow
                   key={m.id}
-                  className={
-                    m.role === "user" ? "text-fg" : "text-muted whitespace-pre-wrap"
-                  }
-                >
-                  <span className="text-xs uppercase tracking-wide text-muted">
-                    {m.role === "user" ? "You" : profile.name}
-                  </span>
-                  <p className="mt-1">{m.content}</p>
-                </div>
+                  role={m.role === "user" ? "user" : "assistant"}
+                  speaker={m.role === "user" ? "You" : profile.name}
+                  content={m.content}
+                />
               ))
             )}
-            {loading ? (
-              <p className="text-xs text-muted">Thinking…</p>
-            ) : null}
+            {loading ? <ChatBuffering /> : null}
             <div ref={bottomRef} />
           </div>
           <form

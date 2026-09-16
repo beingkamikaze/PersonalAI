@@ -21,7 +21,7 @@ class Settings(BaseSettings):
     supabase_service_role_key: str | None = None
     # Legacy HS256 secret (optional if project still has shared secret)
     supabase_jwt_secret: str | None = None
-    cors_origins: str = "http://localhost:3000"
+    cors_origins: str = "http://localhost:3000,http://localhost:3001,http://127.0.0.1:3000,http://127.0.0.1:3001"
 
     # LLM provider: "openai" (default) or "azure"
     llm_provider: str = "openai"
@@ -76,6 +76,9 @@ class Settings(BaseSettings):
     free_max_documents: int = 8
     # Skip temperature on first LLM call for models that only allow default (e.g. gpt-5)
     llm_omit_temperature: bool = False
+    # gpt-5 / o-series: minimal | low | medium | high (blank = omit)
+    # Default minimal = fastest / least thinking for interview extract + chat.
+    llm_reasoning_effort: str = "minimal"
 
     # DEBUG | INFO | WARNING | ERROR
     log_level: str = "INFO"

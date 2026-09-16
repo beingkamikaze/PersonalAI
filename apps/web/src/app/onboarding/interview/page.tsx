@@ -15,7 +15,7 @@ import { hasFinishedOnboarding } from "@/lib/auth";
 
 /**
  * Fixed 10-question professional interview.
- * Each answer is sent to FastAPI, which calls OpenAI to structure personality/facts.
+ * Answers save via FastAPI; LLM structuring runs in the background.
  */
 export default function OnboardingInterviewPage() {
   const router = useRouter();
@@ -131,7 +131,7 @@ export default function OnboardingInterviewPage() {
             />
             <div className="flex flex-wrap gap-3">
               <Button type="submit" disabled={loading || !answer.trim()}>
-                {loading ? "Saving…" : "Continue"}
+                {loading ? "Next…" : "Continue"}
               </Button>
               <Button
                 type="button"

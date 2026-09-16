@@ -16,7 +16,7 @@ const SUGGESTIONS = [
 
 export default function AppChatPage() {
   const router = useRouter();
-  const [profileId, setProfileId] = useState<string | null>(null);
+  const [profile, setProfile] = useState<AiProfile | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -24,7 +24,7 @@ export default function AppChatPage() {
     (async () => {
       try {
         const me = await apiFetch<AiProfile>("/ai/me");
-        if (!cancelled) setProfileId(me.id);
+        if (!cancelled) setProfile(me);
       } catch (err) {
         if (cancelled) return;
         if (err instanceof ApiError && err.status === 401) {
@@ -44,9 +44,13 @@ export default function AppChatPage() {
       title="Talk to your AI"
       description="Preview answers as visitors will hear them. Preferences you state here can be saved as memories."
     >
-      {profileId ? (
+      {profile ? (
         <>
-          <OwnerChat profileId={profileId} suggestions={SUGGESTIONS} />
+          <OwnerChat
+            profileId={profile.id}
+            assistantName={profile.name}
+            suggestions={SUGGESTIONS}
+          />
           <p className="mt-4 text-sm text-muted">
             Review saved facts in{" "}
             <Link
