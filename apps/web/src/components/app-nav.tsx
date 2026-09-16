@@ -2,78 +2,142 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { SignOutButton } from "@/components/sign-out-button";
-import { ProfileIcon, SettingsIcon } from "@/components/ui/icons";
+import { useEffect, useState } from "react";
+import { ButtonLink } from "@/components/ui/button";
+import {
+  ChatIcon,
+  CrownIcon,
+  DashboardIcon,
+  KnowledgeIcon,
+  MemoryIcon,
+  SettingsIcon,
+} from "@/components/ui/icons";
+import {
+  ApiError,
+  apiFetch,
+  type AiProfile,
+  type AnalyticsSummary,
+} from "@/lib/api";
 
-/** Owner app shell — tools vs account (profile, settings, sign out). */
+/** Mockup nav: Dashboard, Chats, Knowledge, Memory, Settings + Upgrade. */
 const links = [
-  { href: "/app", label: "Dashboard" },
-  { href: "/app/knowledge", label: "Knowledge" },
-  { href: "/app/memories", label: "Memories" },
-  { href: "/app/chat", label: "Chat" },
-  { href: "/app/conversations", label: "Conversations" },
+  { href: "/app", label: "Dashboard", icon: DashboardIcon },
+  { href: "/app/chat", label: "Chats", icon: ChatIcon },
+  { href: "/app/knowledge", label: "Knowledge", icon: KnowledgeIcon },
+  { href: "/app/memories", label: "Memory", icon: MemoryIcon },
+  { href: "/app/settings", label: "Settings", icon: SettingsIcon },
 ] as const;
 
 function navClass(active: boolean) {
-  return `inline-flex items-center gap-2 rounded px-3 py-2 text-sm transition ${
+  return `inline-flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm transition ${
     active
-      ? "bg-white text-fg shadow-sm"
-      : "text-muted hover:bg-white/70 hover:text-fg"
+      ? "bg-accent-soft font-medium text-accent"
+      : "text-muted hover:bg-[var(--atmosphere-1)] hover:text-fg"
   }`;
 }
 
 export function AppNav() {
   const pathname = usePathname();
-  const profileActive = pathname.startsWith("/app/profile");
-  const settingsActive = pathname.startsWith("/app/settings");
+  const [usage, setUsage] = useState<{
+    remaining: number;
+    limit: number;
+  } | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const me = await apiFetch<AiProfile>("/ai/me");
+        const summary = await apiFetch<AnalyticsSummary>(
+          `/ai/${me.id}/analytics/summary`,
+        );
+        if (cancelled) return;
+        if (
+          typeof summary.owner_chats_remaining === "number" &&
+          typeof summary.owner_chats_limit === "number"
+        ) {
+          setUsage({
+            remaining: summary.owner_chats_remaining,
+            limit: summary.owner_chats_limit,
+          });
+        }
+      } catch (err) {
+        if (cancelled) return;
+        if (err instanceof ApiError && (err.status === 401 || err.status === 404)) {
+          return;
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const used = usage ? Math.max(0, usage.limit - usage.remaining) : 0;
+  const pct =
+    usage && usage.limit > 0
+      ? Math.min(100, Math.round((used / usage.limit) * 100))
+      : 0;
 
   return (
-    <aside className="flex w-full shrink-0 flex-col gap-6 border-b border-border bg-elevated px-5 py-6 md:h-full md:w-56 md:border-b-0 md:border-r">
-      <Link href="/app" className="font-display text-lg text-fg">
-        PersonaAI
+    <aside className="flex w-full shrink-0 flex-col gap-5 border-b border-border bg-white px-4 py-5 md:h-full md:w-[15.5rem] md:border-b-0 md:border-r md:py-6">
+      <Link href="/app" className="px-1 font-display text-lg text-fg">
+        Persona<span className="text-accent">AI</span>
       </Link>
+
       <nav
         aria-label="Workspace"
-        className="flex flex-wrap gap-2 md:min-h-0 md:flex-1 md:flex-col md:gap-1 md:overflow-y-auto"
+        className="flex flex-wrap gap-1 md:min-h-0 md:flex-1 md:flex-col md:gap-1 md:overflow-y-auto"
       >
         {links.map((link) => {
           const active =
             link.href === "/app"
               ? pathname === "/app"
               : pathname.startsWith(link.href);
+          const Icon = link.icon;
           return (
             <Link
               key={link.href}
               href={link.href}
               className={navClass(active)}
+              aria-current={active ? "page" : undefined}
             >
+              <Icon className="shrink-0" />
               {link.label}
             </Link>
           );
         })}
       </nav>
-      <nav
-        aria-label="Account"
-        className="flex flex-wrap items-center justify-end gap-1 md:mt-auto md:flex-col md:items-stretch md:justify-start md:border-t md:border-border md:pt-3"
-      >
-        <Link
-          href="/app/profile"
-          className={`${navClass(profileActive)} w-full`}
-          aria-current={profileActive ? "page" : undefined}
+
+      <div className="mt-auto rounded-2xl border border-border bg-[var(--atmosphere-1)] p-3.5">
+        <div className="flex items-center gap-2">
+          <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-white text-[#b45309]">
+            <CrownIcon className="h-3.5 w-3.5" />
+          </span>
+          <p className="text-sm font-medium text-fg">Free Plan</p>
+        </div>
+        <p className="mt-2 text-xs text-muted">
+          {usage
+            ? `${usage.remaining}/${usage.limit} chats left today`
+            : "Chats with your AI today"}
+        </p>
+        <div
+          className="mt-2.5 h-1.5 overflow-hidden rounded-full bg-white"
+          role="progressbar"
+          aria-valuenow={pct}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-label="Daily chat usage"
         >
-          <ProfileIcon className="shrink-0" />
-          Profile
-        </Link>
-        <Link
-          href="/app/settings"
-          className={`${navClass(settingsActive)} w-full`}
-          aria-current={settingsActive ? "page" : undefined}
-        >
-          <SettingsIcon className="shrink-0" />
-          Settings
-        </Link>
-        <SignOutButton fullWidth className="w-full" />
-      </nav>
+          <div
+            className="h-full rounded-full bg-accent transition-[width]"
+            style={{ width: `${pct}%` }}
+          />
+        </div>
+        <ButtonLink href="/pricing" className="mt-3 w-full rounded-xl py-2 text-sm">
+          Upgrade Plan
+        </ButtonLink>
+      </div>
     </aside>
   );
 }
