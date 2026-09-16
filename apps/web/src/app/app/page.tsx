@@ -11,19 +11,25 @@ import {
   CheckIcon,
   ChevronRightIcon,
   CopyIcon,
+  DocIcon,
   ExternalIcon,
   FeedbackIcon,
-  PresenceIcon,
   ShareIcon,
+  TrendUpIcon,
 } from "@/components/ui/icons";
 import { PresenceMark } from "@/components/presence-mark";
 import { revealContainer, revealItem } from "@/lib/motion";
 import {
-  ApiError,
   apiFetch,
   type AiProfile,
   type AnalyticsSummary,
 } from "@/lib/api";
+import {
+  isUiPreview,
+  loadDashboardData,
+  PREVIEW_ANALYTICS,
+  PREVIEW_PROFILE,
+} from "@/lib/ui-preview";
 
 const CHECKLIST_LABELS: Record<string, string> = {
   profile_basics: "Name / headline",
@@ -43,8 +49,8 @@ export default function DashboardPage() {
     [reduceMotion],
   );
   const item = useMemo(() => revealItem(reduceMotion), [reduceMotion]);
-  const [profile, setProfile] = useState<AiProfile | null>(null);
-  const [stats, setStats] = useState<AnalyticsSummary | null>(null);
+  const [profile, setProfile] = useState<AiProfile | null>(PREVIEW_PROFILE);
+  const [stats, setStats] = useState<AnalyticsSummary | null>(PREVIEW_ANALYTICS);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
@@ -57,36 +63,37 @@ export default function DashboardPage() {
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      try {
-        const me = await apiFetch<AiProfile>("/ai/me");
-        if (cancelled) return;
-        setProfile(me);
-        const summary = await apiFetch<AnalyticsSummary>(
-          `/ai/${me.id}/analytics/summary`,
-        );
-        if (!cancelled) setStats(summary);
-      } catch (err) {
-        if (cancelled) return;
-        if (err instanceof ApiError && err.status === 401) {
-          router.replace("/sign-in?next=/app");
-          return;
-        }
-        if (err instanceof ApiError && err.status === 404) {
-          router.replace("/onboarding/create");
-          return;
-        }
-        setError(err instanceof Error ? err.message : "Failed to load");
+      const result = await loadDashboardData(
+        () => apiFetch<AiProfile>("/ai/me"),
+        (id) => apiFetch<AnalyticsSummary>(`/ai/${id}/analytics/summary`),
+      );
+      if (cancelled) return;
+
+      if (result.needsAuth && !isUiPreview()) {
+        router.replace("/sign-in?next=/app");
+        return;
       }
-    })();
+      if (result.needsOnboarding && !isUiPreview()) {
+        router.replace("/onboarding/create");
+        return;
+      }
+
+      setProfile(result.profile);
+      setStats(result.stats);
+      setError(null);
+    })().catch((err) => {
+      if (cancelled) return;
+      // Always keep mock UI visible
+      setProfile(PREVIEW_PROFILE);
+      setStats(PREVIEW_ANALYTICS);
+      setError(err instanceof Error ? err.message : null);
+    });
     return () => {
       cancelled = true;
     };
   }, [router]);
 
-  const fullLink = useMemo(() => {
-    if (!stats?.public_url_path || typeof window === "undefined") return "";
-    return `${window.location.origin}${stats.public_url_path}`;
-  }, [stats?.public_url_path]);
+  const publicPath = stats?.public_url_path ?? "";
 
   const nextStep = useMemo(() => {
     const c = stats?.completeness_checklist;
@@ -110,9 +117,10 @@ export default function DashboardPage() {
   const score = stats?.completeness_score ?? profile?.completeness_score ?? 0;
 
   async function copyLink() {
-    if (!fullLink) return;
+    if (!publicPath) return;
+    const absolute = `${window.location.origin}${publicPath}`;
     try {
-      await navigator.clipboard.writeText(fullLink);
+      await navigator.clipboard.writeText(absolute);
       setCopied(true);
     } catch {
       setCopied(false);
@@ -122,14 +130,19 @@ export default function DashboardPage() {
 
   return (
     <motion.div
-      className="mx-auto flex h-full min-h-0 w-full max-w-6xl flex-col"
+      className="mx-auto flex w-full max-w-6xl flex-col"
       initial="hidden"
       animate="visible"
       variants={container}
     >
       <motion.header className="shrink-0" variants={item}>
-        <h1 className="font-display text-2xl tracking-tight text-fg md:text-[1.75rem]">
-          {first ? `Good to see you, ${first}! 👋` : "Dashboard"}
+        <h1 className="font-display text-2xl tracking-tight text-fg md:text-[1.7rem]">
+          {first ? `Good to see you, ${first}!` : "Dashboard"}
+          {first ? (
+            <span className="ml-1.5 inline-block" aria-hidden>
+              👋
+            </span>
+          ) : null}
         </h1>
         <p className="mt-1 max-w-xl text-sm text-muted text-balance">
           Here’s your AI assistant overview. Keep building, keep exploring.
@@ -143,11 +156,7 @@ export default function DashboardPage() {
         <StatCard
           label="Status"
           tone="mint"
-          icon={
-            <PresenceIcon
-              className={published ? "text-accent" : "text-muted"}
-            />
-          }
+          icon={<DocIcon className="h-4 w-4 text-accent" />}
           live={published}
         >
           <dd className="mt-2 font-display text-2xl tracking-tight text-fg">
@@ -160,7 +169,7 @@ export default function DashboardPage() {
                 : "…"}
           </dd>
           <p className="mt-0.5 text-xs text-muted">
-            {published ? "Your AI is live and ready." : "Not public yet."}
+            {published ? "Your AI is live and ready!" : "Not public yet."}
           </p>
         </StatCard>
 
@@ -169,10 +178,17 @@ export default function DashboardPage() {
           tone="sky"
           icon={<CompletenessRing value={score} reduceMotion={reduceMotion} />}
         >
-          <dd className="mt-2 font-display text-2xl tracking-tight text-fg">
+          <dd className="mt-2 flex items-baseline gap-2 font-display text-2xl tracking-tight text-fg">
             {stats || profile ? (
               <>
-                <CountUp value={score} reduceMotion={reduceMotion} />%
+                <span>
+                  <CountUp value={score} reduceMotion={reduceMotion} />%
+                </span>
+                {allDone ? (
+                  <span className="text-base" aria-hidden>
+                    🎉
+                  </span>
+                ) : null}
               </>
             ) : (
               "…"
@@ -180,7 +196,7 @@ export default function DashboardPage() {
           </dd>
           <p className="mt-0.5 text-xs text-muted">
             {allDone
-              ? "All set. Great job."
+              ? "All set! Great job!"
               : nextStep
                 ? nextStep.label
                 : "Keep building."}
@@ -190,14 +206,20 @@ export default function DashboardPage() {
         <StatCard
           label="Visits (7d)"
           tone="purple"
-          icon={<VisitBars className="text-[#7c3aed]" />}
+          icon={<VisitBars className="text-[var(--tone-purple-ink)]" />}
         >
-          <dd className="mt-2 font-display text-2xl tracking-tight text-fg">
+          <dd className="mt-2 flex flex-wrap items-center gap-2 font-display text-2xl tracking-tight text-fg">
             {stats ? (
               <CountUp value={stats.visits_7d} reduceMotion={reduceMotion} />
             ) : (
               "…"
             )}
+            {stats && stats.visits_7d > 0 ? (
+              <span className="inline-flex items-center gap-0.5 rounded-full bg-accent-soft px-2 py-0.5 text-xs font-medium text-accent">
+                <TrendUpIcon className="h-3 w-3" />
+                Active
+              </span>
+            ) : null}
           </dd>
           <p className="mt-0.5 text-xs text-muted">
             People checking your public page.
@@ -210,14 +232,12 @@ export default function DashboardPage() {
           className="mt-2.5 grid shrink-0 gap-3 sm:grid-cols-2"
           variants={item}
         >
-          <MetricChip
-            icon={<CalendarIcon className="h-4 w-4 text-accent" />}
-          >
+          <MetricChip icon={<CalendarIcon className="h-4 w-4 text-accent" />}>
             Today: {stats.visits_today} visits · {stats.conversations_7d} public
             conversations (7d) · {stats.messages_7d} public messages (7d)
           </MetricChip>
           <MetricChip
-            icon={<BoltIcon className="h-4 w-4 text-[#d97706]" />}
+            icon={<BoltIcon className="h-4 w-4 text-[var(--tone-amber)]" />}
           >
             Free plan today: {stats.owner_chats_remaining}/
             {stats.owner_chats_limit} chats left · {stats.documents_remaining}/
@@ -240,21 +260,17 @@ export default function DashboardPage() {
       ) : null}
 
       <motion.div
-        className="mt-3 grid min-h-0 flex-1 gap-3 lg:grid-cols-5"
+        className="mt-3 grid items-stretch gap-3 lg:grid-cols-2"
         variants={item}
       >
         {stats?.completeness_checklist ? (
-          <section className="flex min-h-0 flex-col rounded-2xl border border-border bg-white p-4 shadow-[0_10px_30px_-18px_rgba(18,24,31,0.35)] lg:col-span-3">
+          <section className="relative flex min-h-[20rem] flex-col rounded-2xl border border-border bg-white p-4 shadow-[0_10px_30px_-18px_rgba(15,31,28,0.28)]">
             <div className="flex shrink-0 items-start justify-between gap-3">
               <div className="flex items-start gap-2">
                 <span className="mt-0.5 flex h-6 w-6 items-center justify-center rounded-full bg-accent-soft text-accent">
                   <CheckIcon className="h-3 w-3" />
                 </span>
-                <div>
-                  <h2 className="font-display text-lg text-fg">
-                    Setup checklist
-                  </h2>
-                </div>
+                <h2 className="font-display text-lg text-fg">Setup Checklist</h2>
               </div>
               <span
                 className={`inline-flex shrink-0 items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
@@ -284,18 +300,18 @@ export default function DashboardPage() {
             </ul>
             {allDone ? (
               <p className="mt-2 shrink-0 font-display text-base italic text-accent">
-                You’re all set.
+                You’re all set!
               </p>
             ) : null}
           </section>
         ) : (
-          <section className="rounded-2xl border border-border bg-white p-4 shadow-[0_10px_30px_-18px_rgba(18,24,31,0.35)] lg:col-span-3">
-            <h2 className="font-display text-lg text-fg">Setup checklist</h2>
+          <section className="flex min-h-[20rem] flex-col rounded-2xl border border-border bg-white p-4 shadow-[0_10px_30px_-18px_rgba(15,31,28,0.28)]">
+            <h2 className="font-display text-lg text-fg">Setup Checklist</h2>
             <p className="mt-2 text-sm text-muted">Loading…</p>
           </section>
         )}
 
-        <section className="relative flex min-h-0 flex-col overflow-hidden rounded-2xl border border-border bg-white p-3 shadow-[0_10px_30px_-18px_rgba(18,24,31,0.35)] lg:col-span-2">
+        <section className="relative flex min-h-[20rem] flex-col overflow-hidden rounded-2xl border border-border bg-white p-3 shadow-[0_10px_30px_-18px_rgba(15,31,28,0.28)]">
           <div
             className="pointer-events-none absolute inset-0"
             aria-hidden
@@ -304,55 +320,64 @@ export default function DashboardPage() {
                 "radial-gradient(ellipse 90% 70% at 70% 20%, var(--atmosphere-2), transparent 55%), radial-gradient(ellipse 70% 50% at 20% 90%, var(--atmosphere-1), transparent 50%)",
             }}
           />
-          <div className="relative flex min-h-0 flex-1 flex-col items-center justify-center">
+          <div className="relative flex flex-1 flex-col">
             <PresenceMark live={published} allDone={allDone} />
           </div>
         </section>
       </motion.div>
 
-      <motion.section className="mt-3 shrink-0" variants={item}>
-        <div className="flex flex-wrap gap-2">
-          <ButtonLink href="/app/chat" className="gap-2 rounded-xl px-4 py-2">
+      <motion.section className="mt-3 w-full shrink-0" variants={item}>
+        <div className="mb-2 flex items-center gap-2">
+          <BoltIcon className="h-4 w-4 text-[var(--tone-amber)]" />
+          <h2 className="text-sm font-medium text-fg">Quick Actions</h2>
+        </div>
+        <div className="grid w-full grid-cols-2 gap-2 md:grid-cols-3 lg:grid-cols-5">
+          <ButtonLink
+            href="/app/chat"
+            className="box-border flex h-11 w-full items-center justify-center gap-1.5 rounded-xl px-3 py-0 text-sm leading-none"
+          >
             <ChatIcon />
-            Talk to your AI
-            <ChevronRightIcon className="h-3.5 w-3.5 opacity-80" />
+            <span className="truncate">Talk to your AI</span>
+            <ChevronRightIcon className="h-3.5 w-3.5 shrink-0 opacity-80" />
           </ButtonLink>
           <ButtonLink
             href="/onboarding/publish"
             variant="secondary"
-            className="gap-2 rounded-xl bg-white py-2"
+            className="box-border flex h-11 w-full items-center justify-center gap-1.5 rounded-xl border border-border bg-white px-3 py-0 text-sm leading-none"
           >
             <ShareIcon />
-            Share
+            <span className="truncate">Share</span>
           </ButtonLink>
-          {fullLink ? (
+          {publicPath ? (
             <Button
               type="button"
               variant="secondary"
-              className="gap-2 rounded-xl bg-white py-2"
+              className="box-border flex h-11 w-full items-center justify-center gap-1.5 rounded-xl border border-border bg-white px-3 py-0 text-sm leading-none"
               onClick={() => void copyLink()}
             >
               <CopyIcon />
-              {copied ? "Copied" : "Copy public link"}
+              <span className="truncate">
+                {copied ? "Copied" : "Copy public link"}
+              </span>
             </Button>
           ) : null}
           {stats?.username ? (
             <ButtonLink
               href={`/u/${stats.username}`}
               variant="secondary"
-              className="gap-2 rounded-xl bg-white py-2"
+              className="box-border flex h-11 w-full items-center justify-center gap-1.5 rounded-xl border border-border bg-white px-3 py-0 text-sm leading-none"
             >
               <ExternalIcon />
-              Open public page
+              <span className="truncate">Open public page</span>
             </ButtonLink>
           ) : null}
           <ButtonLink
             href="/feedback"
-            variant="ghost"
-            className="gap-2 rounded-xl py-2"
+            variant="secondary"
+            className="box-border flex h-11 w-full items-center justify-center gap-1.5 rounded-xl border border-border bg-white px-3 py-0 text-sm leading-none"
           >
             <FeedbackIcon />
-            Send feedback
+            <span className="truncate">Send feedback</span>
           </ButtonLink>
         </div>
       </motion.section>
@@ -381,7 +406,7 @@ function MetricChip({
   children: ReactNode;
 }) {
   return (
-    <p className="flex items-center gap-3 rounded-xl border border-border bg-white px-4 py-2.5 text-xs text-muted shadow-[0_6px_18px_-14px_rgba(18,24,31,0.35)] sm:text-sm">
+    <p className="flex items-center gap-3 rounded-xl border border-border bg-white px-4 py-2.5 text-xs text-muted shadow-[0_6px_18px_-14px_rgba(15,31,28,0.28)] sm:text-sm">
       <span className="shrink-0" aria-hidden>
         {icon}
       </span>
@@ -405,15 +430,15 @@ function StatCard({
 }) {
   const tones = {
     default: "bg-white",
-    mint: "bg-[#e7f4ef]",
-    sky: "bg-[#e8f1f6]",
+    mint: "bg-[var(--tone-mint)]",
+    sky: "bg-[var(--tone-sky)]",
     mist: "bg-[var(--atmosphere-1)]",
-    purple: "bg-[#efeaf8]",
+    purple: "bg-[var(--tone-purple)]",
   } as const;
 
   return (
     <div
-      className={`rounded-2xl border border-border/80 px-4 py-3 shadow-[0_10px_30px_-18px_rgba(18,24,31,0.35)] ${tones[tone]}`}
+      className={`rounded-2xl border border-border/80 px-4 py-3 shadow-[0_10px_30px_-18px_rgba(15,31,28,0.28)] ${tones[tone]}`}
     >
       <div className="flex items-start justify-between gap-2">
         <dt className="flex items-center gap-2 text-xs text-muted sm:text-sm">
@@ -424,7 +449,9 @@ function StatCard({
         </dt>
         <span
           className={`flex h-8 w-8 items-center justify-center rounded-lg bg-white/90 shadow-sm ${
-            tone === "purple" ? "text-[#7c3aed]" : "text-accent"
+            tone === "purple"
+              ? "text-[var(--tone-purple-ink)]"
+              : "text-accent"
           }`}
           aria-hidden
         >
