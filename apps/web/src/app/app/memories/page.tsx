@@ -111,13 +111,12 @@ export default function MemoriesPage() {
   return (
     <ScreenIntro
       title="Memories"
-      description="Episodic facts from your private chats. Edit or delete anything that looks wrong."
+      description="Facts saved from conversations with your AI. Edit or delete anything that looks wrong before visitors hear them."
     >
       {memories.length === 0 ? (
         <p className="mt-2 rounded border border-dashed border-border bg-elevated px-4 py-8 text-center text-sm text-muted">
-          No memories yet. Chat in /app/chat and state a preference (e.g. “I
-          prefer async updates over meetings”) — it will appear here after
-          extract.
+          No memories yet. Open Chat and state a preference (e.g. “I prefer
+          async updates over meetings”) — it will appear here shortly.
         </p>
       ) : (
         <ul className="mt-2 divide-y divide-border border-t border-border">

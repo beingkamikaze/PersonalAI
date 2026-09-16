@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { OwnerChat } from "@/components/owner-chat";
 import { ScreenIntro } from "@/components/screen-intro";
@@ -9,8 +10,8 @@ import { ApiError, apiFetch, type AiProfile } from "@/lib/api";
 const SUGGESTIONS = [
   "What do I do professionally?",
   "What are my main skills?",
-  "How do I prefer to communicate?",
   "What kind of work am I open to?",
+  "I prefer async updates over meetings",
 ];
 
 export default function AppChatPage() {
@@ -40,11 +41,23 @@ export default function AppChatPage() {
 
   return (
     <ScreenIntro
-      title="Private chat"
-      description="Owner testing surface. Uses identity, personality, facts, knowledge (RAG), and memories."
+      title="Talk to your AI"
+      description="Preview answers as visitors will hear them. Preferences you state here can be saved as memories."
     >
       {profileId ? (
-        <OwnerChat profileId={profileId} suggestions={SUGGESTIONS} />
+        <>
+          <OwnerChat profileId={profileId} suggestions={SUGGESTIONS} />
+          <p className="mt-4 text-sm text-muted">
+            Review saved facts in{" "}
+            <Link
+              href="/app/memories"
+              className="text-accent hover:text-accent-hover"
+            >
+              Memories
+            </Link>
+            . Visitors chat on your public page, not here.
+          </p>
+        </>
       ) : (
         <p className="text-sm text-muted">{error ?? "Loading chat…"}</p>
       )}

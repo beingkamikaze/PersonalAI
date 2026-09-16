@@ -11,7 +11,7 @@ type Props = {
 };
 
 /**
- * Owner private chat UI.
+ * Owner chat UI — preview answers and state preferences.
  * Calls FastAPI POST /ai/{id}/chat — the browser never talks to OpenAI.
  */
 export function OwnerChat({ profileId, suggestions = [] }: Props) {
@@ -75,8 +75,9 @@ export function OwnerChat({ profileId, suggestions = [] }: Props) {
       <div className="flex-1 space-y-3 overflow-y-auto p-5 text-sm">
         {messages.length === 0 ? (
           <p className="text-muted">
-            Ask something about this professional — answers use interview
-            personality, facts, and uploaded knowledge when ready.
+            Ask a question to preview answers, or state a preference to save
+            as a memory. Replies use interview personality, facts, and
+            uploaded knowledge when ready.
           </p>
         ) : (
           messages.map((m) => (

@@ -60,7 +60,7 @@ def assert_owner_chat_allowed(db: Session, profile_id: UUID) -> int:
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
             detail=(
-                f"Free plan limit: {limit} private chats per day. "
+                f"Free plan limit: {limit} chats with your AI per day. "
                 "Try again tomorrow (billing comes later)."
             ),
         )

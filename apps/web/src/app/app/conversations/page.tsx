@@ -66,7 +66,7 @@ export default function ConversationsPage() {
               <Link
                 href={`/app/chat`}
                 className="text-sm text-accent hover:text-accent-hover"
-                title="Full message history via API; owner chat UI stays private"
+                title="Owner Chat is for talking to your AI; this list is visitor threads"
               >
                 {c.id.slice(0, 8)}…
               </Link>

@@ -7,7 +7,7 @@ const plans = [
     name: "Free",
     price: "₹0",
     blurb:
-      "One AI profile, publish + share, limited private chats/day and knowledge sources. Enough to validate the loop.",
+      "One AI profile, publish + share, limited chats with your AI/day and knowledge sources. Enough to validate the loop.",
   },
   {
     name: "Plus",
@@ -44,7 +44,7 @@ export default function PricingPage() {
             <ButtonLink href="/sign-up">Create My AI</ButtonLink>
           </div>
           <p className="mt-6 text-xs text-muted">
-            Free soft-launch caps (API defaults): ~40 private chats/day, ~8
+            Free soft-launch caps (API defaults): ~40 chats with your AI/day, ~8
             knowledge sources, public chat rate-limited per visitor.
           </p>
         </ScreenIntro>

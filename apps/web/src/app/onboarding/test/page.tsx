@@ -42,7 +42,7 @@ export default function OnboardingTestPage() {
   return (
     <ScreenIntro
       title="Test your AI"
-      description="Private owner chat using interview personality, facts, and uploaded knowledge."
+      description="Try the answers visitors will hear. Preferences you state here can be saved as memories."
     >
       <OnboardingProgress step={4} />
       <div className="mt-8">
@@ -58,7 +58,7 @@ export default function OnboardingTestPage() {
           Back
         </ButtonLink>
         <ButtonLink href="/app/chat" variant="secondary">
-          Open full chat
+          Talk to your AI
         </ButtonLink>
       </div>
     </ScreenIntro>

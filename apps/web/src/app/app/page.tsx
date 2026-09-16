@@ -94,7 +94,7 @@ export default function DashboardPage() {
   return (
     <ScreenIntro
       title="Dashboard"
-      description="Status, completeness, visits, and quick actions to Share or Test."
+      description="Status, completeness, visits, and quick actions to Share or talk to your AI."
     >
       <dl className="grid gap-6 sm:grid-cols-3">
         <Stat label="Status" value={statusLabel} />
@@ -120,7 +120,7 @@ export default function DashboardPage() {
       {stats ? (
         <p className="mt-2 text-sm text-muted">
           Free plan today: {stats.owner_chats_remaining}/
-          {stats.owner_chats_limit} private chats left ·{" "}
+          {stats.owner_chats_limit} chats with your AI left ·{" "}
           {stats.documents_remaining}/{stats.documents_limit} knowledge slots
           left
         </p>
@@ -149,7 +149,7 @@ export default function DashboardPage() {
       ) : null}
 
       <div className="mt-8 flex flex-wrap gap-3">
-        <ButtonLink href="/app/chat">Test</ButtonLink>
+        <ButtonLink href="/app/chat">Talk to your AI</ButtonLink>
         <ButtonLink href="/onboarding/publish" variant="secondary">
           Share
         </ButtonLink>
