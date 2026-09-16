@@ -15,7 +15,7 @@ const SUGGESTIONS = [
 
 export default function AppChatPage() {
   const router = useRouter();
-  const [profileId, setProfileId] = useState<string | null>(null);
+  const [profile, setProfile] = useState<AiProfile | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -23,7 +23,7 @@ export default function AppChatPage() {
     (async () => {
       try {
         const me = await apiFetch<AiProfile>("/ai/me");
-        if (!cancelled) setProfileId(me.id);
+        if (!cancelled) setProfile(me);
       } catch (err) {
         if (cancelled) return;
         if (err instanceof ApiError && err.status === 401) {
@@ -43,8 +43,13 @@ export default function AppChatPage() {
       title="Private chat"
       description="Owner testing surface. Uses identity, personality, facts, knowledge (RAG), and memories."
     >
-      {profileId ? (
-        <OwnerChat profileId={profileId} suggestions={SUGGESTIONS} />
+      {profile ? (
+        <OwnerChat
+          profileId={profile.id}
+          assistantName={profile.name}
+          avatarUrl={profile.avatar_url}
+          suggestions={SUGGESTIONS}
+        />
       ) : (
         <p className="text-sm text-muted">{error ?? "Loading chat…"}</p>
       )}

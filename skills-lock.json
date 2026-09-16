@@ -1,0 +1,53 @@
+{
+  "version": 1,
+  "skills": {
+    "accessibility-a11y": {
+      "source": "mindrally/skills",
+      "sourceType": "github",
+      "skillPath": "accessibility-a11y/SKILL.md",
+      "computedHash": "2a5433411908079a2acff8e0c600beaa87504182813129c94a7308eb4c9096a8"
+    },
+    "fastapi-python": {
+      "source": "mindrally/skills",
+      "sourceType": "github",
+      "skillPath": "fastapi-python/SKILL.md",
+      "computedHash": "4521c6090735152b7b8df670cefe5c1c6d1dcaa115de67bb96e74ebf802d4f24"
+    },
+    "framer-motion": {
+      "source": "mindrally/skills",
+      "sourceType": "github",
+      "skillPath": "framer-motion/SKILL.md",
+      "computedHash": "4bbfec771a1a13e3462cdd30c442fd09513c50d13a2652a275a8e09ad4532189"
+    },
+    "nextjs-react-typescript": {
+      "source": "mindrally/skills",
+      "sourceType": "github",
+      "skillPath": "nextjs-react-typescript/SKILL.md",
+      "computedHash": "52067402daf8388ba7970478e0ba1f350f1868a65a62ae2bf6f4dc1ac3cf3e88"
+    },
+    "postgresql-best-practices": {
+      "source": "mindrally/skills",
+      "sourceType": "github",
+      "skillPath": "postgresql-best-practices/SKILL.md",
+      "computedHash": "d32a9114bc974c965308108be7a41d9da4cddd037d5941b96611cce63064f7ea"
+    },
+    "react": {
+      "source": "mindrally/skills",
+      "sourceType": "github",
+      "skillPath": "react/SKILL.md",
+      "computedHash": "13de1712406768dcd399d384cd4cc4796f909ba1e348abb665ca3f251e955cce"
+    },
+    "redis-best-practices": {
+      "source": "mindrally/skills",
+      "sourceType": "github",
+      "skillPath": "redis-best-practices/SKILL.md",
+      "computedHash": "7d5b0f93221b2b0f1f1c35352d06990a9d18226aa95f546b161b10a4fdaabf6b"
+    },
+    "tailwindcss": {
+      "source": "mindrally/skills",
+      "sourceType": "github",
+      "skillPath": "tailwindcss/SKILL.md",
+      "computedHash": "1715717d38abba1c4b11f2e95a94681cdb1dddbcb28379637b591a16b50bcd4d"
+    }
+  }
+}

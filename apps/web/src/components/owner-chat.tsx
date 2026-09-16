@@ -2,10 +2,14 @@
 
 import { FormEvent, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { ChatBuffering } from "@/components/chat-buffering";
+import { UserAvatar } from "@/components/user-avatar";
 import { ApiError, apiFetch, type ChatMessage, type ChatResult } from "@/lib/api";
 
 type Props = {
   profileId: string;
+  assistantName?: string;
+  avatarUrl?: string | null;
   /** Optional suggested questions shown above the composer */
   suggestions?: string[];
 };
@@ -14,7 +18,12 @@ type Props = {
  * Owner private chat UI.
  * Calls FastAPI POST /ai/{id}/chat — the browser never talks to OpenAI.
  */
-export function OwnerChat({ profileId, suggestions = [] }: Props) {
+export function OwnerChat({
+  profileId,
+  assistantName = "Assistant",
+  avatarUrl = null,
+  suggestions = [],
+}: Props) {
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
@@ -80,18 +89,35 @@ export function OwnerChat({ profileId, suggestions = [] }: Props) {
           </p>
         ) : (
           messages.map((m) => (
-            <div
-              key={m.id}
-              className={m.role === "user" ? "text-fg" : "text-muted"}
-            >
-              <span className="font-medium text-fg">
-                {m.role === "user" ? "You" : "AI"}:{" "}
-              </span>
-              <span className="whitespace-pre-wrap">{m.content}</span>
+            <div key={m.id} className="flex items-start gap-3">
+              {m.role === "user" ? (
+                <span className="w-9 shrink-0 pt-2 text-xs font-medium text-muted">
+                  You
+                </span>
+              ) : (
+                <UserAvatar name={assistantName} src={avatarUrl} />
+              )}
+              <p
+                className={
+                  m.role === "user"
+                    ? "min-w-0 pt-1.5 text-fg whitespace-pre-wrap"
+                    : "min-w-0 rounded-2xl bg-accent-soft px-3.5 py-2.5 text-fg whitespace-pre-wrap"
+                }
+              >
+                <span className="sr-only">
+                  {m.role === "user" ? "You" : assistantName}:{" "}
+                </span>
+                {m.content}
+              </p>
             </div>
           ))
         )}
-        {loading ? <p className="text-muted">Thinking…</p> : null}
+        {loading ? (
+          <div className="flex items-start gap-3">
+            <UserAvatar name={assistantName} src={avatarUrl} />
+            <ChatBuffering />
+          </div>
+        ) : null}
         <div ref={bottomRef} />
       </div>
 
@@ -115,7 +141,7 @@ export function OwnerChat({ profileId, suggestions = [] }: Props) {
         <input
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="Message your AI…"
+          placeholder="Message…"
           disabled={loading}
           className="flex-1 rounded border border-border bg-white px-3 py-2.5 text-sm focus:border-accent focus:outline-none disabled:opacity-50"
         />

@@ -16,7 +16,7 @@ const SUGGESTIONS = [
 
 export default function OnboardingTestPage() {
   const router = useRouter();
-  const [profileId, setProfileId] = useState<string | null>(null);
+  const [profile, setProfile] = useState<AiProfile | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -24,7 +24,7 @@ export default function OnboardingTestPage() {
     (async () => {
       try {
         const me = await apiFetch<AiProfile>("/ai/me");
-        if (!cancelled) setProfileId(me.id);
+        if (!cancelled) setProfile(me);
       } catch (err) {
         if (cancelled) return;
         if (err instanceof ApiError && err.status === 401) {
@@ -46,8 +46,13 @@ export default function OnboardingTestPage() {
     >
       <OnboardingProgress step={4} />
       <div className="mt-8">
-        {profileId ? (
-          <OwnerChat profileId={profileId} suggestions={SUGGESTIONS} />
+        {profile ? (
+          <OwnerChat
+            profileId={profile.id}
+            assistantName={profile.name}
+            avatarUrl={profile.avatar_url}
+            suggestions={SUGGESTIONS}
+          />
         ) : (
           <p className="text-sm text-muted">{error ?? "Loading chat…"}</p>
         )}

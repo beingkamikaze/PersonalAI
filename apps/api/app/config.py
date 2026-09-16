@@ -21,7 +21,7 @@ class Settings(BaseSettings):
     supabase_service_role_key: str | None = None
     # Legacy HS256 secret (optional if project still has shared secret)
     supabase_jwt_secret: str | None = None
-    cors_origins: str = "http://localhost:3000"
+    cors_origins: str = "http://localhost:3000,http://localhost:3001,http://127.0.0.1:3000,http://127.0.0.1:3001"
 
     # LLM provider: "openai" (default) or "azure"
     llm_provider: str = "openai"

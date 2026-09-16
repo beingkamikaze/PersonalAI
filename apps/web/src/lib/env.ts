@@ -30,3 +30,7 @@ export function hasSupabaseEnv(): boolean {
         process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY),
   );
 }
+
+export function isUiPreview(): boolean {
+  return process.env.NEXT_PUBLIC_UI_PREVIEW === "true";
+}

@@ -1,0 +1,22 @@
+---
+description: Never push to main — all work stays on feature branches
+alwaysApply: true
+---
+
+# Never push to main
+
+Do not push, force-push, or publish commits to `main` (or `master`). No exceptions — not even if asked in chat.
+
+## Forbidden
+
+- `git push` while on `main`
+- `git push origin main` / `git push origin HEAD:main`
+- `--force` / `--force-with-lease` to `main`
+- Creating or updating a PR whose base is used as a backdoor to push `main` from this agent
+
+## Required
+
+- Stay on a feature branch (for example `Hanzala-Changes`).
+- If the user asks to push, push the **current feature branch only**.
+- If HEAD is `main`, refuse the push and tell them to switch branches first.
+- Commits on `main` locally are also disallowed unless the user explicitly wants a local-only commit and understands it must not be pushed.
