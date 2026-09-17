@@ -12,6 +12,7 @@ import {
   type SessionUser,
 } from "@/lib/auth";
 import { ApiError, apiFetch, type AiProfile } from "@/lib/api";
+import { PREVIEW_PROFILE } from "@/lib/ui-preview";
 
 /**
  * Mockup top chrome: search conversations, notifications, profile menu.
@@ -29,21 +30,35 @@ export function AppTopBar() {
     async function load() {
       try {
         const [user, me] = await Promise.all([
-          getSessionUser(),
+          getSessionUser().catch(() => null),
           apiFetch<AiProfile>("/ai/me").catch((err) => {
-            if (err instanceof ApiError && (err.status === 401 || err.status === 404)) {
+            if (
+              err instanceof ApiError &&
+              (err.status === 401 || err.status === 404)
+            ) {
               return null;
             }
             throw err;
           }),
         ]);
         if (cancelled) return;
-        setSession(user);
-        setProfile(me);
+        setSession(
+          user ?? {
+            email: PREVIEW_PROFILE.contact_email,
+            name: PREVIEW_PROFILE.name,
+            avatarUrl: PREVIEW_PROFILE.avatar_url,
+          },
+        );
+        setProfile(me ?? PREVIEW_PROFILE);
       } catch {
         if (!cancelled) {
-          setSession(null);
-          setProfile(null);
+          // API / auth down — keep chrome visible
+          setSession({
+            email: PREVIEW_PROFILE.contact_email,
+            name: PREVIEW_PROFILE.name,
+            avatarUrl: PREVIEW_PROFILE.avatar_url,
+          });
+          setProfile(PREVIEW_PROFILE);
         }
       }
     }

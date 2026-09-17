@@ -1,8 +1,26 @@
 "use client";
 
-import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
+import {
+  FormEvent,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type DragEvent,
+  type ReactNode,
+} from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Button, ButtonLink } from "@/components/ui/button";
+import {
+  CloudUploadIcon,
+  DatabaseIcon,
+  DocIcon,
+  ExternalIcon,
+  LightbulbIcon,
+  LinkIcon,
+  NoteIcon,
+} from "@/components/ui/icons";
 import {
   ApiError,
   apiFetch,
@@ -10,8 +28,10 @@ import {
   type AiProfile,
   type KnowledgeDocument,
 } from "@/lib/api";
+import { isUiPreview, PREVIEW_DOCS } from "@/lib/ui-preview";
 
 const POLL_MS = 2500;
+const NOTE_MAX = 1000;
 
 function statusLabel(status: string): string {
   switch (status) {
@@ -29,27 +49,32 @@ function statusLabel(status: string): string {
 }
 
 type Props = {
-  /** Where "Continue" goes after knowledge (onboarding vs stay on app page) */
   continueHref?: string;
   showSkip?: boolean;
+  /** Full mockup chrome for /app/knowledge */
+  variant?: "app" | "onboarding";
 };
 
 /**
  * Shared knowledge manager for onboarding + /app/knowledge.
- * Polls while any document is pending/processing so the UI updates without refresh.
  */
 export function KnowledgePanel({
   continueHref = "/onboarding/test",
   showSkip = false,
+  variant = "onboarding",
 }: Props) {
   const router = useRouter();
+  const isApp = variant === "app";
   const [profileId, setProfileId] = useState<string | null>(null);
-  const [docs, setDocs] = useState<KnowledgeDocument[]>([]);
+  const [docs, setDocs] = useState<KnowledgeDocument[]>(
+    isUiPreview() ? PREVIEW_DOCS : [],
+  );
   const [notes, setNotes] = useState("");
   const [url, setUrl] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [dragOver, setDragOver] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const loadDocs = useCallback(async (id: string) => {
@@ -69,7 +94,17 @@ export function KnowledgePanel({
       } catch (err) {
         if (cancelled) return;
         if (err instanceof ApiError && err.status === 401) {
-          router.replace("/sign-in?next=/onboarding/knowledge");
+          if (isUiPreview()) {
+            setDocs(PREVIEW_DOCS);
+            return;
+          }
+          router.replace(
+            `/sign-in?next=${isApp ? "/app/knowledge" : "/onboarding/knowledge"}`,
+          );
+          return;
+        }
+        if (isUiPreview()) {
+          setDocs(PREVIEW_DOCS);
           return;
         }
         setError(err instanceof Error ? err.message : "Failed to load");
@@ -78,9 +113,8 @@ export function KnowledgePanel({
     return () => {
       cancelled = true;
     };
-  }, [loadDocs, router]);
+  }, [isApp, loadDocs, router]);
 
-  // Poll while ingest is in flight
   useEffect(() => {
     if (!profileId) return;
     const inflight = docs.some(
@@ -96,7 +130,13 @@ export function KnowledgePanel({
   }, [docs, loadDocs, profileId]);
 
   async function onUpload(file: File | null) {
-    if (!profileId || !file || busy) return;
+    if (!file || busy) return;
+    if (!profileId) {
+      if (isUiPreview()) {
+        setMessage(`Preview: would upload ${file.name}`);
+      }
+      return;
+    }
     setBusy(true);
     setError(null);
     setMessage(null);
@@ -114,7 +154,14 @@ export function KnowledgePanel({
 
   async function onSaveNotes(e: FormEvent) {
     e.preventDefault();
-    if (!profileId || !notes.trim() || busy) return;
+    if (!notes.trim() || busy) return;
+    if (!profileId) {
+      if (isUiPreview()) {
+        setMessage("Preview: note would be saved");
+        setNotes("");
+      }
+      return;
+    }
     setBusy(true);
     setError(null);
     setMessage(null);
@@ -135,7 +182,14 @@ export function KnowledgePanel({
 
   async function onIngestUrl(e: FormEvent) {
     e.preventDefault();
-    if (!profileId || !url.trim() || busy) return;
+    if (!url.trim() || busy) return;
+    if (!profileId) {
+      if (isUiPreview()) {
+        setMessage("Preview: URL would be queued");
+        setUrl("");
+      }
+      return;
+    }
     setBusy(true);
     setError(null);
     setMessage(null);
@@ -155,7 +209,14 @@ export function KnowledgePanel({
   }
 
   async function onDelete(docId: string) {
-    if (!profileId || busy) return;
+    if (busy) return;
+    if (!profileId) {
+      if (isUiPreview()) {
+        setDocs((prev) => prev.filter((d) => d.id !== docId));
+        setMessage("Preview: document removed");
+      }
+      return;
+    }
     setBusy(true);
     setError(null);
     try {
@@ -169,71 +230,214 @@ export function KnowledgePanel({
     }
   }
 
+  function onDrop(e: DragEvent) {
+    e.preventDefault();
+    setDragOver(false);
+    const file = e.dataTransfer.files?.[0] ?? null;
+    void onUpload(file);
+  }
+
   const readyCount = docs.filter((d) => d.status === "ready").length;
+  const noteLen = notes.length;
 
   return (
-    <div className="space-y-8">
-      <div>
-        <label className="text-sm font-medium text-fg">Upload resume or docs</label>
-        <p className="mt-1 text-sm text-muted">PDF, DOCX, or TXT — max 8 MB.</p>
-        <div className="mt-3 flex flex-wrap items-center gap-3">
+    <div className={isApp ? "mx-auto w-full max-w-6xl space-y-4" : "space-y-6"}>
+      {isApp ? (
+        <header className="grid items-end gap-4 lg:grid-cols-[1fr_auto]">
+          <div className="min-w-0">
+            <p className="text-xs font-medium tracking-[0.14em] text-muted uppercase">
+              Knowledge
+            </p>
+            <h1 className="mt-1 font-display text-3xl tracking-tight text-fg md:text-[2rem]">
+              Add your <span className="text-accent">knowledge</span>
+            </h1>
+            <p className="mt-1.5 max-w-xl text-sm text-muted text-balance">
+              Upload documents, add notes or a URL, and track processing status.
+            </p>
+            <div className="mt-4 grid grid-cols-2 gap-2 md:grid-cols-4">
+              <Shortcut
+                tone="mint"
+                icon={<DocIcon className="h-3.5 w-3.5" />}
+                title="Upload docs"
+                subtitle="PDF, DOCX, TXT"
+              />
+              <Shortcut
+                tone="purple"
+                icon={<NoteIcon className="h-3.5 w-3.5" />}
+                title="Add notes"
+                subtitle="Save important info"
+              />
+              <Shortcut
+                tone="sky"
+                icon={<LinkIcon className="h-3.5 w-3.5" />}
+                title="Add a URL"
+                subtitle="Learn from web content"
+              />
+              <Shortcut
+                tone="amber"
+                icon={<DatabaseIcon className="h-3.5 w-3.5" />}
+                title="Track status"
+                subtitle="See how it’s processed"
+              />
+            </div>
+          </div>
+          <div className="relative hidden w-[160px] shrink-0 self-center lg:block lg:w-[200px]">
+            <Image
+              src="/dashboard/knowledge-companion-3d.png"
+              alt=""
+              width={320}
+              height={320}
+              className="h-auto w-full select-none drop-shadow-[0_16px_28px_rgba(15,31,28,0.12)]"
+              priority
+            />
+            <p className="pointer-events-none absolute top-1 right-0 max-w-[6.5rem] text-right font-display text-[11px] italic leading-snug text-accent">
+              Feed your AI with what matters.
+            </p>
+          </div>
+        </header>
+      ) : null}
+
+      <div className="grid gap-4 lg:grid-cols-5">
+        <section className="rounded-2xl border border-border bg-white p-5 shadow-[0_10px_30px_-18px_rgba(15,31,28,0.28)] lg:col-span-3">
+          <div className="flex items-start gap-2">
+            <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-[var(--tone-mint)] text-accent">
+              <CloudUploadIcon className="h-4 w-4" />
+            </span>
+            <div>
+              <h2 className="font-display text-lg text-fg">Upload a document</h2>
+              <p className="mt-0.5 text-xs text-muted">
+                PDF, DOCX, or TXT — max 8 MB.
+              </p>
+            </div>
+          </div>
+
           <input
             ref={fileRef}
             type="file"
             accept=".pdf,.docx,.txt,.md,.html,.htm"
-            className="block w-full max-w-md text-sm text-muted file:mr-3 file:rounded file:border-0 file:bg-accent file:px-3 file:py-2 file:text-sm file:font-medium file:text-white"
-            disabled={busy || !profileId}
+            className="sr-only"
+            disabled={busy}
             onChange={(e) => void onUpload(e.target.files?.[0] ?? null)}
           />
+
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => fileRef.current?.click()}
+            onDragEnter={(e) => {
+              e.preventDefault();
+              setDragOver(true);
+            }}
+            onDragOver={(e) => {
+              e.preventDefault();
+              setDragOver(true);
+            }}
+            onDragLeave={() => setDragOver(false)}
+            onDrop={onDrop}
+            className={`mt-4 flex w-full flex-col items-center justify-center rounded-2xl border-2 border-dashed px-6 py-8 text-center transition ${
+              dragOver
+                ? "border-accent bg-accent-soft/60"
+                : "border-border bg-[var(--atmosphere-1)]/40 hover:border-accent/50"
+            }`}
+          >
+            <span className="flex h-12 w-12 items-center justify-center rounded-full bg-white text-accent shadow-sm">
+              <CloudUploadIcon className="h-5 w-5" />
+            </span>
+            <p className="mt-3 text-sm text-fg">
+              Drag & drop your file here or click to choose a file
+            </p>
+            <span className="mt-4 inline-flex items-center justify-center rounded-xl bg-accent px-4 py-2 text-sm font-medium text-white">
+              Choose File
+            </span>
+          </button>
+        </section>
+
+        <div className="flex flex-col gap-4 lg:col-span-2">
+          <form
+            onSubmit={onSaveNotes}
+            className="flex flex-1 flex-col rounded-2xl border border-border bg-white p-5 shadow-[0_10px_30px_-18px_rgba(15,31,28,0.28)]"
+          >
+            <div className="flex items-start gap-2">
+              <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-[var(--tone-purple)] text-[var(--tone-purple-ink)]">
+                <NoteIcon className="h-4 w-4" />
+              </span>
+              <h2 className="font-display text-lg text-fg">Add a note</h2>
+            </div>
+            <textarea
+              id="notes"
+              rows={4}
+              maxLength={NOTE_MAX}
+              value={notes}
+              onChange={(e) => setNotes(e.target.value.slice(0, NOTE_MAX))}
+              placeholder="Things people should know about your work…"
+              className="mt-3 min-h-[6rem] w-full flex-1 resize-none rounded-xl border border-border bg-[var(--atmosphere-1)]/30 px-3 py-2.5 text-sm text-fg placeholder:text-muted/70 focus:border-accent focus:outline-none"
+              disabled={busy}
+            />
+            <div className="mt-3 flex items-center justify-between gap-3">
+              <p className="text-xs text-muted">
+                {noteLen}/{NOTE_MAX}
+              </p>
+              <Button
+                type="submit"
+                disabled={busy || !notes.trim()}
+                className="rounded-xl"
+              >
+                Save note
+              </Button>
+            </div>
+          </form>
+
+          <form
+            onSubmit={onIngestUrl}
+            className="rounded-2xl border border-border bg-white p-5 shadow-[0_10px_30px_-18px_rgba(15,31,28,0.28)]"
+          >
+            <div className="flex items-start gap-2">
+              <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-[var(--tone-sky)] text-[#2563eb]">
+                <LinkIcon className="h-4 w-4" />
+              </span>
+              <h2 className="font-display text-lg text-fg">
+                Add a URL{isApp ? " (optional)" : ""}
+              </h2>
+            </div>
+            <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+              <input
+                id="url"
+                type="url"
+                value={url}
+                onChange={(e) => setUrl(e.target.value)}
+                placeholder="https://…"
+                className="min-w-0 flex-1 rounded-xl border border-border bg-[var(--atmosphere-1)]/30 px-3 py-2.5 text-sm text-fg placeholder:text-muted/70 focus:border-accent focus:outline-none"
+                disabled={busy}
+              />
+              <Button
+                type="submit"
+                variant="secondary"
+                disabled={busy || !url.trim()}
+                className="rounded-xl bg-white"
+              >
+                Add URL
+              </Button>
+            </div>
+          </form>
         </div>
       </div>
 
-      <form onSubmit={onSaveNotes} className="space-y-3">
-        <label htmlFor="notes" className="text-sm font-medium text-fg">
-          Notes
-        </label>
-        <textarea
-          id="notes"
-          rows={4}
-          value={notes}
-          onChange={(e) => setNotes(e.target.value)}
-          placeholder="Things people should know about your work…"
-          className="w-full rounded border border-border bg-elevated px-3 py-2.5 text-sm text-fg placeholder:text-muted/70 focus:border-accent focus:outline-none"
-          disabled={busy || !profileId}
-        />
-        <Button type="submit" disabled={busy || !notes.trim()}>
-          Save notes
-        </Button>
-      </form>
-
-      <form onSubmit={onIngestUrl} className="space-y-3">
-        <label htmlFor="url" className="text-sm font-medium text-fg">
-          Optional URL
-        </label>
-        <div className="flex flex-wrap gap-2">
-          <input
-            id="url"
-            type="url"
-            value={url}
-            onChange={(e) => setUrl(e.target.value)}
-            placeholder="https://…"
-            className="min-w-[240px] flex-1 rounded border border-border bg-elevated px-3 py-2.5 text-sm text-fg placeholder:text-muted/70 focus:border-accent focus:outline-none"
-            disabled={busy || !profileId}
-          />
-          <Button type="submit" variant="secondary" disabled={busy || !url.trim()}>
-            Add URL
-          </Button>
+      <section
+        id="track-status"
+        className="rounded-2xl border border-border bg-white p-5 shadow-[0_10px_30px_-18px_rgba(15,31,28,0.28)]"
+      >
+        <div className="flex items-center gap-2">
+          <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#fff7e6] text-[var(--tone-amber)]">
+            <DatabaseIcon className="h-4 w-4" />
+          </span>
+          <h2 className="font-display text-lg text-fg">Documents & status</h2>
         </div>
-      </form>
-
-      <div>
-        <h2 className="font-display text-xl text-fg">Documents</h2>
         {docs.length === 0 ? (
-          <p className="mt-3 rounded border border-dashed border-border bg-elevated px-4 py-8 text-center text-sm text-muted">
+          <p className="mt-4 rounded-xl border border-dashed border-border bg-[var(--atmosphere-1)]/40 px-4 py-8 text-center text-sm text-muted">
             No documents yet
           </p>
         ) : (
-          <ul className="mt-3 divide-y divide-border border-t border-border">
+          <ul className="mt-4 divide-y divide-border border-t border-border">
             {docs.map((doc) => (
               <li
                 key={doc.id}
@@ -258,27 +462,89 @@ export function KnowledgePanel({
             ))}
           </ul>
         )}
-      </div>
+      </section>
 
       {error ? <p className="text-sm text-red-700">{error}</p> : null}
       {message ? <p className="text-sm text-muted">{message}</p> : null}
 
-      <div className="flex flex-wrap gap-3">
-        <ButtonLink href={continueHref}>
-          {readyCount > 0 ? "Continue" : "Continue without docs"}
-        </ButtonLink>
-        {showSkip ? (
-          <ButtonLink href={continueHref} variant="secondary">
-            Skip with warning
+      {isApp ? (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-accent/15 bg-accent-soft/70 px-4 py-3.5">
+          <div className="flex min-w-0 items-start gap-3">
+            <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white text-accent">
+              <LightbulbIcon className="h-4 w-4" />
+            </span>
+            <p className="text-sm text-fg text-balance">
+              <span className="font-medium">Pro tip:</span> Add your resumes,
+              project docs, notes, or useful links to help your AI give more
+              relevant and personalized answers.
+            </p>
+          </div>
+          <ButtonLink
+            href="/app/chat"
+            variant="secondary"
+            className="gap-2 rounded-xl bg-white py-2"
+          >
+            Learn more
+            <ExternalIcon className="h-3.5 w-3.5" />
           </ButtonLink>
-        ) : null}
-      </div>
-      {readyCount === 0 ? (
+        </div>
+      ) : (
+        <div className="flex flex-wrap gap-3">
+          <ButtonLink href={continueHref} className="rounded-xl">
+            {readyCount > 0 ? "Continue" : "Continue without docs"}
+          </ButtonLink>
+          {showSkip ? (
+            <ButtonLink
+              href={continueHref}
+              variant="secondary"
+              className="rounded-xl"
+            >
+              Skip with warning
+            </ButtonLink>
+          ) : null}
+        </div>
+      )}
+
+      {!isApp && readyCount === 0 ? (
         <p className="text-xs text-muted">
           Prefer at least one ready source before publish — answers will only use
           interview facts until documents finish processing.
         </p>
       ) : null}
+    </div>
+  );
+}
+
+function Shortcut({
+  tone,
+  icon,
+  title,
+  subtitle,
+}: {
+  tone: "mint" | "purple" | "sky" | "amber";
+  icon: ReactNode;
+  title: string;
+  subtitle: string;
+}) {
+  const tones = {
+    mint: "bg-[var(--tone-mint)] text-accent",
+    purple: "bg-[var(--tone-purple)] text-[var(--tone-purple-ink)]",
+    sky: "bg-[var(--tone-sky)] text-[#2563eb]",
+    amber: "bg-[#fff7e6] text-[var(--tone-amber)]",
+  } as const;
+
+  return (
+    <div className="flex min-w-0 items-center gap-2 rounded-xl border border-border bg-white px-2.5 py-2 shadow-[0_8px_24px_-18px_rgba(15,31,28,0.28)]">
+      <span
+        className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ${tones[tone]}`}
+        aria-hidden
+      >
+        {icon}
+      </span>
+      <div className="min-w-0">
+        <p className="truncate text-xs font-medium text-fg">{title}</p>
+        <p className="truncate text-[11px] leading-tight text-muted">{subtitle}</p>
+      </div>
     </div>
   );
 }

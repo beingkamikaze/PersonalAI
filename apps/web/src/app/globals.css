@@ -3,23 +3,34 @@
 @tailwind utilities;
 
 :root {
-  --bg: #eef2f4;
-  --bg-elevated: #f7f9fa;
-  --fg: #12181f;
-  --muted: #5c6b7a;
-  --accent: #0f766e;
-  --accent-hover: #0d9488;
-  --accent-soft: #dce8ea;
-  --border: #d5dde3;
-  --radius: 10px;
-  --atmosphere-1: #dce8ea;
-  --atmosphere-2: #c5d9e0;
+  /* MyAI / PersonaAI dashboard system — forest teal + soft mint */
+  --bg: #f2f5f6;
+  --bg-elevated: #ffffff;
+  --fg: #0f1f1c;
+  --muted: #5a6b66;
+  --accent: #006d5b;
+  --accent-hover: #00856f;
+  --accent-soft: #e3f2ee;
+  --border: #dde5e2;
+  --radius: 12px;
+  --atmosphere-1: #e8f1ee;
+  --atmosphere-2: #d4e5e0;
+  --on-accent: #ffffff;
+  --tone-mint: #e7f4ef;
+  --tone-sky: #e8f1f6;
+  --tone-purple: #efeaf8;
+  --tone-amber: #d97706;
+  --tone-purple-ink: #7c3aed;
 }
 
 body {
   color: var(--fg);
   background: var(--bg);
   font-family: var(--font-figtree), ui-sans-serif, sans-serif;
+}
+
+html {
+  overflow-y: scroll;
 }
 
 @layer utilities {
@@ -32,5 +43,31 @@ body {
       radial-gradient(ellipse 80% 60% at 70% 10%, var(--atmosphere-2), transparent 55%),
       radial-gradient(ellipse 70% 50% at 10% 80%, var(--atmosphere-1), transparent 50%),
       var(--bg);
+  }
+
+  /* Always-visible scrollbar so Cursor/embedded browsers show you can scroll */
+  .app-scroll {
+    scrollbar-gutter: stable;
+  }
+
+  .app-scroll::-webkit-scrollbar {
+    width: 10px;
+  }
+
+  .app-scroll::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .app-scroll::-webkit-scrollbar-thumb {
+    background: #c5d0cc;
+    border-radius: 999px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
+
+  .app-scroll::-webkit-scrollbar-thumb:hover {
+    background: #9aada6;
+    border: 2px solid transparent;
+    background-clip: padding-box;
   }
 }

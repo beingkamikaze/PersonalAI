@@ -13,11 +13,11 @@ import {
   SettingsIcon,
 } from "@/components/ui/icons";
 import {
-  ApiError,
   apiFetch,
   type AiProfile,
   type AnalyticsSummary,
 } from "@/lib/api";
+import { PREVIEW_ANALYTICS } from "@/lib/ui-preview";
 
 /** Mockup nav: Dashboard, Chats, Knowledge, Memory, Settings + Upgrade. */
 const links = [
@@ -41,7 +41,10 @@ export function AppNav() {
   const [usage, setUsage] = useState<{
     remaining: number;
     limit: number;
-  } | null>(null);
+  } | null>({
+    remaining: PREVIEW_ANALYTICS.owner_chats_remaining ?? 39,
+    limit: PREVIEW_ANALYTICS.owner_chats_limit ?? 40,
+  });
 
   useEffect(() => {
     let cancelled = false;
@@ -61,11 +64,13 @@ export function AppNav() {
             limit: summary.owner_chats_limit,
           });
         }
-      } catch (err) {
+      } catch {
         if (cancelled) return;
-        if (err instanceof ApiError && (err.status === 401 || err.status === 404)) {
-          return;
-        }
+        // API down / unauthorized — keep Free Plan card filled
+        setUsage({
+          remaining: PREVIEW_ANALYTICS.owner_chats_remaining ?? 39,
+          limit: PREVIEW_ANALYTICS.owner_chats_limit ?? 40,
+        });
       }
     })();
     return () => {
@@ -80,9 +85,12 @@ export function AppNav() {
       : 0;
 
   return (
-    <aside className="flex w-full shrink-0 flex-col gap-5 border-b border-border bg-white px-4 py-5 md:h-full md:w-[15.5rem] md:border-b-0 md:border-r md:py-6">
-      <Link href="/app" className="px-1 font-display text-lg text-fg">
-        Persona<span className="text-accent">AI</span>
+    <aside className="flex w-full shrink-0 flex-col gap-5 border-b border-border bg-white px-4 py-5 md:w-[15.5rem] md:border-b-0 md:border-r md:py-6">
+      <Link
+        href="/app"
+        className="px-1 font-display text-xl tracking-tight text-accent"
+      >
+        PersonaAI
       </Link>
 
       <nav

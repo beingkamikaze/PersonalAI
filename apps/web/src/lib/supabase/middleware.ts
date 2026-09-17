@@ -4,9 +4,15 @@ import {
   getSupabaseAnonKey,
   getSupabaseUrl,
   hasSupabaseEnv,
+  isUiPreview,
 } from "@/lib/env";
 
 export async function updateSession(request: NextRequest) {
+  // UI-only mode: skip auth gates so screens render without API/Supabase.
+  if (isUiPreview()) {
+    return NextResponse.next({ request });
+  }
+
   if (!hasSupabaseEnv()) {
     return NextResponse.next({ request });
   }
