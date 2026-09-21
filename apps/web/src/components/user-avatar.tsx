@@ -8,6 +8,7 @@ function initials(name: string): string {
 }
 
 const sizeClass = {
+  xs: "h-8 w-8 text-[10px]",
   sm: "h-9 w-9 text-xs",
   md: "h-12 w-12 text-sm",
   lg: "h-16 w-16 text-base",
@@ -20,7 +21,7 @@ export function UserAvatar({
 }: {
   name: string;
   src?: string | null;
-  size?: "sm" | "md" | "lg";
+  size?: "xs" | "sm" | "md" | "lg";
 }) {
   const dim = sizeClass[size];
   const resolved = resolveMediaUrl(src);

@@ -100,26 +100,26 @@ export function AppTopBar() {
   const displayName = profile?.name ?? session?.name ?? "Profile";
 
   return (
-    <div className="ml-auto flex w-full max-w-xl shrink-0 items-center justify-end gap-3">
+    <div className="ml-auto flex w-full max-w-lg shrink-0 items-center justify-end gap-2.5 sm:gap-3 md:max-w-xl">
       <form onSubmit={onSearch} className="relative min-w-0 flex-1">
-        <SearchIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
+        <SearchIcon className="pointer-events-none absolute left-3.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted" />
         <input
           type="search"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search conversations..."
-          className="w-full rounded-xl border border-border bg-white py-2.5 pl-9 pr-3 text-sm text-fg placeholder:text-muted focus:border-accent focus:outline-none"
+          className="w-full rounded-full border-0 bg-white py-2 pl-9 pr-4 text-sm text-fg shadow-[0_6px_18px_-6px_rgba(15,31,28,0.28),0_1px_2px_rgba(15,31,28,0.06)] ring-1 ring-black/[0.04] placeholder:text-muted focus:outline-none focus:ring-1 focus:ring-accent/35"
           aria-label="Search conversations"
         />
       </form>
 
       <button
         type="button"
-        className="relative inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-muted hover:bg-[var(--atmosphere-1)] hover:text-fg"
+        className="relative inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-muted hover:bg-[var(--atmosphere-1)] hover:text-fg"
         aria-label="Notifications"
       >
-        <BellIcon />
-        <span className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-red-500" />
+        <BellIcon className="h-4 w-4" />
+        <span className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-red-500" />
       </button>
 
       <div className="relative shrink-0" ref={menuRef}>
@@ -134,7 +134,7 @@ export function AppTopBar() {
           <UserAvatar
             name={displayName}
             src={profile?.avatar_url ?? session?.avatarUrl}
-            size="sm"
+            size="xs"
           />
         </button>
         {menuOpen ? (

@@ -9,10 +9,10 @@ import { AppTopBar } from "@/components/app-top-bar";
 export function AppChrome({ children }: { children: ReactNode }) {
   return (
     <div className="min-w-0 flex-1 bg-bg">
-      <header className="flex items-center justify-end px-4 pt-3 pb-2 md:px-6 md:pt-4">
+      <header className="flex items-center justify-end px-4 pt-2 pb-1 md:px-6 md:pt-3">
         <AppTopBar />
       </header>
-      <div className="px-4 pb-16 pt-2 md:px-6 md:pb-20">{children}</div>
+      <div className="px-4 pb-16 pt-1 md:px-6 md:pb-20">{children}</div>
     </div>
   );
 }

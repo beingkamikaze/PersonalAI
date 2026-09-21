@@ -233,7 +233,7 @@ export default function MemoriesPage() {
   return (
     <div className="mx-auto w-full max-w-6xl space-y-4">
       {/* Step 1: hero — title left, robot right */}
-      <header className="grid items-end gap-4 lg:grid-cols-[1fr_auto]">
+      <header className="grid items-start gap-4 lg:grid-cols-[1fr_auto]">
         <div className="min-w-0">
           <p className="text-xs font-medium tracking-[0.14em] text-muted uppercase">
             Memories
@@ -269,16 +269,20 @@ export default function MemoriesPage() {
           </div>
         </div>
 
-        <div className="relative hidden w-[160px] shrink-0 self-center lg:block lg:w-[200px]">
+        <div className="relative hidden w-[160px] shrink-0 self-start lg:block lg:w-[200px]">
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-[-8%] rounded-full bg-[radial-gradient(circle_at_center,rgba(180,220,230,0.45)_0%,rgba(180,220,230,0.18)_42%,transparent_68%)]"
+          />
           <Image
             src="/dashboard/memory-companion-3d.png"
             alt=""
             width={320}
             height={320}
-            className="h-auto w-full select-none drop-shadow-[0_16px_28px_rgba(15,31,28,0.12)]"
+            className="relative h-auto w-full select-none"
             priority
           />
-          <p className="pointer-events-none absolute top-2 left-0 max-w-[7rem] font-display text-[11px] italic leading-snug text-accent">
+          <p className="pointer-events-none absolute top-2 left-0 z-10 max-w-[7rem] font-display text-[11px] italic leading-snug text-accent">
             A more you, a better AI.
           </p>
         </div>
