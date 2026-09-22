@@ -21,6 +21,47 @@ export type PersonalityDraft = {
   traits: string;
 };
 
+/** Ordered key→value map for interview / Known facts on Profile. */
+export type FactsDraft = Record<string, string>;
+
+/**
+ * Human labels for structured_fact keys from the interview extract.
+ * Unknown keys fall back to a readable title-case of the snake_case key.
+ */
+const FACT_LABELS: Record<string, string> = {
+  full_name: "Full name",
+  preferred_name: "Preferred name",
+  current_role: "Current role",
+  focus_area: "Focus area",
+  skills: "Skills",
+  project_highlight: "Project highlight",
+  typical_inbound_contacts: "Who usually reaches out",
+  communication_preference: "Communication preference",
+  open_to_roles: "Open to",
+  misunderstandings: "Common misunderstandings",
+  headline: "Headline",
+};
+
+export function factLabel(key: string): string {
+  if (FACT_LABELS[key]) return FACT_LABELS[key];
+  return key
+    .split("_")
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+}
+
+export function factsDraftFrom(
+  facts: { key: string; value: string }[],
+): FactsDraft {
+  const draft: FactsDraft = {};
+  for (const f of facts) {
+    if (!f.key) continue;
+    draft[f.key] = f.value ?? "";
+  }
+  return draft;
+}
+
 export function profileDraftFrom(me: AiProfile): ProfileDraft {
   return {
     name: me.name,

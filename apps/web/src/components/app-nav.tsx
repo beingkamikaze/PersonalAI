@@ -85,10 +85,10 @@ export function AppNav() {
       : 0;
 
   return (
-    <aside className="flex w-full shrink-0 flex-col gap-5 border-b border-border bg-white px-4 py-5 md:w-[15.5rem] md:border-b-0 md:border-r md:py-6">
+    <aside className="flex w-full shrink-0 flex-col gap-5 border-b border-border bg-white px-4 py-5 md:sticky md:top-0 md:h-dvh md:w-[15.5rem] md:self-start md:border-b-0 md:border-r md:py-6">
       <Link
         href="/app"
-        className="px-1 font-display text-xl tracking-tight text-accent"
+        className="shrink-0 px-1 font-display text-xl tracking-tight text-accent"
       >
         PersonaAI
       </Link>
@@ -117,7 +117,7 @@ export function AppNav() {
         })}
       </nav>
 
-      <div className="mt-auto rounded-2xl border border-border bg-[var(--atmosphere-1)] p-3.5">
+      <div className="mt-auto shrink-0 rounded-2xl border border-border bg-[var(--atmosphere-1)] p-3.5">
         <div className="flex items-center gap-2">
           <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-white text-[#b45309]">
             <CrownIcon className="h-3.5 w-3.5" />

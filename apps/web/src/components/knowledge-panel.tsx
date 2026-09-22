@@ -241,10 +241,10 @@ export function KnowledgePanel({
   const noteLen = notes.length;
 
   return (
-    <div className={isApp ? "mx-auto w-full max-w-6xl space-y-4" : "space-y-6"}>
+    <div className={isApp ? "mx-auto w-full max-w-6xl space-y-3" : "space-y-6"}>
       {isApp ? (
-        <header className="grid items-start gap-4 lg:grid-cols-[1fr_auto]">
-          <div className="min-w-0">
+        <header className="grid items-stretch gap-3 lg:grid-cols-[1fr_auto]">
+          <div className="flex min-w-0 flex-col">
             <p className="text-xs font-medium tracking-[0.14em] text-muted uppercase">
               Knowledge
             </p>
@@ -252,9 +252,11 @@ export function KnowledgePanel({
               Add your <span className="text-accent">knowledge</span>
             </h1>
             <p className="mt-1.5 max-w-xl text-sm text-muted text-balance">
-              Upload documents, add notes or a URL, and track processing status.
+              Upload documents, add notes or a URL, and track processing
+              status.
             </p>
-            <div className="mt-4 grid grid-cols-2 gap-2 md:grid-cols-4">
+
+            <div className="mt-3 grid flex-1 grid-cols-2 gap-2 md:grid-cols-4 md:items-stretch">
               <Shortcut
                 tone="mint"
                 icon={<DocIcon className="h-3.5 w-3.5" />}
@@ -265,24 +267,24 @@ export function KnowledgePanel({
                 tone="purple"
                 icon={<NoteIcon className="h-3.5 w-3.5" />}
                 title="Add notes"
-                subtitle="Save important info"
+                subtitle="Save key info"
               />
               <Shortcut
                 tone="sky"
                 icon={<LinkIcon className="h-3.5 w-3.5" />}
                 title="Add a URL"
-                subtitle="Learn from web content"
+                subtitle="From the web"
               />
               <Shortcut
                 tone="amber"
                 icon={<DatabaseIcon className="h-3.5 w-3.5" />}
                 title="Track status"
-                subtitle="See how it’s processed"
+                subtitle="See processing"
               />
             </div>
           </div>
-          <div className="relative hidden w-[160px] shrink-0 self-start lg:block lg:w-[200px]">
-            {/* Soft rings behind the cutout so it sits in the page atmosphere */}
+
+          <div className="relative hidden w-[140px] shrink-0 self-stretch lg:block lg:w-[180px]">
             <div
               aria-hidden
               className="pointer-events-none absolute inset-[-8%] rounded-full bg-[radial-gradient(circle_at_center,rgba(180,220,230,0.45)_0%,rgba(180,220,230,0.18)_42%,transparent_68%)]"
@@ -561,16 +563,20 @@ function Shortcut({
   } as const;
 
   return (
-    <div className="flex min-w-0 items-center gap-2 rounded-xl border border-border bg-white px-2.5 py-2 shadow-[0_8px_24px_-18px_rgba(15,31,28,0.28)]">
+    <div className="flex h-full min-h-[4.75rem] min-w-0 items-center gap-2.5 rounded-xl border border-border bg-white px-3 py-3 shadow-[0_6px_16px_-14px_rgba(15,31,28,0.28)] sm:min-h-[5.5rem]">
       <span
-        className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ${tones[tone]}`}
+        className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${tones[tone]}`}
         aria-hidden
       >
         {icon}
       </span>
       <div className="min-w-0">
-        <p className="truncate text-xs font-medium text-fg">{title}</p>
-        <p className="truncate text-[11px] leading-tight text-muted">{subtitle}</p>
+        <p className="truncate text-sm font-medium leading-snug text-fg">
+          {title}
+        </p>
+        <p className="mt-0.5 truncate text-xs leading-snug text-muted">
+          {subtitle}
+        </p>
       </div>
     </div>
   );

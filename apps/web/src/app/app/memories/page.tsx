@@ -231,10 +231,10 @@ export default function MemoriesPage() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-6xl space-y-4">
-      {/* Step 1: hero — title left, robot right */}
-      <header className="grid items-start gap-4 lg:grid-cols-[1fr_auto]">
-        <div className="min-w-0">
+    <div className="mx-auto w-full max-w-6xl space-y-3">
+      {/* Compact hero: info chips fill blank under copy, beside robot */}
+      <header className="grid items-stretch gap-3 lg:grid-cols-[1fr_auto]">
+        <div className="flex min-w-0 flex-col">
           <p className="text-xs font-medium tracking-[0.14em] text-muted uppercase">
             Memories
           </p>
@@ -246,30 +246,29 @@ export default function MemoriesPage() {
             that looks wrong before visitors hear them.
           </p>
 
-          {/* Step 2: three equal-width feature chips in one row */}
-          <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-3">
+          <div className="mt-3 grid flex-1 grid-cols-1 gap-2 sm:grid-cols-3 sm:items-stretch">
             <FeatureChip
               tone="mint"
               icon={<BrainIcon className="h-3.5 w-3.5" />}
               title="Personalized"
-              subtitle="Helps your AI know you better."
+              subtitle="Knows you better"
             />
             <FeatureChip
               tone="purple"
               icon={<LockIcon className="h-3.5 w-3.5" />}
               title="Private"
-              subtitle="Only you can see these."
+              subtitle="Only you see these"
             />
             <FeatureChip
               tone="amber"
               icon={<ShieldIcon className="h-3.5 w-3.5" />}
               title="In your control"
-              subtitle="Edit or delete anytime."
+              subtitle="Edit anytime"
             />
           </div>
         </div>
 
-        <div className="relative hidden w-[160px] shrink-0 self-start lg:block lg:w-[200px]">
+        <div className="relative hidden w-[140px] shrink-0 self-stretch lg:block lg:w-[180px]">
           <div
             aria-hidden
             className="pointer-events-none absolute inset-[-8%] rounded-full bg-[radial-gradient(circle_at_center,rgba(180,220,230,0.45)_0%,rgba(180,220,230,0.18)_42%,transparent_68%)]"
@@ -288,7 +287,7 @@ export default function MemoriesPage() {
         </div>
       </header>
 
-      {/* Step 3: full-width list panel — toolbar + equal-width cards */}
+      {/* List panel sits higher — chips no longer take a full row */}
       <section className="rounded-2xl border border-border bg-white p-4 shadow-[0_10px_30px_-18px_rgba(15,31,28,0.28)] md:p-5">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <div className="relative min-w-0 flex-1">
@@ -484,16 +483,20 @@ function FeatureChip({
   } as const;
 
   return (
-    <div className="flex min-w-0 items-center gap-2 rounded-xl border border-border bg-white px-2.5 py-2 shadow-[0_8px_24px_-18px_rgba(15,31,28,0.28)]">
+    <div className="flex h-full min-h-[4.75rem] min-w-0 items-center gap-2.5 rounded-xl border border-border bg-white px-3 py-3 shadow-[0_6px_16px_-14px_rgba(15,31,28,0.28)] sm:min-h-[5.5rem]">
       <span
-        className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ${tones[tone]}`}
+        className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${tones[tone]}`}
         aria-hidden
       >
         {icon}
       </span>
       <div className="min-w-0">
-        <p className="truncate text-xs font-medium text-fg">{title}</p>
-        <p className="truncate text-[11px] leading-tight text-muted">{subtitle}</p>
+        <p className="truncate text-sm font-medium leading-snug text-fg">
+          {title}
+        </p>
+        <p className="mt-0.5 truncate text-xs leading-snug text-muted">
+          {subtitle}
+        </p>
       </div>
     </div>
   );

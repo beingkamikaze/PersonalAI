@@ -103,6 +103,22 @@ class PersonalityUpdate(BaseModel):
     boundaries_json: dict[str, Any] | None = None
 
 
+# Owner edit of interview/manual structured facts (Profile page).
+# Separate from PersonalityUpdate so PATCH /personality stays unchanged.
+class FactItemUpdate(BaseModel):
+    key: str = Field(min_length=1, max_length=120)
+    value: str = Field(max_length=4000)
+
+
+class FactsUpdate(BaseModel):
+    facts: list[FactItemUpdate] = Field(default_factory=list)
+
+
+class FactsOut(BaseModel):
+    ai_profile_id: UUID
+    facts: list[dict[str, str]] = Field(default_factory=list)
+
+
 class ChatIn(BaseModel):
     message: str = Field(min_length=1, max_length=4000)
     conversation_id: UUID | None = None

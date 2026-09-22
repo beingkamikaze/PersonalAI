@@ -20,8 +20,8 @@ import {
 } from "@/lib/profile-forms";
 
 /**
- * Settings — personality, interview facts, and account deletion.
- * Identity, public link, and publish live on `/app/profile`.
+ * Settings — personality tone and account deletion.
+ * Interview / Known facts are editable on `/app/profile` (About you).
  */
 export default function SettingsPage() {
   const router = useRouter();
@@ -172,7 +172,7 @@ export default function SettingsPage() {
   return (
     <ScreenIntro
       title="Settings"
-      description="How the AI talks: communication style, formality, humor, verbosity, directness, traits, and facts from the interview. Account deletion is at the bottom."
+      description="How the AI talks: communication style, formality, humor, verbosity, directness, and traits. Interview facts are on Profile. Account deletion is at the bottom."
     >
       {error ? (
         <p className="mb-6 text-sm text-red-700" role="alert">
@@ -237,25 +237,6 @@ export default function SettingsPage() {
             setPersonalityDraft({ ...personalityDraft, traits })
           }
         />
-
-        <div>
-          <p className="text-sm font-medium text-fg">Facts from interview</p>
-          {personality && personality.facts.length > 0 ? (
-            <ul className="mt-2 divide-y divide-border border-t border-border text-sm text-muted">
-              {personality.facts.map((f) => (
-                <li key={f.key} className="py-2">
-                  <span className="text-fg">{f.key}</span>: {f.value}
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="mt-2 text-sm text-muted">
-              {loading
-                ? "Loading interview facts…"
-                : "No interview facts saved yet."}
-            </p>
-          )}
-        </div>
 
         {!loading && !personality ? (
           <p className="text-sm text-muted">

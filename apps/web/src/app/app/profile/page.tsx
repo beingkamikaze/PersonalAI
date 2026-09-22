@@ -13,18 +13,28 @@ import {
   type SessionUser,
 } from "@/lib/auth";
 import { useLeaveGuard } from "@/lib/use-leave-guard";
-import { ApiError, apiFetch, apiUpload, type AiProfile } from "@/lib/api";
+import {
+  ApiError,
+  apiFetch,
+  apiUpload,
+  type AiProfile,
+  type FactsResult,
+  type Personality,
+} from "@/lib/api";
 import {
   draftsEqual,
+  factLabel,
+  factsDraftFrom,
   profileDraftFrom,
   publicDraftFrom,
+  type FactsDraft,
   type ProfileDraft,
   type PublicDraft,
 } from "@/lib/profile-forms";
 
 /**
- * Profile — who you are, how the AI represents you, and publish state.
- * Personality and delete account live on `/app/settings`.
+ * Profile — who you are, Known facts from interview, and publish state.
+ * Personality tone + delete account stay on `/app/settings` (unchanged).
  */
 export default function ProfilePage() {
   const router = useRouter();
@@ -42,6 +52,12 @@ export default function ProfilePage() {
     contactEmail: "",
     calendarLink: "",
   });
+  // Interview / Known facts — always injected into chat prompts (see API prompt.py).
+  const [factKeys, setFactKeys] = useState<string[]>([]);
+  const [savedFacts, setSavedFacts] = useState<FactsDraft | null>(null);
+  const [factsDraft, setFactsDraft] = useState<FactsDraft>({});
+  const [factsLoaded, setFactsLoaded] = useState(false);
+  const [factsLock, setFactsLock] = useState(0);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -69,6 +85,31 @@ export default function ProfilePage() {
         const nextPublic = publicDraftFrom(me);
         setSavedPublic(nextPublic);
         setPublicDraft(nextPublic);
+        // Facts live on GET /personality; 404 = interview not done yet (not an error).
+        try {
+          const personality = await apiFetch<Personality>(
+            `/ai/${me.id}/personality`,
+          );
+          if (cancelled) return;
+          const nextFacts = factsDraftFrom(personality.facts);
+          const keys = personality.facts.map((f) => f.key).filter(Boolean);
+          setFactKeys(keys);
+          setSavedFacts(nextFacts);
+          setFactsDraft(nextFacts);
+        } catch (factsErr) {
+          if (
+            !(factsErr instanceof ApiError && factsErr.status === 404) &&
+            !cancelled
+          ) {
+            setError(
+              factsErr instanceof Error
+                ? factsErr.message
+                : "Failed to load interview facts",
+            );
+          }
+        } finally {
+          if (!cancelled) setFactsLoaded(true);
+        }
       } catch (err) {
         if (cancelled) return;
         if (err instanceof ApiError && err.status === 401) {
@@ -87,6 +128,7 @@ export default function ProfilePage() {
               ? err.message
               : "Failed to load profile";
         setError(fallback);
+        setFactsLoaded(true);
       }
     })();
     return () => {
@@ -98,18 +140,21 @@ export default function ProfilePage() {
     savedProfile !== null && !draftsEqual(profileDraft, savedProfile);
   const publicDirty =
     savedPublic !== null && !draftsEqual(publicDraft, savedPublic);
-  const hasUnsaved = profileDirty || publicDirty;
+  const factsDirty =
+    savedFacts !== null && !draftsEqual(factsDraft, savedFacts);
+  const hasUnsaved = profileDirty || publicDirty || factsDirty;
 
   const unsavedDetail = useMemo(() => {
     const actions: string[] = [];
     if (profileDirty) actions.push("Save profile");
+    if (factsDirty) actions.push("Save facts");
     if (publicDirty) actions.push("Save public settings");
     if (actions.length === 0) return "";
     if (actions.length === 1) {
       return `You changed a field. Click ${actions[0]} before leaving this page.`;
     }
     return `You have unsaved edits. Click ${actions.join(", then ")} before leaving this page.`;
-  }, [profileDirty, publicDirty]);
+  }, [profileDirty, publicDirty, factsDirty]);
 
   const { open, stay, leaveWithoutSaving } = useLeaveGuard(hasUnsaved);
 
@@ -192,6 +237,36 @@ export default function ProfilePage() {
       setMessage("Public settings saved.");
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Save failed");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  /** Persist Known facts via dedicated PATCH — does not touch personality tone. */
+  async function onSaveFacts(e: FormEvent) {
+    e.preventDefault();
+    if (!profile || savedFacts === null) return;
+    setSaving(true);
+    setError(null);
+    setMessage(null);
+    try {
+      const payload = factKeys.map((key) => ({
+        key,
+        value: (factsDraft[key] ?? "").trim(),
+      }));
+      const result = await apiFetch<FactsResult>(`/ai/${profile.id}/facts`, {
+        method: "PATCH",
+        body: JSON.stringify({ facts: payload }),
+      });
+      const next = factsDraftFrom(result.facts);
+      const keys = result.facts.map((f) => f.key).filter(Boolean);
+      setFactKeys(keys);
+      setSavedFacts(next);
+      setFactsDraft(next);
+      setFactsLock((n) => n + 1);
+      setMessage("Facts saved — chat will use the updated Known facts.");
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Could not save facts");
     } finally {
       setSaving(false);
     }
@@ -290,7 +365,7 @@ export default function ProfilePage() {
   return (
     <ScreenIntro
       title="Profile"
-      description="Who you are, how the AI represents you, and publish state. Click the pencil to edit a field, then save that section. Photo saves as soon as you pick a file."
+      description="Who you are, Known facts the AI uses in chat, and publish state. Click the pencil to edit a field, then save that section. Photo saves as soon as you pick a file."
     >
       <div className="mb-10">
         {profile ? (
@@ -365,6 +440,47 @@ export default function ProfilePage() {
         </form>
       ) : null}
 
+      {/* Known facts from onboarding interview — editable so owners can correct
+          what the public AI says about them without redoing the interview. */}
+      <form onSubmit={onSaveFacts} className="mb-10 space-y-4">
+        <h2 className="font-display text-xl text-fg">About you</h2>
+        <p className="text-sm text-muted">
+          Facts from your interview. These are always used in chat. Wrong?
+          Edit here — clearing a value removes that fact.
+        </p>
+        {!factsLoaded ? (
+          <p className="text-sm text-muted">Loading facts…</p>
+        ) : factKeys.length === 0 ? (
+          <p className="text-sm text-muted">
+            No interview facts yet. Complete the onboarding interview to
+            populate this section.
+          </p>
+        ) : (
+          factKeys.map((key) => (
+            <EditableField
+              key={key}
+              label={factLabel(key)}
+              value={factsDraft[key] ?? ""}
+              lockVersion={factsLock}
+              onChange={(value) =>
+                setFactsDraft({ ...factsDraft, [key]: value })
+              }
+            />
+          ))
+        )}
+        {factsDirty ? (
+          <p className="text-sm text-fg">
+            Unsaved — click Save facts before leaving.
+          </p>
+        ) : null}
+        <Button
+          type="submit"
+          disabled={saving || !factsDirty || factKeys.length === 0}
+        >
+          {saving ? "Saving…" : "Save facts"}
+        </Button>
+      </form>
+
       <form onSubmit={onSavePublic} className="space-y-4">
         <h2 className="font-display text-xl text-fg">Public link</h2>
         <EditableField
@@ -431,8 +547,7 @@ export default function ProfilePage() {
       </form>
 
       <p className="mt-10 text-sm text-muted">
-        Communication style, formality, humor, and interview facts are in
-        Settings — not on this page.
+        Communication style, formality, humor, and traits stay in Settings.
       </p>
       <div className="mt-3">
         <ButtonLink href="/app/settings" variant="secondary">

@@ -4,7 +4,7 @@ import { type ReactNode } from "react";
 import { AppTopBar } from "@/components/app-top-bar";
 
 /**
- * App main column. Document scrolls (works in Cursor Simple Browser).
+ * App main column. Document scrolls; sidebar stays sticky on md+.
  */
 export function AppChrome({ children }: { children: ReactNode }) {
   return (

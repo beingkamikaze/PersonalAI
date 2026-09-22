@@ -154,6 +154,12 @@ export type Personality = {
   facts: { key: string; value: string }[];
 };
 
+/** Response from PATCH /ai/:id/facts — Known facts only. */
+export type FactsResult = {
+  ai_profile_id: string;
+  facts: { key: string; value: string }[];
+};
+
 export type ChatMessage = {
   id: string;
   role: string;
