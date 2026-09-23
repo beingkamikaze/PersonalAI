@@ -128,11 +128,14 @@ def answer_interview(
             detail="No active interview question",
         )
 
+    skipped = body.skipped
+    answer_text = "" if skipped else body.answer.strip()
     logger.info(
-        "interview answer profile_id=%s q_index=%s answer_chars=%s",
+        "interview answer profile_id=%s q_index=%s skipped=%s answer_chars=%s",
         profile.id,
         q_index,
-        len(body.answer.strip()),
+        skipped,
+        len(answer_text),
     )
 
     # Append this Q&A to the session transcript
@@ -141,7 +144,8 @@ def answer_interview(
         {
             "question_index": q_index,
             "question": question,
-            "answer": body.answer.strip(),
+            "answer": answer_text,
+            "skipped": skipped,
         }
     )
     session.answers = answers
@@ -162,20 +166,39 @@ def answer_interview(
     db.commit()
     db.refresh(session)
 
-    # LLM structuring happens after response — same pattern as chat memory extract
-    background.add_task(
-        _run_interview_extract,
-        profile.id,
-        answers,
-        refresh=completed,
-    )
-    logger.info(
-        "interview extract enqueued profile_id=%s q_index=%s answer_count=%s completed=%s",
-        profile.id,
-        q_index,
-        len(answers),
-        completed,
-    )
+    # LLM structuring happens after response — same pattern as chat memory extract.
+    # Skip extract when this turn was skipped and there are no answered Qs yet;
+    # still refresh completeness when the interview finishes.
+    usable = [
+        a
+        for a in answers
+        if not a.get("skipped") and str(a.get("answer") or "").strip()
+    ]
+    if usable:
+        background.add_task(
+            _run_interview_extract,
+            profile.id,
+            answers,
+            refresh=completed,
+        )
+        logger.info(
+            "interview extract enqueued profile_id=%s q_index=%s answer_count=%s completed=%s",
+            profile.id,
+            q_index,
+            len(usable),
+            completed,
+        )
+    elif completed:
+        background.add_task(
+            _run_interview_extract,
+            profile.id,
+            answers,
+            refresh=True,
+        )
+        logger.info(
+            "interview completed with no answers profile_id=%s — completeness refresh only",
+            profile.id,
+        )
 
     return InterviewAnswerOut(
         session_id=session.id,

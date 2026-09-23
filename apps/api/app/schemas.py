@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Any
 from uuid import UUID
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 
 class AiProfileCreate(BaseModel):
@@ -60,7 +60,14 @@ class InterviewStartOut(BaseModel):
 
 
 class InterviewAnswerIn(BaseModel):
-    answer: str = Field(min_length=1, max_length=4000)
+    answer: str = Field(default="", max_length=4000)
+    skipped: bool = False
+
+    @model_validator(mode="after")
+    def require_answer_unless_skipped(self) -> "InterviewAnswerIn":
+        if not self.skipped and not self.answer.strip():
+            raise ValueError("answer is required unless skipped")
+        return self
 
 
 class InterviewAnswerOut(BaseModel):

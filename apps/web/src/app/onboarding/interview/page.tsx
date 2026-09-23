@@ -66,9 +66,9 @@ export default function OnboardingInterviewPage() {
     };
   }, [router]);
 
-  async function onSubmit(e: FormEvent) {
-    e.preventDefault();
-    if (!profile || !state || !answer.trim()) return;
+  async function submitTurn(opts: { skipped: boolean }) {
+    if (!profile || !state) return;
+    if (!opts.skipped && !answer.trim()) return;
     setLoading(true);
     setError(null);
     try {
@@ -76,7 +76,11 @@ export default function OnboardingInterviewPage() {
         `/ai/${profile.id}/interview/answer`,
         {
           method: "POST",
-          body: JSON.stringify({ answer: answer.trim() }),
+          body: JSON.stringify(
+            opts.skipped
+              ? { answer: "", skipped: true }
+              : { answer: answer.trim(), skipped: false },
+          ),
         },
       );
       setState(next);
@@ -89,6 +93,11 @@ export default function OnboardingInterviewPage() {
     } finally {
       setLoading(false);
     }
+  }
+
+  async function onSubmit(e: FormEvent) {
+    e.preventDefault();
+    await submitTurn({ skipped: false });
   }
 
   if (booting) {
@@ -132,6 +141,14 @@ export default function OnboardingInterviewPage() {
             <div className="flex flex-wrap gap-3">
               <Button type="submit" disabled={loading || !answer.trim()}>
                 {loading ? "Next…" : "Continue"}
+              </Button>
+              <Button
+                type="button"
+                variant="secondary"
+                disabled={loading}
+                onClick={() => void submitTurn({ skipped: true })}
+              >
+                Skip
               </Button>
               <Button
                 type="button"

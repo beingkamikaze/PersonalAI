@@ -75,16 +75,34 @@ def extract_and_persist(
     answers: list[dict[str, Any]],
 ) -> PersonalityProfile:
     """Run LLM extract over all answers so far and upsert personality + facts."""
+    usable = [
+        item
+        for item in answers
+        if not item.get("skipped") and str(item.get("answer") or "").strip()
+    ]
     logger.info(
-        "extract start profile_id=%s answer_count=%s",
+        "extract start profile_id=%s answer_count=%s usable=%s",
         profile.id,
         len(answers),
+        len(usable),
     )
+    if not usable:
+        logger.info("extract skipped — no answered questions profile_id=%s", profile.id)
+        personality = (
+            db.query(PersonalityProfile)
+            .filter(PersonalityProfile.ai_profile_id == profile.id)
+            .one_or_none()
+        )
+        if personality is None:
+            personality = PersonalityProfile(ai_profile_id=profile.id)
+            db.add(personality)
+            db.flush()
+        return personality
 
     qa_text = "\n\n".join(
         f"Q{item.get('question_index', i) + 1}: {item.get('question')}\n"
         f"A: {item.get('answer')}"
-        for i, item in enumerate(answers)
+        for i, item in enumerate(usable)
     )
 
     data = chat_completion_json(

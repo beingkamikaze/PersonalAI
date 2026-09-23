@@ -25,7 +25,11 @@ class User(Base):
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
 
-    ai_profiles: Mapped[list["AiProfile"]] = relationship(back_populates="user")
+    ai_profiles: Mapped[list["AiProfile"]] = relationship(
+        back_populates="user",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+    )
 
 
 class AiProfile(Base):

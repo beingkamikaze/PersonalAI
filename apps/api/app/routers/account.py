@@ -7,6 +7,7 @@ import shutil
 import httpx
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 from fastapi.security import HTTPAuthorizationCredentials
+from sqlalchemy import delete as sa_delete
 from sqlalchemy.orm import Session
 
 from app.auth import bearer_scheme, get_current_user
@@ -102,7 +103,10 @@ def delete_account(
 
     auth_id = user.auth_provider_id
     user_id = user.id
-    db.delete(user)
+    # Drop loaded related rows from the session so flush does not try to
+    # nullify NOT NULL FKs (ai_profiles.user_id). DB CASCADE removes them.
+    db.expunge_all()
+    db.execute(sa_delete(User).where(User.id == user_id))
     db.commit()
     logger.info("account deleted user_id=%s auth_id=%s", user_id, auth_id)
     _delete_auth_user(auth_id, credentials, settings)
