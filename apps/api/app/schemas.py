@@ -151,6 +151,8 @@ class ConversationOut(BaseModel):
     channel: str
     created_at: datetime
     updated_at: datetime
+    # First user message (truncated) so clients avoid N+1 detail fetches.
+    preview: str | None = None
 
     model_config = {"from_attributes": True}
 

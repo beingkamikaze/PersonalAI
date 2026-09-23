@@ -2,7 +2,8 @@
 
 from uuid import UUID
 
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, status
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 from starlette.concurrency import run_in_threadpool
 
@@ -25,6 +26,8 @@ from app.schemas import (
     ConversationDetailOut,
     ConversationOut,
 )
+
+_PREVIEW_MAX = 72
 
 logger = get_logger(__name__)
 
@@ -188,23 +191,86 @@ def owner_chat(
     )
 
 
+def _truncate_preview(text: str, max_len: int = _PREVIEW_MAX) -> str:
+    cleaned = text.strip()
+    if len(cleaned) <= max_len:
+        return cleaned
+    return f"{cleaned[: max_len - 1].rstrip()}…"
+
+
+def _first_user_previews(
+    db: Session, conversation_ids: list[UUID]
+) -> dict[UUID, str]:
+    """One query: earliest user message content per conversation."""
+    if not conversation_ids:
+        return {}
+    ranked = (
+        db.query(
+            Message.conversation_id,
+            Message.content,
+            func.row_number()
+            .over(
+                partition_by=Message.conversation_id,
+                order_by=Message.created_at.asc(),
+            )
+            .label("rn"),
+        )
+        .filter(
+            Message.conversation_id.in_(conversation_ids),
+            Message.role == "user",
+        )
+        .subquery()
+    )
+    rows = (
+        db.query(ranked.c.conversation_id, ranked.c.content)
+        .filter(ranked.c.rn == 1)
+        .all()
+    )
+    return {
+        conv_id: _truncate_preview(content)
+        for conv_id, content in rows
+        if content and str(content).strip()
+    }
+
+
 @router.get("/ai/{profile_id}/conversations", response_model=list[ConversationOut])
 def list_conversations(
     profile_id: UUID,
+    channel: str | None = Query(
+        None, description="Filter by channel, e.g. public or owner"
+    ),
+    limit: int | None = Query(
+        None, ge=1, le=100, description="Max rows (newest first)"
+    ),
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
-) -> list[Conversation]:
+) -> list[ConversationOut]:
     profile = get_owned_profile(db, user, profile_id)
-    rows = (
-        db.query(Conversation)
-        .filter(Conversation.ai_profile_id == profile.id)
-        .order_by(Conversation.updated_at.desc())
-        .all()
-    )
+    q = db.query(Conversation).filter(Conversation.ai_profile_id == profile.id)
+    if channel:
+        q = q.filter(Conversation.channel == channel)
+    q = q.order_by(Conversation.updated_at.desc())
+    if limit is not None:
+        q = q.limit(limit)
+    rows = q.all()
+    previews = _first_user_previews(db, [r.id for r in rows])
     logger.debug(
-        "chat list conversations profile_id=%s count=%s", profile.id, len(rows)
+        "chat list conversations profile_id=%s channel=%s limit=%s count=%s",
+        profile.id,
+        channel,
+        limit,
+        len(rows),
     )
-    return rows
+    return [
+        ConversationOut(
+            id=r.id,
+            channel=r.channel,
+            created_at=r.created_at,
+            updated_at=r.updated_at,
+            preview=previews.get(r.id),
+        )
+        for r in rows
+    ]
 
 
 @router.get("/conversations/{conversation_id}", response_model=ConversationDetailOut)

@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
 import { ButtonLink } from "@/components/ui/button";
 import {
   ChatIcon,
@@ -12,20 +11,25 @@ import {
   MemoryIcon,
   SettingsIcon,
 } from "@/components/ui/icons";
-import {
-  apiFetch,
-  type AiProfile,
-  type AnalyticsSummary,
-} from "@/lib/api";
-import { PREVIEW_ANALYTICS } from "@/lib/ui-preview";
+import { useOwnerChatUsage } from "@/components/plan-usage";
 
 /** Mockup nav: Dashboard, Chats, Knowledge, Memory, Settings + Upgrade. */
 const links = [
   { href: "/app", label: "Dashboard", short: "Home", icon: DashboardIcon },
   { href: "/app/chat", label: "Chats", short: "Chats", icon: ChatIcon },
-  { href: "/app/knowledge", label: "Knowledge", short: "Knowledge", icon: KnowledgeIcon },
+  {
+    href: "/app/knowledge",
+    label: "Knowledge",
+    short: "Knowledge",
+    icon: KnowledgeIcon,
+  },
   { href: "/app/memories", label: "Memory", short: "Memory", icon: MemoryIcon },
-  { href: "/app/settings", label: "Settings", short: "Settings", icon: SettingsIcon },
+  {
+    href: "/app/settings",
+    label: "Settings",
+    short: "Settings",
+    icon: SettingsIcon,
+  },
 ] as const;
 
 function isActive(pathname: string, href: string) {
@@ -46,87 +50,12 @@ function tabNavClass(active: boolean) {
   }`;
 }
 
-function useOwnerChatUsage() {
-  const [usage, setUsage] = useState<{
-    remaining: number;
-    limit: number;
-  } | null>({
-    remaining: PREVIEW_ANALYTICS.owner_chats_remaining ?? 39,
-    limit: PREVIEW_ANALYTICS.owner_chats_limit ?? 40,
-  });
-
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const me = await apiFetch<AiProfile>("/ai/me");
-        const summary = await apiFetch<AnalyticsSummary>(
-          `/ai/${me.id}/analytics/summary`,
-        );
-        if (cancelled) return;
-        if (
-          typeof summary.owner_chats_remaining === "number" &&
-          typeof summary.owner_chats_limit === "number"
-        ) {
-          setUsage({
-            remaining: summary.owner_chats_remaining,
-            limit: summary.owner_chats_limit,
-          });
-        }
-      } catch {
-        if (cancelled) return;
-        setUsage({
-          remaining: PREVIEW_ANALYTICS.owner_chats_remaining ?? 39,
-          limit: PREVIEW_ANALYTICS.owner_chats_limit ?? 40,
-        });
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  const used = usage ? Math.max(0, usage.limit - usage.remaining) : 0;
-  const pct =
-    usage && usage.limit > 0
-      ? Math.min(100, Math.round((used / usage.limit) * 100))
-      : 0;
-
-  return { usage, pct };
-}
-
 export function AppNav() {
   const pathname = usePathname();
   const { usage, pct } = useOwnerChatUsage();
 
   return (
     <>
-      {/* Mobile: brand + compact plan */}
-      <div className="flex shrink-0 items-center justify-between gap-3 border-b border-border bg-white px-4 py-2.5 md:hidden">
-        <Link
-          href="/app"
-          className="shrink-0 font-display text-lg tracking-tight text-accent"
-        >
-          PersonaAI
-        </Link>
-        <Link
-          href="/pricing"
-          className="flex min-w-0 items-center gap-2 rounded-xl border border-border bg-[var(--atmosphere-1)] px-2.5 py-1.5"
-        >
-          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-white text-[#b45309]">
-            <CrownIcon className="h-3 w-3" />
-          </span>
-          <span className="min-w-0 truncate text-xs text-muted">
-            {usage
-              ? `${usage.remaining}/${usage.limit} left`
-              : "Free plan"}
-          </span>
-          <span className="shrink-0 text-xs font-medium text-accent">
-            Upgrade
-          </span>
-        </Link>
-      </div>
-
       {/* Desktop sidebar */}
       <aside className="hidden w-[15.5rem] shrink-0 flex-col gap-5 border-r border-border bg-white px-4 py-6 md:sticky md:top-0 md:flex md:h-dvh md:self-start">
         <Link

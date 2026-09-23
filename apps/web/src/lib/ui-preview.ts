@@ -56,11 +56,13 @@ export const PREVIEW_ANALYTICS: AnalyticsSummary = {
   documents_remaining: 7,
 };
 
-export type DashboardLoadResult = {
+export type DashboardLoadResult<TRecent = null> = {
   profile: AiProfile;
   stats: AnalyticsSummary;
   /** true when live API data was used */
   fromApi: boolean;
+  /** Parallel secondary payload (e.g. recent chats); null when unused or failed */
+  recent?: TRecent | null;
   /** auth missing — caller may redirect unless UI preview */
   needsAuth?: boolean;
   /** no profile yet — caller may send to onboarding unless UI preview */
@@ -70,15 +72,22 @@ export type DashboardLoadResult = {
 /**
  * Prefer live API. If it is down / unreachable / unauthorized in preview,
  * keep the dashboard visible with mock data.
+ * Optional `fetchRecent` runs in parallel with analytics after profile loads.
  */
-export async function loadDashboardData(
+export async function loadDashboardData<TRecent = null>(
   fetchProfile: () => Promise<AiProfile>,
   fetchStats: (id: string) => Promise<AnalyticsSummary>,
-): Promise<DashboardLoadResult> {
+  fetchRecent?: (id: string) => Promise<TRecent>,
+): Promise<DashboardLoadResult<TRecent>> {
   try {
     const profile = await fetchProfile();
-    const stats = await fetchStats(profile.id);
-    return { profile, stats, fromApi: true };
+    const [stats, recent] = await Promise.all([
+      fetchStats(profile.id),
+      fetchRecent
+        ? fetchRecent(profile.id).catch(() => null)
+        : Promise.resolve(null),
+    ]);
+    return { profile, stats, fromApi: true, recent };
   } catch (err) {
     const status =
       err && typeof err === "object" && "status" in err

@@ -15,7 +15,8 @@ import { ApiError, apiFetch, type AiProfile } from "@/lib/api";
 import { PREVIEW_PROFILE } from "@/lib/ui-preview";
 
 /**
- * Mockup top chrome: search conversations, notifications, profile menu.
+ * App top chrome: conversation search (full field on md+), notifications, profile.
+ * Mobile uses a search icon instead of a persistent input.
  */
 export function AppTopBar() {
   const router = useRouter();
@@ -98,10 +99,12 @@ export function AppTopBar() {
   }
 
   const displayName = profile?.name ?? session?.name ?? "Profile";
+  const iconBtn =
+    "relative inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-muted hover:bg-[var(--atmosphere-1)] hover:text-fg";
 
   return (
-    <div className="ml-auto flex w-full max-w-lg shrink-0 items-center justify-end gap-2.5 sm:gap-3 md:max-w-xl">
-      <form onSubmit={onSearch} className="relative min-w-0 flex-1">
+    <div className="flex shrink-0 items-center justify-end gap-1.5 sm:gap-2.5 md:ml-auto md:w-full md:max-w-xl">
+      <form onSubmit={onSearch} className="relative hidden min-w-0 flex-1 md:block">
         <SearchIcon className="pointer-events-none absolute left-3.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted" />
         <input
           type="search"
@@ -113,11 +116,15 @@ export function AppTopBar() {
         />
       </form>
 
-      <button
-        type="button"
-        className="relative inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-muted hover:bg-[var(--atmosphere-1)] hover:text-fg"
-        aria-label="Notifications"
+      <Link
+        href="/app/conversations"
+        className={`${iconBtn} md:hidden`}
+        aria-label="Search conversations"
       >
+        <SearchIcon className="h-4 w-4" />
+      </Link>
+
+      <button type="button" className={iconBtn} aria-label="Notifications">
         <BellIcon className="h-4 w-4" />
         <span className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-red-500" />
       </button>

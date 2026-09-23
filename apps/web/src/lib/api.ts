@@ -236,4 +236,14 @@ export type ConversationListItem = {
   channel: string;
   created_at: string;
   updated_at: string;
+  /** First user message preview when provided by the list API. */
+  preview?: string | null;
+};
+
+export type ConversationDetail = {
+  id: string;
+  channel: string;
+  created_at: string;
+  updated_at: string;
+  messages: ChatMessage[];
 };

@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ScreenIntro } from "@/components/screen-intro";
+import { VisitorConversationModal } from "@/components/visitor-conversation-modal";
+import { ChevronRightIcon } from "@/components/ui/icons";
 import {
   ApiError,
   apiFetch,
@@ -18,6 +19,10 @@ export default function ConversationsPage() {
   const router = useRouter();
   const [rows, setRows] = useState<ConversationListItem[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [openThread, setOpenThread] = useState<{
+    id: string;
+    preview?: string | null;
+  } | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -25,10 +30,10 @@ export default function ConversationsPage() {
       try {
         const me = await apiFetch<AiProfile>("/ai/me");
         const list = await apiFetch<ConversationListItem[]>(
-          `/ai/${me.id}/conversations`,
+          `/ai/${me.id}/conversations?channel=public`,
         );
         if (!cancelled) {
-          setRows(list.filter((c) => c.channel === "public"));
+          setRows(list);
         }
       } catch (err) {
         if (cancelled) return;
@@ -56,25 +61,34 @@ export default function ConversationsPage() {
       ) : (
         <ul className="divide-y divide-border border-t border-border">
           {rows.map((c) => (
-            <li key={c.id} className="flex items-center justify-between py-4">
-              <div>
-                <p className="text-sm text-fg">Public thread</p>
-                <p className="text-xs text-muted">
-                  Updated {new Date(c.updated_at).toLocaleString()}
-                </p>
-              </div>
-              <Link
-                href={`/app/chat`}
-                className="text-sm text-accent hover:text-accent-hover"
-                title="Owner Chat is for talking to your AI; this list is visitor threads"
+            <li key={c.id}>
+              <button
+                type="button"
+                onClick={() =>
+                  setOpenThread({ id: c.id, preview: c.preview })
+                }
+                className="flex w-full items-center justify-between gap-3 py-4 text-left transition hover:bg-[var(--atmosphere-1)]"
               >
-                {c.id.slice(0, 8)}…
-              </Link>
+                <div className="min-w-0 flex-1 pr-2">
+                  <p className="truncate text-sm text-fg">
+                    {c.preview?.trim() || "Visitor started a chat"}
+                  </p>
+                  <p className="text-xs text-muted">
+                    Updated {new Date(c.updated_at).toLocaleString()}
+                  </p>
+                </div>
+                <ChevronRightIcon className="h-4 w-4 shrink-0 text-muted" />
+              </button>
             </li>
           ))}
         </ul>
       )}
       {error ? <p className="mt-4 text-sm text-red-700">{error}</p> : null}
+
+      <VisitorConversationModal
+        thread={openThread}
+        onClose={() => setOpenThread(null)}
+      />
     </ScreenIntro>
   );
 }

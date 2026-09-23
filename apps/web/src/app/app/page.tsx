@@ -19,7 +19,6 @@ import {
   apiFetch,
   type AiProfile,
   type AnalyticsSummary,
-  type ChatMessage,
   type ConversationListItem,
 } from "@/lib/api";
 import {
@@ -30,6 +29,7 @@ import {
   PREVIEW_THREADS,
   type PreviewThread,
 } from "@/lib/ui-preview";
+import { VisitorConversationModal } from "@/components/visitor-conversation-modal";
 
 type RecentThread = {
   id: string;
@@ -85,6 +85,7 @@ export default function DashboardPage() {
       const result = await loadDashboardData(
         () => apiFetch<AiProfile>("/ai/me"),
         (id) => apiFetch<AnalyticsSummary>(`/ai/${id}/analytics/summary`),
+        (id) => loadRecentPublicThreads(id),
       );
       if (cancelled) return;
 
@@ -106,15 +107,12 @@ export default function DashboardPage() {
         return;
       }
 
-      try {
-        const threads = await loadRecentPublicThreads(result.profile.id);
-        if (!cancelled) setRecentThreads(threads);
-      } catch {
-        if (!cancelled) {
-          setRecentThreads(
-            isUiPreview() ? previewThreadsToRecent(PREVIEW_THREADS) : [],
-          );
-        }
+      if (result.recent) {
+        setRecentThreads(result.recent);
+      } else {
+        setRecentThreads(
+          isUiPreview() ? previewThreadsToRecent(PREVIEW_THREADS) : [],
+        );
       }
     })().catch((err) => {
       if (cancelled) return;
@@ -297,9 +295,7 @@ export default function DashboardPage() {
                     {done || !href ? (
                       <div
                         className={`flex items-center gap-2.5 rounded-lg px-2 py-1.5 text-sm ${
-                          done
-                            ? "text-muted line-through decoration-border"
-                            : "text-fg"
+                          done ? "text-muted" : "text-fg"
                         }`}
                       >
                         <ChecklistMark done={done} />
@@ -458,42 +454,17 @@ async function loadRecentPublicThreads(
   profileId: string,
 ): Promise<RecentThread[]> {
   const list = await apiFetch<ConversationListItem[]>(
-    `/ai/${profileId}/conversations`,
-  );
-  const publicRows = list
-    .filter((c) => c.channel === "public")
-    .slice(0, 5);
-
-  if (publicRows.length === 0) return [];
-
-  const details = await Promise.all(
-    publicRows.slice(0, 3).map(async (row) => {
-      try {
-        const detail = await apiFetch<{
-          id: string;
-          updated_at: string;
-          messages: ChatMessage[];
-        }>(`/conversations/${row.id}`);
-        const firstUser = detail.messages.find((m) => m.role === "user");
-        return {
-          id: row.id,
-          preview: truncate(
-            firstUser?.content?.trim() || "Visitor started a chat",
-            72,
-          ),
-          when: formatRelativeTime(row.updated_at),
-        } satisfies RecentThread;
-      } catch {
-        return {
-          id: row.id,
-          preview: "Visitor chat",
-          when: formatRelativeTime(row.updated_at),
-        } satisfies RecentThread;
-      }
-    }),
+    `/ai/${profileId}/conversations?channel=public&limit=3`,
   );
 
-  return details;
+  return list.map((row) => ({
+    id: row.id,
+    preview: truncate(
+      row.preview?.trim() || "Visitor started a chat",
+      72,
+    ),
+    when: formatRelativeTime(row.updated_at),
+  }));
 }
 
 function truncate(text: string, max: number) {
@@ -536,6 +507,10 @@ function RecentVisitorChats({
 }) {
   const loading = threads === null;
   const empty = !loading && threads.length === 0;
+  const [openThread, setOpenThread] = useState<{
+    id: string;
+    preview?: string | null;
+  } | null>(null);
 
   return (
     <section className="relative flex min-h-[18rem] flex-col rounded-2xl border border-border bg-white p-5 shadow-[0_10px_30px_-18px_rgba(15,31,28,0.28)]">
@@ -627,9 +602,12 @@ function RecentVisitorChats({
           <ul className="min-h-0 flex-1 space-y-1">
             {threads.map((thread) => (
               <li key={thread.id}>
-                <Link
-                  href="/app/conversations"
-                  className="flex items-start gap-3 rounded-xl px-2.5 py-2.5 transition hover:bg-[var(--atmosphere-1)]"
+                <button
+                  type="button"
+                  onClick={() =>
+                    setOpenThread({ id: thread.id, preview: thread.preview })
+                  }
+                  className="flex w-full items-start gap-3 rounded-xl px-2.5 py-2.5 text-left transition hover:bg-[var(--atmosphere-1)]"
                 >
                   <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-accent-soft text-accent">
                     <ChatIcon className="h-3.5 w-3.5" />
@@ -643,12 +621,17 @@ function RecentVisitorChats({
                     </span>
                   </span>
                   <ChevronRightIcon className="mt-1 h-3.5 w-3.5 shrink-0 text-muted" />
-                </Link>
+                </button>
               </li>
             ))}
           </ul>
         )}
       </div>
+
+      <VisitorConversationModal
+        thread={openThread}
+        onClose={() => setOpenThread(null)}
+      />
     </section>
   );
 }
