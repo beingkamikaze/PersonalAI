@@ -1,18 +1,18 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { animate, motion, useReducedMotion } from "motion/react";
 import { Button, ButtonLink } from "@/components/ui/button";
 import {
   ChatIcon,
   CheckIcon,
   ChevronRightIcon,
+  ConversationsIcon,
   CopyIcon,
-  ExternalIcon,
-  FeedbackIcon,
-  ShareIcon,
+  GlobeIcon,
+  KnowledgeIcon,
 } from "@/components/ui/icons";
 import { revealContainer, revealItem } from "@/lib/motion";
 import {
@@ -25,11 +25,13 @@ import {
   isUiPreview,
   loadDashboardData,
   PREVIEW_ANALYTICS,
+  PREVIEW_ANALYTICS_INCOMPLETE,
   PREVIEW_PROFILE,
   PREVIEW_THREADS,
   type PreviewThread,
 } from "@/lib/ui-preview";
 import { VisitorConversationModal } from "@/components/visitor-conversation-modal";
+import { UserAvatar } from "@/components/user-avatar";
 
 type RecentThread = {
   id: string;
@@ -59,16 +61,26 @@ const CHECKLIST_HREF: Record<string, string> = {
 
 export default function DashboardPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const reduceMotion = useReducedMotion();
   const container = useMemo(
     () => revealContainer(reduceMotion),
     [reduceMotion],
   );
   const item = useMemo(() => revealItem(reduceMotion), [reduceMotion]);
+  const previewIncomplete =
+    isUiPreview() && searchParams.get("incomplete") === "1";
   const [profile, setProfile] = useState<AiProfile | null>(PREVIEW_PROFILE);
-  const [stats, setStats] = useState<AnalyticsSummary | null>(PREVIEW_ANALYTICS);
+  const [stats, setStats] = useState<AnalyticsSummary | null>(
+    previewIncomplete ? PREVIEW_ANALYTICS_INCOMPLETE : PREVIEW_ANALYTICS,
+  );
   const [recentThreads, setRecentThreads] = useState<RecentThread[] | null>(
-    null,
+    () =>
+      isUiPreview()
+        ? previewIncomplete
+          ? []
+          : previewThreadsToRecent(PREVIEW_THREADS)
+        : null,
   );
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
@@ -81,12 +93,48 @@ export default function DashboardPage() {
 
   useEffect(() => {
     let cancelled = false;
+
+    function applyPreviewFallback() {
+      setProfile(PREVIEW_PROFILE);
+      setStats(
+        previewIncomplete ? PREVIEW_ANALYTICS_INCOMPLETE : PREVIEW_ANALYTICS,
+      );
+      setRecentThreads(
+        previewIncomplete ? [] : previewThreadsToRecent(PREVIEW_THREADS),
+      );
+      setError(null);
+    }
+
     (async () => {
-      const result = await loadDashboardData(
+      const load = loadDashboardData(
         () => apiFetch<AiProfile>("/ai/me"),
         (id) => apiFetch<AnalyticsSummary>(`/ai/${id}/analytics/summary`),
         (id) => loadRecentPublicThreads(id),
       );
+
+      // UI preview: don't hang forever when API is down / unreachable.
+      const result = isUiPreview()
+        ? await Promise.race([
+            load,
+            new Promise<Awaited<typeof load>>((resolve) => {
+              window.setTimeout(
+                () =>
+                  resolve({
+                    profile: PREVIEW_PROFILE,
+                    stats: previewIncomplete
+                      ? PREVIEW_ANALYTICS_INCOMPLETE
+                      : PREVIEW_ANALYTICS,
+                    fromApi: false,
+                    recent: previewIncomplete
+                      ? []
+                      : previewThreadsToRecent(PREVIEW_THREADS),
+                  }),
+                2500,
+              );
+            }),
+          ])
+        : await load;
+
       if (cancelled) return;
 
       if (result.needsAuth && !isUiPreview()) {
@@ -98,12 +146,19 @@ export default function DashboardPage() {
         return;
       }
 
+      if (previewIncomplete && !result.fromApi) {
+        applyPreviewFallback();
+        return;
+      }
+
       setProfile(result.profile);
       setStats(result.stats);
       setError(null);
 
       if (!result.fromApi) {
-        setRecentThreads(previewThreadsToRecent(PREVIEW_THREADS));
+        setRecentThreads(
+          previewIncomplete ? [] : previewThreadsToRecent(PREVIEW_THREADS),
+        );
         return;
       }
 
@@ -116,15 +171,15 @@ export default function DashboardPage() {
       }
     })().catch((err) => {
       if (cancelled) return;
-      setProfile(PREVIEW_PROFILE);
-      setStats(PREVIEW_ANALYTICS);
-      setRecentThreads(previewThreadsToRecent(PREVIEW_THREADS));
-      setError(err instanceof Error ? err.message : null);
+      applyPreviewFallback();
+      if (!isUiPreview()) {
+        setError(err instanceof Error ? err.message : null);
+      }
     });
     return () => {
       cancelled = true;
     };
-  }, [router]);
+  }, [router, previewIncomplete]);
 
   const publicPath = stats?.public_url_path ?? "";
 
@@ -161,7 +216,7 @@ export default function DashboardPage() {
   }, [stats?.completeness_checklist]);
 
   const published = (stats?.visibility ?? profile?.visibility) === "published";
-  const first = firstName(profile?.name);
+  const displayName = profile?.name?.trim() || "Your presence";
   const checklistEntries = Object.entries(CHECKLIST_LABELS);
   const doneCount = checklistEntries.filter(([key]) =>
     Boolean(stats?.completeness_checklist?.[key]),
@@ -169,23 +224,34 @@ export default function DashboardPage() {
   const allDone = Boolean(stats) && doneCount === checklistEntries.length;
   const score = stats?.completeness_score ?? profile?.completeness_score ?? 0;
 
+  const headline = profile?.headline?.trim() ?? "";
   const welcomeLine = allDone
     ? published
-      ? "Your AI is live — share it or jump into a chat."
+      ? ""
       : "You’re all set. Publish when you’re ready."
     : nextStep
-      ? `Your AI is ${score}% ready — ${nextStep.label.toLowerCase()} to keep going.`
-      : `Your AI is ${score}% ready. Keep building!`;
+      ? `${score}% ready — ${nextStep.label.toLowerCase()} next.`
+      : `${score}% ready. Keep building.`;
+  const subtitle = headline || welcomeLine;
+  const statusLine = [
+    published ? "Live" : "Draft",
+    publicPath || null,
+    allDone ? null : `${score}% ready`,
+  ]
+    .filter(Boolean)
+    .join(" · ");
 
-  const primaryCta = nextStep
+  const primaryLink = nextStep
     ? { href: nextStep.href, label: nextStep.label }
-    : published
-      ? { href: "/app/chat", label: "Talk to your AI" }
-      : { href: "/onboarding/publish", label: "Publish your link" };
+    : !published
+      ? { href: "/onboarding/publish", label: "Publish your link" }
+      : publicPath
+        ? null
+        : { href: "/onboarding/publish", label: "Share your link" };
 
   const secondaryCta =
-    primaryCta.href === "/app/chat"
-      ? { href: "/onboarding/publish", label: "Share your link" }
+    published && stats?.username
+      ? { href: `/u/${stats.username}`, label: "Open public page" }
       : { href: "/app/chat", label: "Talk to your AI" };
 
   async function copyLink() {
@@ -196,237 +262,161 @@ export default function DashboardPage() {
       setCopied(true);
     } catch {
       setCopied(false);
-      setError("Copy failed — open Share to copy manually.");
+      setError("Couldn’t copy. Open the public page and copy the address.");
     }
   }
 
   return (
     <motion.div
-      className="mx-auto flex w-full max-w-6xl flex-col gap-5"
+      className="mx-auto flex w-full max-w-5xl flex-col gap-6"
       initial="hidden"
       animate="visible"
       variants={container}
     >
-      {/* Hero welcome */}
+      {!allDone && nextStep ? (
+        <motion.section variants={item}>
+          <NextUp
+            doneCount={doneCount}
+            total={checklistEntries.length}
+            nextLabel={
+              firstIncompleteKey
+                ? CHECKLIST_LABELS[firstIncompleteKey]
+                : nextStep.label
+            }
+            nextHref={
+              firstIncompleteKey
+                ? CHECKLIST_HREF[firstIncompleteKey] ?? nextStep.href
+                : nextStep.href
+            }
+            checklist={
+              stats?.completeness_checklist
+                ? checklistEntries.map(([key, label]) => ({
+                    key,
+                    label,
+                    done: Boolean(stats.completeness_checklist?.[key]),
+                    href: CHECKLIST_HREF[key],
+                    isNext: key === firstIncompleteKey,
+                  }))
+                : []
+            }
+          />
+        </motion.section>
+      ) : null}
+
       <motion.section
-        className="relative overflow-hidden rounded-2xl border border-border bg-white px-5 py-6 shadow-[0_12px_36px_-20px_rgba(15,31,28,0.28)] sm:px-7 sm:py-7"
+        className="overflow-hidden rounded-[var(--radius)] border border-border"
+        style={{
+          background:
+            "linear-gradient(115deg, #ffffff 0%, #ffffff 42%, var(--tone-mint) 100%)",
+        }}
         variants={item}
       >
-        <div
-          className="pointer-events-none absolute inset-0"
-          aria-hidden
-          style={{
-            background:
-              "radial-gradient(ellipse 85% 75% at 90% 10%, var(--atmosphere-2), transparent 55%), radial-gradient(ellipse 60% 50% at 5% 90%, var(--atmosphere-1), transparent 50%)",
-          }}
-        />
-        <div className="relative max-w-2xl">
-          <h1 className="font-display text-3xl tracking-tight text-fg sm:text-[2.15rem]">
-            {first ? `Good to see you, ${first}!` : "Welcome back"}
-            <span className="ml-1.5 inline-block" aria-hidden>
-              👋
-            </span>
-          </h1>
-          <p className="mt-2 text-base text-muted text-balance">{welcomeLine}</p>
-          <div className="mt-5 flex flex-wrap items-center gap-2.5">
-            <ButtonLink
-              href={primaryCta.href}
-              className="rounded-xl px-5 py-2.5"
-            >
-              {primaryCta.label}
-              <ChevronRightIcon className="ml-1.5 h-3.5 w-3.5 opacity-90" />
-            </ButtonLink>
-            <ButtonLink
+        <div className="flex flex-col gap-5 px-5 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-7 sm:py-6">
+          <div className="flex min-w-0 items-center gap-4">
+            <UserAvatar
+              name={displayName}
+              src={profile?.avatar_url}
+              size="lg"
+            />
+            <div className="min-w-0">
+              <h1 className="font-display text-2xl tracking-tight text-fg sm:text-3xl">
+                {displayName}
+              </h1>
+              {subtitle ? (
+                <p className="mt-1 text-sm leading-snug text-muted sm:text-base">
+                  {subtitle}
+                </p>
+              ) : null}
+              <p className="mt-1.5 flex items-center gap-2 text-sm text-muted">
+                <span
+                  className={`h-1.5 w-1.5 shrink-0 rounded-full ${
+                    published ? "bg-accent" : "bg-border"
+                  }`}
+                  aria-hidden
+                />
+                {statusLine}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-2 sm:pl-6">
+            {primaryLink ? (
+              <ButtonLink href={primaryLink.href}>
+                {primaryLink.label}
+              </ButtonLink>
+            ) : (
+              <Button
+                type="button"
+                onClick={() => void copyLink()}
+                disabled={!publicPath}
+              >
+                <CopyIcon className="mr-1.5 h-4 w-4" />
+                {copied ? "Copied" : "Copy link"}
+              </Button>
+            )}
+            <Link
               href={secondaryCta.href}
-              variant="secondary"
-              className="rounded-xl border border-border bg-white/80 px-4 py-2.5"
+              className="text-sm font-medium text-accent hover:text-accent-hover"
             >
-              {secondaryCta.href === "/app/chat" ? (
-                <ChatIcon className="mr-1.5 h-4 w-4" />
-              ) : (
-                <ShareIcon className="mr-1.5 h-4 w-4" />
-              )}
               {secondaryCta.label}
-            </ButtonLink>
+            </Link>
           </div>
         </div>
+
       </motion.section>
 
-      {/* Recent chats + checklist */}
-      <motion.div
-        className="grid items-stretch gap-4 lg:grid-cols-2"
+      <motion.section
+        className="grid grid-cols-2 gap-3 lg:grid-cols-4"
         variants={item}
+        aria-label="This week"
       >
-        <RecentVisitorChats
-          published={published}
-          threads={recentThreads}
-          publicPath={publicPath}
-          username={stats?.username}
-          onCopyLink={() => void copyLink()}
-          copied={copied}
+        <MetricCard
+          tone="solid"
+          icon={<GlobeIcon className="h-4 w-4" />}
+          label="Visits"
+          value={stats?.visits_7d ?? 0}
+          detail="Last 7 days"
+          reduceMotion={reduceMotion}
         />
-
-        <section className="relative flex min-h-[18rem] flex-col rounded-2xl border border-border bg-white p-5 shadow-[0_10px_30px_-18px_rgba(15,31,28,0.28)]">
-          <div className="flex shrink-0 items-start justify-between gap-3">
-            <div className="flex items-start gap-2">
-              <span className="mt-0.5 flex h-6 w-6 items-center justify-center rounded-full bg-accent-soft text-accent">
-                <CheckIcon className="h-3 w-3" />
-              </span>
-              <div>
-                <h2 className="font-display text-lg text-fg">Setup Checklist</h2>
-                <p className="mt-0.5 text-xs text-muted">
-                  {allDone
-                    ? "Everything’s checked off 🎉"
-                    : `${doneCount} of ${checklistEntries.length} done — keep the momentum`}
-                </p>
-              </div>
-            </div>
-            <CompletenessRing value={score} reduceMotion={reduceMotion} />
-          </div>
-
-          {stats?.completeness_checklist ? (
-            <ul className="mt-4 min-h-0 flex-1 space-y-1">
-              {checklistEntries.map(([key, label]) => {
-                const done = Boolean(stats.completeness_checklist?.[key]);
-                const isNext = !done && key === firstIncompleteKey;
-                const href = CHECKLIST_HREF[key];
-                return (
-                  <li key={key}>
-                    {done || !href ? (
-                      <div
-                        className={`flex items-center gap-2.5 rounded-lg px-2 py-1.5 text-sm ${
-                          done ? "text-muted" : "text-fg"
-                        }`}
-                      >
-                        <ChecklistMark done={done} />
-                        {label}
-                      </div>
-                    ) : (
-                      <Link
-                        href={href}
-                        className={`flex items-center gap-2.5 rounded-lg px-2 py-1.5 text-sm transition ${
-                          isNext
-                            ? "bg-accent-soft font-medium text-fg ring-1 ring-accent/20"
-                            : "text-fg hover:bg-[var(--atmosphere-1)]"
-                        }`}
-                      >
-                        <ChecklistMark done={false} highlight={isNext} />
-                        <span className="min-w-0 flex-1">{label}</span>
-                        {isNext ? (
-                          <ChevronRightIcon className="h-3.5 w-3.5 shrink-0 text-accent" />
-                        ) : null}
-                      </Link>
-                    )}
-                  </li>
-                );
-              })}
-            </ul>
-          ) : (
-            <p className="mt-4 text-sm text-muted">Loading checklist…</p>
+        <MetricCard
+          tone="mint"
+          icon={<ConversationsIcon className="h-4 w-4" />}
+          label="Conversations"
+          value={stats?.conversations_7d ?? 0}
+          detail="Last 7 days"
+          href="/app/conversations"
+          reduceMotion={reduceMotion}
+        />
+        <MetricCard
+          tone="sky"
+          icon={<ChatIcon className="h-4 w-4" />}
+          label="Messages"
+          value={stats?.messages_7d ?? 0}
+          detail="Last 7 days"
+          reduceMotion={reduceMotion}
+        />
+        <MetricCard
+          tone="deep"
+          icon={<KnowledgeIcon className="h-4 w-4" />}
+          label="Knowledge"
+          value={stats?.documents_used ?? 0}
+          detail={knowledgeDetail(
+            stats?.documents_used ?? 0,
+            stats?.documents_limit,
           )}
+          href="/app/knowledge"
+          reduceMotion={reduceMotion}
+        />
+      </motion.section>
 
-          {nextStep ? (
-            <div className="mt-3 shrink-0">
-              <ButtonLink
-                href={nextStep.href}
-                className="w-full rounded-xl py-2.5 sm:w-auto"
-              >
-                Continue: {nextStep.label}
-                <ChevronRightIcon className="ml-1.5 h-3.5 w-3.5" />
-              </ButtonLink>
-            </div>
-          ) : allDone ? (
-            <p className="mt-3 shrink-0 font-display text-base italic text-accent">
-              You’re all set — go show it off!
-            </p>
-          ) : null}
-        </section>
-      </motion.div>
-
-      {/* Quiet status strip */}
-      <motion.div
-        className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-sm text-muted"
+      <motion.section
+        className="rounded-[var(--radius)] border border-border bg-[var(--bg-elevated)] px-5 py-5 sm:px-7"
         variants={item}
       >
-        <StatusDot live={published} />
-        <span className="font-medium text-fg">
-          {published ? "Published" : "Draft"}
-        </span>
-        <span aria-hidden className="text-border">
-          ·
-        </span>
-        <span>
-          <CountUp value={score} reduceMotion={reduceMotion} />% complete
-        </span>
-        {stats ? (
-          <>
-            <span aria-hidden className="text-border">
-              ·
-            </span>
-            <span>
-              <CountUp value={stats.visits_7d} reduceMotion={reduceMotion} />{" "}
-              visits (7d)
-            </span>
-            {typeof stats.owner_chats_remaining === "number" &&
-            typeof stats.owner_chats_limit === "number" ? (
-              <>
-                <span aria-hidden className="text-border">
-                  ·
-                </span>
-                <span>
-                  {stats.owner_chats_remaining}/{stats.owner_chats_limit} chats
-                  left today
-                </span>
-              </>
-            ) : null}
-          </>
-        ) : null}
-      </motion.div>
+        <RecentVisitorChats published={published} threads={recentThreads} />
+      </motion.section>
 
-      {/* Secondary actions */}
-      <motion.nav
-        className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm"
-        variants={item}
-        aria-label="More actions"
-      >
-        <ButtonLink
-          href="/onboarding/publish"
-          variant="ghost"
-          className="gap-1.5 px-0 py-1 text-muted hover:text-fg"
-        >
-          <ShareIcon className="h-3.5 w-3.5" />
-          Share
-        </ButtonLink>
-        {publicPath ? (
-          <Button
-            type="button"
-            variant="ghost"
-            className="gap-1.5 px-0 py-1 text-muted hover:text-fg"
-            onClick={() => void copyLink()}
-          >
-            <CopyIcon className="h-3.5 w-3.5" />
-            {copied ? "Copied!" : "Copy link"}
-          </Button>
-        ) : null}
-        {stats?.username ? (
-          <ButtonLink
-            href={`/u/${stats.username}`}
-            variant="ghost"
-            className="gap-1.5 px-0 py-1 text-muted hover:text-fg"
-          >
-            <ExternalIcon className="h-3.5 w-3.5" />
-            Open public page
-          </ButtonLink>
-        ) : null}
-        <ButtonLink
-          href="/feedback"
-          variant="ghost"
-          className="gap-1.5 px-0 py-1 text-muted hover:text-fg"
-        >
-          <FeedbackIcon className="h-3.5 w-3.5" />
-          Send feedback
-        </ButtonLink>
-      </motion.nav>
+      <CopyToast show={copied} />
 
       {error ? <p className="text-sm text-red-700">{error}</p> : null}
       <p className="sr-only" aria-live="polite">
@@ -436,10 +426,171 @@ export default function DashboardPage() {
   );
 }
 
-function firstName(name: string | undefined) {
-  if (!name) return null;
-  const part = name.trim().split(/\s+/).filter(Boolean)[0];
-  return part || null;
+function MetricCard({
+  icon,
+  label,
+  value,
+  detail,
+  href,
+  suffix,
+  tone = "mint",
+  reduceMotion,
+}: {
+  icon: ReactNode;
+  label: string;
+  value: number;
+  detail: string;
+  href?: string;
+  suffix?: string;
+  tone?: "solid" | "mint" | "deep" | "sky";
+  reduceMotion: boolean | null;
+}) {
+  const solid = tone === "solid";
+  const surface = {
+    solid: "border-transparent bg-accent text-white",
+    mint: "border-transparent bg-[var(--tone-mint)]",
+    deep: "border-transparent bg-[var(--atmosphere-2)]",
+    sky: "border-transparent bg-[var(--tone-sky)]",
+  }[tone];
+  const body = (
+    <>
+      <span
+        className={`flex h-8 w-8 items-center justify-center rounded-lg ${
+          solid ? "bg-white/15 text-white" : "bg-white text-accent"
+        }`}
+      >
+        {icon}
+      </span>
+      <p className={`mt-4 text-sm ${solid ? "text-white/80" : "text-muted"}`}>
+        {label}
+      </p>
+      <p
+        className={`mt-1 font-display text-3xl tabular-nums tracking-tight ${
+          solid ? "text-white" : "text-accent"
+        }`}
+      >
+        <CountUp
+          value={value}
+          reduceMotion={reduceMotion}
+          suffix={suffix}
+        />
+      </p>
+      <p
+        className={`mt-2 text-xs leading-relaxed ${
+          solid ? "text-white/75" : "text-muted"
+        }`}
+      >
+        {detail}
+      </p>
+    </>
+  );
+  const className = `flex h-full flex-col rounded-[var(--radius)] border p-4 text-left sm:p-5 ${surface}`;
+
+  if (href) {
+    return (
+      <Link
+        href={href}
+        className={`${className} transition hover:brightness-[0.98]`}
+      >
+        {body}
+      </Link>
+    );
+  }
+
+  return <div className={className}>{body}</div>;
+}
+
+function knowledgeDetail(used: number, limit: number | undefined) {
+  if (typeof limit !== "number") return "Sources on your AI";
+  if (used >= limit) return `All ${limit} source slots used`;
+  const left = limit - used;
+  return left === 1 ? "1 slot left" : `${left} slots left`;
+}
+
+function NextUp({
+  doneCount,
+  total,
+  nextLabel,
+  nextHref,
+  checklist,
+}: {
+  doneCount: number;
+  total: number;
+  nextLabel: string;
+  nextHref: string;
+  checklist: Array<{
+    key: string;
+    label: string;
+    done: boolean;
+    href?: string;
+    isNext: boolean;
+  }>;
+}) {
+  return (
+    <div className="rounded-[var(--radius)] border border-border bg-[var(--bg-elevated)] px-4 py-4 sm:px-5">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-xs font-medium uppercase tracking-wide text-accent">
+            Next up
+          </p>
+          <p className="mt-1.5 text-base text-fg">
+            <span className="tabular-nums text-muted">
+              {doneCount}/{total}
+            </span>
+            <span className="mx-2 text-border" aria-hidden>
+              ·
+            </span>
+            <span className="font-medium">{nextLabel}</span>
+          </p>
+        </div>
+        <ButtonLink href={nextHref}>
+          Continue
+          <ChevronRightIcon className="ml-1.5 h-3.5 w-3.5" />
+        </ButtonLink>
+      </div>
+      {checklist.length > 0 ? (
+        <details className="group relative mt-4 border-t border-border pt-3">
+          <summary className="cursor-pointer list-none text-xs text-muted hover:text-fg [&::-webkit-details-marker]:hidden">
+            <span className="inline-flex items-center gap-1">
+              Full checklist
+              <ChevronRightIcon className="h-3 w-3 transition group-open:rotate-90" />
+            </span>
+          </summary>
+          <ul className="mt-2 space-y-0.5">
+            {checklist.map((row) => (
+              <li key={row.key}>
+                {row.done || !row.href ? (
+                  <div
+                    className={`flex items-center gap-2.5 rounded-lg px-2 py-1.5 text-sm ${
+                      row.done ? "text-muted" : "text-fg"
+                    }`}
+                  >
+                    <ChecklistMark done={row.done} />
+                    {row.label}
+                  </div>
+                ) : (
+                  <Link
+                    href={row.href}
+                    className={`flex items-center gap-2.5 rounded-lg px-2 py-1.5 text-sm transition ${
+                      row.isNext
+                        ? "bg-accent-soft font-medium text-fg"
+                        : "text-fg hover:bg-[var(--atmosphere-1)]"
+                    }`}
+                  >
+                    <ChecklistMark done={false} highlight={row.isNext} />
+                    <span className="min-w-0 flex-1">{row.label}</span>
+                    {row.isNext ? (
+                      <ChevronRightIcon className="h-3.5 w-3.5 shrink-0 text-accent" />
+                    ) : null}
+                  </Link>
+                )}
+              </li>
+            ))}
+          </ul>
+        </details>
+      ) : null}
+    </div>
+  );
 }
 
 function previewThreadsToRecent(threads: PreviewThread[]): RecentThread[] {
@@ -493,17 +644,9 @@ function formatRelativeTime(iso: string) {
 function RecentVisitorChats({
   published,
   threads,
-  publicPath,
-  username,
-  onCopyLink,
-  copied,
 }: {
   published: boolean;
   threads: RecentThread[] | null;
-  publicPath: string;
-  username?: string | null;
-  onCopyLink: () => void;
-  copied: boolean;
 }) {
   const loading = threads === null;
   const empty = !loading && threads.length === 0;
@@ -513,120 +656,52 @@ function RecentVisitorChats({
   } | null>(null);
 
   return (
-    <section className="relative flex min-h-[18rem] flex-col rounded-2xl border border-border bg-white p-5 shadow-[0_10px_30px_-18px_rgba(15,31,28,0.28)]">
-      <div className="flex shrink-0 items-start justify-between gap-3">
-        <div className="flex items-start gap-2">
-          <span className="mt-0.5 flex h-6 w-6 items-center justify-center rounded-full bg-accent-soft text-accent">
-            <ChatIcon className="h-3.5 w-3.5" />
-          </span>
-          <div>
-            <h2 className="font-display text-lg text-fg">
-              Recent visitor chats
-            </h2>
-            <p className="mt-0.5 text-xs text-muted">
-              Public conversations on your AI page
-            </p>
-          </div>
-        </div>
+    <section>
+      <div className="flex items-baseline justify-between gap-4">
+        <h2 className="font-display text-lg tracking-tight text-fg">
+          Recent visitor chats
+        </h2>
         <Link
           href="/app/conversations"
-          className="inline-flex shrink-0 items-center gap-0.5 text-xs font-medium text-accent hover:text-accent-hover"
+          className="shrink-0 text-sm font-medium text-accent hover:text-accent-hover"
         >
           View all
-          <ChevronRightIcon className="h-3.5 w-3.5" />
         </Link>
       </div>
 
-      <div className="mt-4 flex min-h-0 flex-1 flex-col">
-        {loading ? (
-          <p className="text-sm text-muted">Loading chats…</p>
-        ) : !published ? (
-          <div className="flex flex-1 flex-col justify-center gap-3 rounded-xl bg-[var(--atmosphere-1)] px-4 py-6 text-center">
-            <p className="font-display text-base text-fg text-balance">
-              Publish to start getting visitor chats ✨
-            </p>
-            <p className="text-sm text-muted text-balance">
-              Once your link is live, conversations from your public page show
-              up here.
-            </p>
-            <div className="mt-1">
-              <ButtonLink
-                href="/onboarding/publish"
-                className="rounded-xl px-4 py-2.5"
+      {loading ? (
+        <p className="mt-6 text-sm text-muted">Loading chats…</p>
+      ) : !published ? (
+        <p className="mt-6 max-w-md text-sm leading-relaxed text-muted">
+          Publish your link and visitor questions will show up here.
+        </p>
+      ) : empty ? (
+        <p className="mt-6 max-w-md text-sm leading-relaxed text-muted">
+          No chats yet. When someone messages your public page, it shows up
+          here.
+        </p>
+      ) : (
+        <ul className="mt-3 divide-y divide-border border-t border-border">
+          {threads.map((thread) => (
+            <li key={thread.id}>
+              <button
+                type="button"
+                onClick={() =>
+                  setOpenThread({ id: thread.id, preview: thread.preview })
+                }
+                className="-mx-2 flex w-[calc(100%+1rem)] items-baseline justify-between gap-4 rounded-md px-2 py-3.5 text-left hover:bg-[var(--atmosphere-1)]"
               >
-                Publish your link
-                <ChevronRightIcon className="ml-1.5 h-3.5 w-3.5" />
-              </ButtonLink>
-            </div>
-          </div>
-        ) : empty ? (
-          <div className="flex flex-1 flex-col justify-center gap-3 rounded-xl bg-[var(--atmosphere-1)] px-4 py-6 text-center">
-            <p className="font-display text-base text-fg text-balance">
-              No visitors yet — share your link 🔗
-            </p>
-            <p className="text-sm text-muted text-balance">
-              When someone chats with your AI, you’ll see it here.
-            </p>
-            <div className="mt-1 flex flex-wrap items-center justify-center gap-2">
-              <ButtonLink
-                href="/onboarding/publish"
-                className="rounded-xl px-4 py-2.5"
-              >
-                <ShareIcon className="mr-1.5 h-4 w-4" />
-                Share
-              </ButtonLink>
-              {publicPath ? (
-                <Button
-                  type="button"
-                  variant="secondary"
-                  className="rounded-xl border border-border bg-white px-4 py-2.5"
-                  onClick={onCopyLink}
-                >
-                  <CopyIcon className="mr-1.5 h-4 w-4" />
-                  {copied ? "Copied!" : "Copy link"}
-                </Button>
-              ) : null}
-              {username ? (
-                <ButtonLink
-                  href={`/u/${username}`}
-                  variant="ghost"
-                  className="rounded-xl px-3 py-2.5 text-muted"
-                >
-                  <ExternalIcon className="mr-1.5 h-4 w-4" />
-                  Open page
-                </ButtonLink>
-              ) : null}
-            </div>
-          </div>
-        ) : (
-          <ul className="min-h-0 flex-1 space-y-1">
-            {threads.map((thread) => (
-              <li key={thread.id}>
-                <button
-                  type="button"
-                  onClick={() =>
-                    setOpenThread({ id: thread.id, preview: thread.preview })
-                  }
-                  className="flex w-full items-start gap-3 rounded-xl px-2.5 py-2.5 text-left transition hover:bg-[var(--atmosphere-1)]"
-                >
-                  <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-accent-soft text-accent">
-                    <ChatIcon className="h-3.5 w-3.5" />
-                  </span>
-                  <span className="min-w-0 flex-1">
-                    <span className="line-clamp-2 text-sm text-fg">
-                      {thread.preview}
-                    </span>
-                    <span className="mt-0.5 block text-xs text-muted">
-                      {thread.when}
-                    </span>
-                  </span>
-                  <ChevronRightIcon className="mt-1 h-3.5 w-3.5 shrink-0 text-muted" />
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
+                <span className="min-w-0 text-sm leading-snug text-fg sm:text-base">
+                  {thread.preview}
+                </span>
+                <span className="shrink-0 text-xs text-muted">
+                  {thread.when}
+                </span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
 
       <VisitorConversationModal
         thread={openThread}
@@ -636,14 +711,26 @@ function RecentVisitorChats({
   );
 }
 
-function StatusDot({ live }: { live: boolean }) {
+function CopyToast({ show }: { show: boolean }) {
   return (
-    <span
-      className={`h-2 w-2 shrink-0 rounded-full ${
-        live ? "bg-accent" : "bg-[var(--border)]"
-      }`}
-      aria-hidden
-    />
+    <motion.div
+      className="pointer-events-none fixed bottom-24 left-1/2 z-50 -translate-x-1/2 md:bottom-8"
+      initial={false}
+      animate={
+        show
+          ? { opacity: 1, y: 0, scale: 1 }
+          : { opacity: 0, y: 8, scale: 0.96 }
+      }
+      transition={{ type: "spring", stiffness: 420, damping: 28 }}
+      aria-hidden={!show}
+    >
+      <div className="inline-flex items-center gap-2 rounded-full border border-border bg-[var(--bg-elevated)] px-3.5 py-2 text-sm text-fg shadow-[0_16px_40px_-18px_rgba(15,31,28,0.45)]">
+        <span className="flex h-5 w-5 items-center justify-center rounded-full bg-accent text-white">
+          <CheckIcon className="h-3 w-3" />
+        </span>
+        Link copied
+      </div>
+    </motion.div>
   );
 }
 
@@ -673,58 +760,14 @@ function ChecklistMark({
   );
 }
 
-function CompletenessRing({
-  value,
-  reduceMotion,
-}: {
-  value: number;
-  reduceMotion: boolean | null;
-}) {
-  const r = 14;
-  const c = 2 * Math.PI * r;
-  const offset = c - (Math.min(100, Math.max(0, value)) / 100) * c;
-  return (
-    <div className="relative h-10 w-10 shrink-0" aria-hidden>
-      <svg viewBox="0 0 36 36" className="h-10 w-10 -rotate-90">
-        <circle
-          cx="18"
-          cy="18"
-          r={r}
-          fill="none"
-          className="stroke-border"
-          strokeWidth="3"
-        />
-        <motion.circle
-          cx="18"
-          cy="18"
-          r={r}
-          fill="none"
-          className="stroke-accent"
-          strokeWidth="3"
-          strokeLinecap="round"
-          strokeDasharray={c}
-          initial={{ strokeDashoffset: reduceMotion ? offset : c }}
-          animate={{ strokeDashoffset: offset }}
-          transition={
-            reduceMotion
-              ? { duration: 0 }
-              : { duration: 0.9, ease: [0.16, 1, 0.3, 1] }
-          }
-        />
-      </svg>
-      <span className="absolute inset-0 flex items-center justify-center text-[0.65rem] font-medium tabular-nums text-fg">
-        {Math.round(value)}
-      </span>
-    </div>
-  );
-}
-
 function CountUp({
   value,
   reduceMotion,
+  suffix = "",
 }: {
   value: number;
   reduceMotion: boolean | null;
+  suffix?: string;
 }) {
   // Always start at `value` so SSR and the first client paint match
   // (useReducedMotion is null on the server, true/false on the client).
@@ -744,5 +787,5 @@ function CountUp({
     return () => controls.stop();
   }, [value, reduceMotion]);
 
-  return <span className="tabular-nums">{shown}</span>;
+  return <span className="tabular-nums">{`${shown}${suffix}`}</span>;
 }

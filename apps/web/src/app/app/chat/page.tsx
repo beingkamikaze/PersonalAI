@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState, type ReactNode } from "react";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { OwnerChat } from "@/components/owner-chat";
 import { ButtonLink } from "@/components/ui/button";
@@ -80,9 +79,8 @@ export default function AppChatPage() {
 
   return (
     <div className="mx-auto w-full max-w-6xl space-y-3">
-      {/* Compact hero: info chips under copy, beside robot */}
-      <header className="grid items-stretch gap-3 lg:grid-cols-[1fr_auto]">
-        <div className="flex min-w-0 flex-col">
+      {/* Compact hero */}
+      <header className="flex min-w-0 flex-col gap-3">
           <p className="text-xs font-medium tracking-[0.14em] text-muted uppercase">
             Chats
           </p>
@@ -114,26 +112,6 @@ export default function AppChatPage() {
               subtitle="From your content"
             />
           </div>
-        </div>
-
-        <div className="relative hidden w-[140px] shrink-0 self-stretch lg:block lg:w-[180px]">
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-[-8%] rounded-full bg-[radial-gradient(circle_at_center,rgba(180,220,230,0.45)_0%,rgba(180,220,230,0.18)_42%,transparent_68%)]"
-          />
-          <Image
-            src="/dashboard/chat-companion-3d-v2.png"
-            alt=""
-            width={320}
-            height={320}
-            className="relative h-auto w-full select-none"
-            priority
-            unoptimized
-          />
-          <p className="pointer-events-none absolute top-2 left-0 z-10 max-w-[7rem] font-display text-[11px] italic leading-snug text-accent">
-            Your Thinking Partner.
-          </p>
-        </div>
       </header>
 
       {/* Composer sits higher */}

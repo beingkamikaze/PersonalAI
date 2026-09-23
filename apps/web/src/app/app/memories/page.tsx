@@ -8,7 +8,6 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Button, ButtonLink } from "@/components/ui/button";
 import {
@@ -232,9 +231,8 @@ export default function MemoriesPage() {
 
   return (
     <div className="mx-auto w-full max-w-6xl space-y-3">
-      {/* Compact hero: info chips fill blank under copy, beside robot */}
-      <header className="grid items-stretch gap-3 lg:grid-cols-[1fr_auto]">
-        <div className="flex min-w-0 flex-col">
+      {/* Compact hero */}
+      <header className="flex min-w-0 flex-col gap-3">
           <p className="text-xs font-medium tracking-[0.14em] text-muted uppercase">
             Memories
           </p>
@@ -266,25 +264,6 @@ export default function MemoriesPage() {
               subtitle="Edit anytime"
             />
           </div>
-        </div>
-
-        <div className="relative hidden w-[140px] shrink-0 self-stretch lg:block lg:w-[180px]">
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-[-8%] rounded-full bg-[radial-gradient(circle_at_center,rgba(180,220,230,0.45)_0%,rgba(180,220,230,0.18)_42%,transparent_68%)]"
-          />
-          <Image
-            src="/dashboard/memory-companion-3d.png"
-            alt=""
-            width={320}
-            height={320}
-            className="relative h-auto w-full select-none"
-            priority
-          />
-          <p className="pointer-events-none absolute top-2 left-0 z-10 max-w-[7rem] font-display text-[11px] italic leading-snug text-accent">
-            A more you, a better AI.
-          </p>
-        </div>
       </header>
 
       {/* List panel sits higher — chips no longer take a full row */}

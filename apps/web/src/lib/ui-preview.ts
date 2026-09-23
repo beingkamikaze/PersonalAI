@@ -56,6 +56,33 @@ export const PREVIEW_ANALYTICS: AnalyticsSummary = {
   documents_remaining: 7,
 };
 
+/** Incomplete setup mock — open `/app?incomplete=1` in UI preview. */
+export const PREVIEW_ANALYTICS_INCOMPLETE: AnalyticsSummary = {
+  visibility: "draft",
+  username: null,
+  completeness_score: 43,
+  completeness_checklist: {
+    profile_basics: true,
+    interview_completed: true,
+    personality: true,
+    knowledge_ready: false,
+    has_memory: false,
+    username_set: false,
+    published: false,
+  },
+  visits_today: 0,
+  visits_7d: 0,
+  conversations_7d: 0,
+  messages_7d: 0,
+  public_url_path: null,
+  owner_chats_used_today: 0,
+  owner_chats_limit: 40,
+  owner_chats_remaining: 40,
+  documents_used: 0,
+  documents_limit: 8,
+  documents_remaining: 8,
+};
+
 export type DashboardLoadResult<TRecent = null> = {
   profile: AiProfile;
   stats: AnalyticsSummary;

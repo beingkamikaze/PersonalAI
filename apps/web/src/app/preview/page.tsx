@@ -30,7 +30,8 @@ const groups = [
   {
     title: "App",
     items: [
-      { href: "/app", label: "Dashboard" },
+      { href: "/app", label: "Dashboard (live)" },
+      { href: "/app?incomplete=1", label: "Dashboard (setup)" },
       { href: "/app/knowledge", label: "Knowledge" },
       { href: "/app/memories", label: "Memories" },
       { href: "/app/chat", label: "Chat" },

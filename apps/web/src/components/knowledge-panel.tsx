@@ -9,7 +9,6 @@ import {
   type DragEvent,
   type ReactNode,
 } from "react";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Button, ButtonLink } from "@/components/ui/button";
 import {
@@ -243,8 +242,7 @@ export function KnowledgePanel({
   return (
     <div className={isApp ? "mx-auto w-full max-w-6xl space-y-3" : "space-y-6"}>
       {isApp ? (
-        <header className="grid items-stretch gap-3 lg:grid-cols-[1fr_auto]">
-          <div className="flex min-w-0 flex-col">
+        <header className="flex min-w-0 flex-col gap-3">
             <p className="text-xs font-medium tracking-[0.14em] text-muted uppercase">
               Knowledge
             </p>
@@ -282,47 +280,6 @@ export function KnowledgePanel({
                 subtitle="See processing"
               />
             </div>
-          </div>
-
-          <div className="relative hidden w-[140px] shrink-0 self-stretch lg:block lg:w-[180px]">
-            <div
-              aria-hidden
-              className="pointer-events-none absolute inset-[-8%] rounded-full bg-[radial-gradient(circle_at_center,rgba(180,220,230,0.45)_0%,rgba(180,220,230,0.18)_42%,transparent_68%)]"
-            />
-            <Image
-              src="/dashboard/knowledge-companion-3d.png"
-              alt=""
-              width={400}
-              height={400}
-              className="relative h-auto w-full select-none"
-              priority
-            />
-            <div className="pointer-events-none absolute -left-2 top-0 z-10 flex max-w-[7.5rem] flex-col items-end gap-0.5">
-              <p className="text-right font-display text-[12px] italic leading-snug text-accent">
-                Feed your AI with what matters.
-              </p>
-              <svg
-                viewBox="0 0 56 28"
-                className="h-7 w-14 text-accent"
-                fill="none"
-                aria-hidden
-              >
-                <path
-                  d="M4 4c10 2 22 6 34 18"
-                  stroke="currentColor"
-                  strokeWidth="1.4"
-                  strokeLinecap="round"
-                />
-                <path
-                  d="M30 18l8 4-2 8"
-                  stroke="currentColor"
-                  strokeWidth="1.4"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </div>
-          </div>
         </header>
       ) : null}
 
