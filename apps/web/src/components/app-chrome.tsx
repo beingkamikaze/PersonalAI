@@ -12,7 +12,9 @@ export function AppChrome({ children }: { children: ReactNode }) {
       <header className="flex items-center justify-end px-4 pt-2 pb-1 md:px-6 md:pt-3">
         <AppTopBar />
       </header>
-      <div className="px-4 pb-16 pt-1 md:px-6 md:pb-20">{children}</div>
+      <div className="px-4 pb-[calc(4.5rem+env(safe-area-inset-bottom))] pt-1 md:px-6 md:pb-20">
+        {children}
+      </div>
     </div>
   );
 }
