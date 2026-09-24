@@ -11,8 +11,10 @@ import {
 } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { AuthCurveMark } from "@/components/auth-edge-curves";
 import { Button, ButtonLink } from "@/components/ui/button";
 import {
+  ChevronRightIcon,
   CloudUploadIcon,
   DatabaseIcon,
   DocIcon,
@@ -48,6 +50,14 @@ function statusLabel(status: string): string {
   }
 }
 
+function statusTone(status: string): string {
+  if (status === "failed") return "text-red-700";
+  if (status === "pending" || status === "processing") return "text-[#b45309]";
+  return "text-muted";
+}
+
+const cardShadow = "shadow-[0_16px_40px_-24px_rgba(18,40,32,0.28)]";
+
 type Props = {
   continueHref?: string;
   showSkip?: boolean;
@@ -76,6 +86,16 @@ export function KnowledgePanel({
   const [busy, setBusy] = useState(false);
   const [dragOver, setDragOver] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+  const dropRef = useRef<HTMLButtonElement>(null);
+  const notesRef = useRef<HTMLTextAreaElement>(null);
+  const urlRef = useRef<HTMLInputElement>(null);
+  const statusRef = useRef<HTMLElement>(null);
+
+  function reveal(el: HTMLElement | null) {
+    if (!el) return;
+    el.scrollIntoView({ behavior: "smooth", block: "center" });
+    el.focus({ preventScroll: true });
+  }
 
   const loadDocs = useCallback(async (id: string) => {
     const list = await apiFetch<KnowledgeDocument[]>(`/ai/${id}/documents`);
@@ -241,100 +261,116 @@ export function KnowledgePanel({
   const noteLen = notes.length;
 
   return (
-    <div className={isApp ? "mx-auto w-full max-w-6xl space-y-3" : "space-y-6"}>
+    <div
+      className={
+        isApp
+          ? "relative w-full space-y-3 xl:pr-8"
+          : "space-y-6"
+      }
+    >
       {isApp ? (
-        <header className="grid items-stretch gap-3 lg:grid-cols-[1fr_auto]">
-          <div className="flex min-w-0 flex-col">
-            <p className="text-xs font-medium tracking-[0.14em] text-muted uppercase">
+        <header className="relative">
+          <div className="min-w-0 xl:pr-[17rem]">
+            <p className="text-[11px] font-medium tracking-[0.16em] text-muted uppercase">
               Knowledge
             </p>
-            <h1 className="mt-1 font-display text-3xl tracking-tight text-fg md:text-[2rem]">
+            <h1 className="mt-1.5 font-display text-[2.05rem] leading-[1.08] tracking-tight text-fg sm:text-[2.35rem]">
               Add your <span className="text-accent">knowledge</span>
             </h1>
-            <p className="mt-1.5 max-w-xl text-sm text-muted text-balance">
+            <p className="mt-1 max-w-xl text-sm leading-snug text-muted">
               Upload documents, add notes or a URL, and track processing
               status.
             </p>
+          </div>
 
-            <div className="mt-3 grid flex-1 grid-cols-2 gap-2 md:grid-cols-4 md:items-stretch">
-              <Shortcut
-                tone="mint"
-                icon={<DocIcon className="h-3.5 w-3.5" />}
-                title="Upload docs"
-                subtitle="PDF, DOCX, TXT"
+          <div className="pointer-events-none absolute top-0 right-1 hidden h-[8.15rem] w-[17rem] xl:block">
+            <AuthCurveMark className="absolute top-1 right-0 h-28 w-7 -scale-x-100 text-accent/30" />
+            <p className="absolute top-0.5 right-[8.15rem] w-[7.15rem] text-right font-display text-[13px] leading-[1.25] font-medium text-accent italic">
+              Feed your AI with
+              <br />
+              what matters.
+            </p>
+            <svg
+              viewBox="0 0 72 32"
+              className="absolute top-[2.55rem] right-[7.4rem] h-6 w-12 text-accent"
+              fill="none"
+              aria-hidden
+            >
+              <path
+                d="M2 6c16 2 30 10 58 18"
+                stroke="currentColor"
+                strokeWidth="1.35"
+                strokeLinecap="round"
               />
-              <Shortcut
-                tone="purple"
-                icon={<NoteIcon className="h-3.5 w-3.5" />}
-                title="Add notes"
-                subtitle="Save key info"
+              <path
+                d="M48 18.5 62 24.5 50 28"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.35"
+                strokeLinecap="round"
+                strokeLinejoin="round"
               />
-              <Shortcut
-                tone="sky"
-                icon={<LinkIcon className="h-3.5 w-3.5" />}
-                title="Add a URL"
-                subtitle="From the web"
-              />
-              <Shortcut
-                tone="amber"
-                icon={<DatabaseIcon className="h-3.5 w-3.5" />}
-                title="Track status"
-                subtitle="See processing"
+            </svg>
+            <div className="absolute top-0 right-3 h-[7.8rem] w-[7.25rem] overflow-hidden">
+              <Image
+                src="/dashboard/knowledge-companion-3d.png"
+                alt=""
+                width={1024}
+                height={1024}
+                priority
+                className="absolute h-auto max-w-none select-none"
+                style={{ width: "136%", left: "-16%", top: "-13%" }}
               />
             </div>
           </div>
 
-          <div className="relative hidden w-[140px] shrink-0 self-stretch lg:block lg:w-[180px]">
-            <div
-              aria-hidden
-              className="pointer-events-none absolute inset-[-8%] rounded-full bg-[radial-gradient(circle_at_center,rgba(180,220,230,0.45)_0%,rgba(180,220,230,0.18)_42%,transparent_68%)]"
+          <div className="relative z-10 mt-3.5 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:mt-[3.05rem] xl:grid-cols-4">
+            <Shortcut
+              tone="mint"
+              icon={<DocIcon className="h-4 w-4" />}
+              title="Upload docs"
+              subtitle="PDF, DOCX, TXT"
+              onClick={() => reveal(dropRef.current)}
             />
-            <Image
-              src="/dashboard/knowledge-companion-3d.png"
-              alt=""
-              width={400}
-              height={400}
-              className="relative h-auto w-full select-none"
-              priority
+            <Shortcut
+              tone="purple"
+              icon={<NoteIcon className="h-4 w-4" />}
+              title="Add notes"
+              subtitle="Save key info"
+              onClick={() => reveal(notesRef.current)}
             />
-            <div className="pointer-events-none absolute -left-2 top-0 z-10 flex max-w-[7.5rem] flex-col items-end gap-0.5">
-              <p className="text-right font-display text-[12px] italic leading-snug text-accent">
-                Feed your AI with what matters.
-              </p>
-              <svg
-                viewBox="0 0 56 28"
-                className="h-7 w-14 text-accent"
-                fill="none"
-                aria-hidden
-              >
-                <path
-                  d="M4 4c10 2 22 6 34 18"
-                  stroke="currentColor"
-                  strokeWidth="1.4"
-                  strokeLinecap="round"
-                />
-                <path
-                  d="M30 18l8 4-2 8"
-                  stroke="currentColor"
-                  strokeWidth="1.4"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </div>
+            <Shortcut
+              tone="sky"
+              icon={<LinkIcon className="h-4 w-4" />}
+              title="Add a URL"
+              subtitle="From the web"
+              onClick={() => reveal(urlRef.current)}
+            />
+            <Shortcut
+              tone="amber"
+              icon={<DatabaseIcon className="h-4 w-4" />}
+              title="Track status"
+              subtitle="See processing"
+              onClick={() => reveal(statusRef.current)}
+            />
           </div>
         </header>
       ) : null}
 
-      <div className="grid gap-4 lg:grid-cols-5">
-        <section className="rounded-2xl border border-border bg-white p-5 shadow-[0_10px_30px_-18px_rgba(15,31,28,0.28)] lg:col-span-3">
-          <div className="flex items-start gap-2">
-            <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-[var(--tone-mint)] text-accent">
+      <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1.72fr)_minmax(17.75rem,1fr)]">
+        <section
+          id="upload-document"
+          className={`flex flex-col rounded-[22px] border border-border bg-white p-5 ${cardShadow}`}
+        >
+          <div className="flex items-start gap-3">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[var(--tone-mint)] text-accent">
               <CloudUploadIcon className="h-4 w-4" />
             </span>
             <div>
-              <h2 className="font-display text-lg text-fg">Upload a document</h2>
-              <p className="mt-0.5 text-xs text-muted">
+              <h2 className="font-display text-lg leading-tight tracking-tight text-fg">
+                Upload a document
+              </h2>
+              <p className="mt-1 text-xs leading-snug text-muted">
                 PDF, DOCX, or TXT — max 8 MB.
               </p>
             </div>
@@ -350,8 +386,10 @@ export function KnowledgePanel({
           />
 
           <button
+            ref={dropRef}
             type="button"
             disabled={busy}
+            aria-label="Choose a file to upload"
             onClick={() => fileRef.current?.click()}
             onDragEnter={(e) => {
               e.preventDefault();
@@ -363,53 +401,56 @@ export function KnowledgePanel({
             }}
             onDragLeave={() => setDragOver(false)}
             onDrop={onDrop}
-            className={`mt-4 flex w-full flex-col items-center justify-center rounded-2xl border-2 border-dashed px-6 py-8 text-center transition ${
+            className={`mt-3 flex min-h-[6.75rem] w-full flex-col items-center justify-center rounded-[18px] border border-dashed px-6 py-4 text-center transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
               dragOver
-                ? "border-accent bg-accent-soft/60"
-                : "border-border bg-[var(--atmosphere-1)]/40 hover:border-accent/50"
+                ? "border-accent bg-accent-soft"
+                : "border-[#c9ddd4] bg-[#f7fbf9] hover:border-accent/45"
             }`}
           >
-            <span className="flex h-12 w-12 items-center justify-center rounded-full bg-white text-accent shadow-sm">
+            <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[#e7f4ef] text-accent">
               <CloudUploadIcon className="h-5 w-5" />
             </span>
-            <p className="mt-3 text-sm text-fg">
+            <p className="mt-2.5 max-w-[16.5rem] text-sm text-balance text-fg">
               Drag & drop your file here or click to choose a file
             </p>
-            <span className="mt-4 inline-flex items-center justify-center rounded-xl bg-accent px-4 py-2 text-sm font-medium text-white">
+            <span className="mt-2.5 inline-flex h-9 items-center justify-center rounded-xl bg-accent px-4 text-sm font-medium text-white">
               Choose File
             </span>
           </button>
         </section>
 
-        <div className="flex flex-col gap-4 lg:col-span-2">
+        <div className="flex flex-col gap-2.5">
           <form
             onSubmit={onSaveNotes}
-            className="flex flex-1 flex-col rounded-2xl border border-border bg-white p-5 shadow-[0_10px_30px_-18px_rgba(15,31,28,0.28)]"
+            className={`flex flex-col rounded-[22px] border border-border bg-white p-5 ${cardShadow}`}
           >
-            <div className="flex items-start gap-2">
-              <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-[var(--tone-purple)] text-[var(--tone-purple-ink)]">
+            <div className="flex items-center gap-3">
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[var(--tone-purple)] text-[var(--tone-purple-ink)]">
                 <NoteIcon className="h-4 w-4" />
               </span>
-              <h2 className="font-display text-lg text-fg">Add a note</h2>
+              <h2 className="font-display text-lg leading-tight tracking-tight text-fg">
+                Add a note
+              </h2>
             </div>
             <textarea
+              ref={notesRef}
               id="notes"
-              rows={4}
+              rows={3}
               maxLength={NOTE_MAX}
               value={notes}
               onChange={(e) => setNotes(e.target.value.slice(0, NOTE_MAX))}
-              placeholder="Things people should know about your work…"
-              className="mt-3 min-h-[6rem] w-full flex-1 resize-none rounded-xl border border-border bg-[var(--atmosphere-1)]/30 px-3 py-2.5 text-sm text-fg placeholder:text-muted/70 focus:border-accent focus:outline-none"
+              placeholder="Things people should know about your work..."
+              className="mt-3 h-[4.75rem] w-full resize-none rounded-xl border border-border bg-white px-3.5 py-2.5 text-sm leading-relaxed text-fg placeholder:text-muted/70 focus:border-accent focus:outline-none"
               disabled={busy}
             />
             <div className="mt-3 flex items-center justify-between gap-3">
-              <p className="text-xs text-muted">
+              <p className="text-xs tabular-nums text-muted">
                 {noteLen}/{NOTE_MAX}
               </p>
               <Button
                 type="submit"
                 disabled={busy || !notes.trim()}
-                className="rounded-xl"
+                className="!h-9 !rounded-xl px-3.5 py-0"
               >
                 Save note
               </Button>
@@ -418,31 +459,32 @@ export function KnowledgePanel({
 
           <form
             onSubmit={onIngestUrl}
-            className="rounded-2xl border border-border bg-white p-5 shadow-[0_10px_30px_-18px_rgba(15,31,28,0.28)]"
+            className={`rounded-[22px] border border-border bg-white p-4 ${cardShadow}`}
           >
-            <div className="flex items-start gap-2">
-              <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-[var(--tone-sky)] text-[#2563eb]">
+            <div className="flex items-center gap-2.5">
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[var(--tone-sky)] text-[#2563eb]">
                 <LinkIcon className="h-4 w-4" />
               </span>
-              <h2 className="font-display text-lg text-fg">
+              <h2 className="font-display text-lg leading-tight tracking-tight text-fg">
                 Add a URL{isApp ? " (optional)" : ""}
               </h2>
             </div>
-            <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+            <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center">
               <input
+                ref={urlRef}
                 id="url"
                 type="url"
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
-                placeholder="https://…"
-                className="min-w-0 flex-1 rounded-xl border border-border bg-[var(--atmosphere-1)]/30 px-3 py-2.5 text-sm text-fg placeholder:text-muted/70 focus:border-accent focus:outline-none"
+                placeholder="https://..."
+                className="h-10 min-w-0 flex-1 rounded-xl border border-border bg-white px-3.5 text-sm text-fg placeholder:text-muted/70 focus:border-accent focus:outline-none"
                 disabled={busy}
               />
               <Button
                 type="submit"
                 variant="secondary"
                 disabled={busy || !url.trim()}
-                className="rounded-xl bg-white"
+                className="!h-10 shrink-0 !rounded-xl bg-white px-3.5 py-0"
               >
                 Add URL
               </Button>
@@ -451,38 +493,61 @@ export function KnowledgePanel({
         </div>
       </div>
 
+      {error ? (
+        <p className="text-sm text-red-700" role="alert">
+          {error}
+        </p>
+      ) : null}
+      {message ? (
+        <p className="text-sm text-muted" role="status">
+          {message}
+        </p>
+      ) : null}
+
       <section
+        ref={statusRef}
         id="track-status"
-        className="rounded-2xl border border-border bg-white p-5 shadow-[0_10px_30px_-18px_rgba(15,31,28,0.28)]"
+        tabIndex={-1}
+        className={`scroll-mt-6 rounded-[22px] border border-border bg-white px-5 py-4 outline-none ${cardShadow}`}
       >
-        <div className="flex items-center gap-2">
-          <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#fff7e6] text-[var(--tone-amber)]">
+        <div className="flex items-center gap-3">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#fff7e6] text-[var(--tone-amber)]">
             <DatabaseIcon className="h-4 w-4" />
           </span>
-          <h2 className="font-display text-lg text-fg">Documents & status</h2>
+          <h2 className="font-display text-lg leading-tight tracking-tight text-fg">
+            Documents & status
+          </h2>
         </div>
         {docs.length === 0 ? (
-          <p className="mt-4 rounded-xl border border-dashed border-border bg-[var(--atmosphere-1)]/40 px-4 py-8 text-center text-sm text-muted">
+          <p className="mt-4 rounded-xl border border-dashed border-border bg-[#f7fbf9] px-4 py-8 text-center text-sm text-muted">
             No documents yet
           </p>
         ) : (
-          <ul className="mt-4 divide-y divide-border border-t border-border">
+          <ul className="mt-3.5 border-t border-border">
             {docs.map((doc) => (
               <li
                 key={doc.id}
-                className="flex flex-wrap items-start justify-between gap-3 py-3"
+                className="flex items-center justify-between gap-3 border-b border-border py-2.5 last:border-b-0"
               >
-                <div>
-                  <p className="text-sm font-medium text-fg">{doc.filename}</p>
-                  <p className="mt-0.5 text-xs text-muted">
-                    {doc.source_type} · {statusLabel(doc.status)}
-                    {doc.error_message ? ` — ${doc.error_message}` : ""}
-                  </p>
+                <div className="flex min-w-0 items-center gap-3">
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#fdecec] text-[#e11d48]">
+                    <DocIcon className="h-4 w-4" />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium text-fg">
+                      {doc.filename}
+                    </p>
+                    <p className={`mt-0.5 text-xs leading-4 ${statusTone(doc.status)}`}>
+                      {doc.source_type} · {statusLabel(doc.status)}
+                      {doc.error_message ? ` — ${doc.error_message}` : ""}
+                    </p>
+                  </div>
                 </div>
                 <Button
                   type="button"
                   variant="ghost"
                   disabled={busy}
+                  className="!h-8 shrink-0 px-2 py-1 text-sm text-muted hover:text-fg"
                   onClick={() => void onDelete(doc.id)}
                 >
                   Delete
@@ -493,16 +558,13 @@ export function KnowledgePanel({
         )}
       </section>
 
-      {error ? <p className="text-sm text-red-700">{error}</p> : null}
-      {message ? <p className="text-sm text-muted">{message}</p> : null}
-
       {isApp ? (
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-accent/15 bg-accent-soft/70 px-4 py-3.5">
-          <div className="flex min-w-0 items-start gap-3">
-            <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white text-accent">
+        <div className="flex items-center justify-between gap-3 rounded-[20px] border border-border bg-[#f6faf8] px-4 py-2.5 sm:px-5">
+          <div className="flex min-w-0 items-center gap-2.5">
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white text-accent">
               <LightbulbIcon className="h-4 w-4" />
             </span>
-            <p className="text-sm text-fg text-balance">
+            <p className="text-sm leading-snug text-fg">
               <span className="font-medium">Pro tip:</span> Add your resumes,
               project docs, notes, or useful links to help your AI give more
               relevant and personalized answers.
@@ -511,7 +573,7 @@ export function KnowledgePanel({
           <ButtonLink
             href="/app/chat"
             variant="secondary"
-            className="gap-2 rounded-xl bg-white py-2"
+            className="!h-9 shrink-0 gap-1.5 !rounded-xl bg-white px-3.5 py-0 text-sm"
           >
             Learn more
             <ExternalIcon className="h-3.5 w-3.5" />
@@ -549,11 +611,13 @@ function Shortcut({
   icon,
   title,
   subtitle,
+  onClick,
 }: {
   tone: "mint" | "purple" | "sky" | "amber";
   icon: ReactNode;
   title: string;
   subtitle: string;
+  onClick: () => void;
 }) {
   const tones = {
     mint: "bg-[var(--tone-mint)] text-accent",
@@ -563,21 +627,26 @@ function Shortcut({
   } as const;
 
   return (
-    <div className="flex h-full min-h-[4.75rem] min-w-0 items-center gap-2.5 rounded-xl border border-border bg-white px-3 py-3 shadow-[0_6px_16px_-14px_rgba(15,31,28,0.28)] sm:min-h-[5.5rem]">
+    <button
+      type="button"
+      onClick={onClick}
+      className="flex h-full min-h-[4.35rem] w-full items-center gap-2.5 rounded-[20px] border border-border bg-white px-3.5 py-2.5 text-left shadow-[0_8px_20px_-16px_rgba(15,31,28,0.4)] transition hover:border-accent/30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+    >
       <span
-        className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${tones[tone]}`}
+        className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${tones[tone]}`}
         aria-hidden
       >
         {icon}
       </span>
-      <div className="min-w-0">
-        <p className="truncate text-sm font-medium leading-snug text-fg">
+      <span className="flex-1">
+        <span className="block text-sm font-semibold leading-tight whitespace-nowrap text-fg">
           {title}
-        </p>
-        <p className="mt-0.5 truncate text-xs leading-snug text-muted">
+        </span>
+        <span className="mt-0.5 block text-xs leading-tight whitespace-nowrap text-muted">
           {subtitle}
-        </p>
-      </div>
-    </div>
+        </span>
+      </span>
+      <ChevronRightIcon className="h-4 w-4 shrink-0 text-muted/80" />
+    </button>
   );
 }

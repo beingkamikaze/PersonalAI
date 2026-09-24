@@ -4,7 +4,7 @@ import { AppChrome } from "@/components/app-chrome";
 
 export default function AppLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="flex min-h-screen flex-col bg-bg md:flex-row">
+    <div className="app-surface flex min-h-screen flex-col md:flex-row">
       <AppNav />
       <AppChrome>{children}</AppChrome>
     </div>

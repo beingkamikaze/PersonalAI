@@ -63,6 +63,14 @@ html {
     color: var(--fg);
   }
 
+  /* Signed-in app shell — same mint wash as auth, a step quieter. */
+  .app-surface {
+    background:
+      radial-gradient(ellipse 42% 28% at 88% -10%, rgba(190, 220, 210, 0.32), transparent 62%),
+      radial-gradient(ellipse 32% 22% at -4% 8%, rgba(220, 236, 230, 0.45), transparent 58%),
+      var(--bg);
+  }
+
   /* Sign-in only — quieter wash than the landing hero. */
   .auth-surface {
     background:

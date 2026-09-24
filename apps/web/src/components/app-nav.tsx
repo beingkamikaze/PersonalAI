@@ -37,10 +37,10 @@ function isActive(pathname: string, href: string) {
 }
 
 function sidebarNavClass(active: boolean) {
-  return `inline-flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm transition ${
+  return `inline-flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm transition ${
     active
-      ? "bg-accent-soft font-medium text-accent"
-      : "text-muted hover:bg-[var(--atmosphere-1)] hover:text-fg"
+      ? "bg-accent-soft font-medium text-fg"
+      : "text-muted hover:bg-accent-soft/70 hover:text-fg"
   }`;
 }
 
@@ -57,10 +57,10 @@ export function AppNav() {
   return (
     <>
       {/* Desktop sidebar */}
-      <aside className="hidden w-[15.5rem] shrink-0 flex-col gap-5 border-r border-border bg-white px-4 py-6 md:sticky md:top-0 md:flex md:h-dvh md:self-start">
+      <aside className="hidden w-[clamp(15rem,18.5vw,17rem)] shrink-0 flex-col gap-5 border-border px-4 py-5 md:sticky md:top-0 md:flex md:h-dvh md:self-start md:border-r md:px-5">
         <Link
           href="/app"
-          className="shrink-0 px-1 font-display text-xl tracking-tight text-accent"
+          className="shrink-0 px-2 font-display text-xl tracking-tight text-fg"
         >
           PersonaAI
         </Link>
@@ -79,14 +79,16 @@ export function AppNav() {
                 className={sidebarNavClass(active)}
                 aria-current={active ? "page" : undefined}
               >
-                <Icon className="shrink-0" />
+                <Icon
+                  className={`h-4 w-4 shrink-0 ${active ? "text-accent" : "text-muted"}`}
+                />
                 {link.label}
               </Link>
             );
           })}
         </nav>
 
-        <div className="mt-auto shrink-0 rounded-2xl border border-border bg-[var(--atmosphere-1)] p-3.5">
+        <div className="mt-auto shrink-0 rounded-2xl bg-accent-soft p-4">
           <div className="flex items-center gap-2">
             <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-white text-[#b45309]">
               <CrownIcon className="h-3.5 w-3.5" />
@@ -113,7 +115,7 @@ export function AppNav() {
           </div>
           <ButtonLink
             href="/pricing"
-            className="mt-3 w-full rounded-xl py-2 text-sm"
+            className="mt-3.5 w-full !rounded-xl py-2.5 text-sm"
           >
             Upgrade Plan
           </ButtonLink>

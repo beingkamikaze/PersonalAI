@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { FormEvent, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { BellIcon, SearchIcon } from "@/components/ui/icons";
+import { BellIcon, ChevronRightIcon, SearchIcon } from "@/components/ui/icons";
 import { UserAvatar } from "@/components/user-avatar";
 import { SignOutButton } from "@/components/sign-out-button";
 import {
@@ -100,22 +100,25 @@ export function AppTopBar() {
 
   const displayName = profile?.name ?? session?.name ?? "Profile";
   const iconBtn =
-    "relative inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-muted hover:bg-[var(--atmosphere-1)] hover:text-fg";
+    "relative inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-muted hover:bg-white hover:text-fg";
 
   return (
-    <div className="flex shrink-0 items-center justify-end gap-1.5 sm:gap-2.5 md:ml-auto md:w-full md:max-w-xl">
-      <form onSubmit={onSearch} className="relative hidden min-w-0 flex-1 md:block">
-        <SearchIcon className="pointer-events-none absolute left-3.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted" />
-        <input
-          type="search"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search conversations..."
-          className="w-full rounded-full border-0 bg-white py-2 pl-9 pr-4 text-sm text-fg shadow-[0_6px_18px_-6px_rgba(15,31,28,0.28),0_1px_2px_rgba(15,31,28,0.06)] ring-1 ring-black/[0.04] placeholder:text-muted focus:outline-none focus:ring-1 focus:ring-accent/35"
-          aria-label="Search conversations"
-        />
-      </form>
+    <div className="relative flex min-h-10 min-w-0 flex-1 items-center">
+      <div className="pointer-events-none absolute inset-x-0 hidden justify-center md:flex">
+        <form onSubmit={onSearch} className="pointer-events-auto relative w-[min(22rem,calc(100%-18rem))]">
+          <SearchIcon className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
+          <input
+            type="search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search conversations..."
+            className="h-11 w-full rounded-full border border-border bg-white py-2 pl-11 pr-4 text-sm text-fg shadow-[0_8px_20px_-16px_rgba(15,31,28,0.45)] placeholder:text-muted focus:border-accent focus:outline-none"
+            aria-label="Search conversations"
+          />
+        </form>
+      </div>
 
+      <div className="ml-auto flex shrink-0 items-center gap-1">
       <Link
         href="/app/conversations"
         className={`${iconBtn} md:hidden`}
@@ -133,7 +136,7 @@ export function AppTopBar() {
         <button
           type="button"
           onClick={() => setMenuOpen((o) => !o)}
-          className="rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+          className="inline-flex items-center gap-1 rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
           aria-expanded={menuOpen}
           aria-haspopup="menu"
           aria-label="Profile menu"
@@ -141,8 +144,9 @@ export function AppTopBar() {
           <UserAvatar
             name={displayName}
             src={profile?.avatar_url ?? session?.avatarUrl}
-            size="xs"
+            size="sm"
           />
+          <ChevronRightIcon className="h-3.5 w-3.5 rotate-90 text-muted" />
         </button>
         {menuOpen ? (
           <div
@@ -178,6 +182,7 @@ export function AppTopBar() {
             </div>
           </div>
         ) : null}
+      </div>
       </div>
     </div>
   );

@@ -30,6 +30,7 @@ import {
   type PreviewThread,
 } from "@/lib/ui-preview";
 import { VisitorConversationModal } from "@/components/visitor-conversation-modal";
+import { AuthCurveMark } from "@/components/auth-edge-curves";
 
 type RecentThread = {
   id: string;
@@ -202,14 +203,14 @@ export default function DashboardPage() {
 
   return (
     <motion.div
-      className="mx-auto flex w-full max-w-6xl flex-col gap-5"
+      className="flex w-full flex-col gap-4"
       initial="hidden"
       animate="visible"
       variants={container}
     >
       {/* Hero welcome */}
       <motion.section
-        className="relative overflow-hidden rounded-2xl border border-border bg-white px-5 py-6 shadow-[0_12px_36px_-20px_rgba(15,31,28,0.28)] sm:px-7 sm:py-7"
+        className="relative overflow-hidden rounded-[22px] border border-border bg-white px-5 py-5 shadow-[0_16px_40px_-24px_rgba(18,40,32,0.28)] sm:px-7 sm:py-6"
         variants={item}
       >
         <div
@@ -217,29 +218,39 @@ export default function DashboardPage() {
           aria-hidden
           style={{
             background:
-              "radial-gradient(ellipse 85% 75% at 90% 10%, var(--atmosphere-2), transparent 55%), radial-gradient(ellipse 60% 50% at 5% 90%, var(--atmosphere-1), transparent 50%)",
+              "linear-gradient(115deg, rgba(255,255,255,0.2) 0%, rgba(227,242,238,0.55) 42%, rgba(255,255,255,0.85) 100%)",
           }}
         />
+        <AuthCurveMark className="pointer-events-none absolute -right-4 top-1/2 h-32 w-9 -translate-y-1/2 -scale-x-100 text-fg/25 sm:h-36 sm:w-10" />
         <div className="relative max-w-2xl">
-          <h1 className="font-display text-3xl tracking-tight text-fg sm:text-[2.15rem]">
-            {first ? `Good to see you, ${first}!` : "Welcome back"}
+          <h1 className="font-display text-[1.85rem] leading-[1.15] tracking-[-0.02em] text-fg sm:text-[2.15rem]">
+            {first ? (
+              <>
+                Good to see you, <span className="text-accent">{first}</span>!
+              </>
+            ) : (
+              "Welcome back"
+            )}
             <span className="ml-1.5 inline-block" aria-hidden>
               👋
             </span>
           </h1>
-          <p className="mt-2 text-base text-muted text-balance">{welcomeLine}</p>
-          <div className="mt-5 flex flex-wrap items-center gap-2.5">
+          <p className="mt-2 text-[15px] text-muted text-balance">{welcomeLine}</p>
+          <div className="mt-4 flex flex-wrap items-center gap-2.5">
             <ButtonLink
               href={primaryCta.href}
-              className="rounded-xl px-5 py-2.5"
+              className="!h-10 !rounded-xl px-4"
             >
+              {primaryCta.href === "/app/chat" ? (
+                <ChatIcon className="mr-1.5 h-4 w-4" />
+              ) : null}
               {primaryCta.label}
               <ChevronRightIcon className="ml-1.5 h-3.5 w-3.5 opacity-90" />
             </ButtonLink>
             <ButtonLink
               href={secondaryCta.href}
               variant="secondary"
-              className="rounded-xl border border-border bg-white/80 px-4 py-2.5"
+              className="!h-10 !rounded-xl border border-border bg-white px-4 shadow-[0_8px_20px_-16px_rgba(18,40,32,0.45)]"
             >
               {secondaryCta.href === "/app/chat" ? (
                 <ChatIcon className="mr-1.5 h-4 w-4" />
@@ -254,7 +265,7 @@ export default function DashboardPage() {
 
       {/* Recent chats + checklist */}
       <motion.div
-        className="grid items-stretch gap-4 lg:grid-cols-2"
+        className="grid items-start gap-4 lg:grid-cols-2 lg:gap-5"
         variants={item}
       >
         <RecentVisitorChats
@@ -266,15 +277,12 @@ export default function DashboardPage() {
           copied={copied}
         />
 
-        <section className="relative flex min-h-[18rem] flex-col rounded-2xl border border-border bg-white p-5 shadow-[0_10px_30px_-18px_rgba(15,31,28,0.28)]">
+        <section className="relative flex flex-col rounded-[22px] border border-border bg-white p-5 shadow-[0_16px_40px_-24px_rgba(18,40,32,0.28)]">
           <div className="flex shrink-0 items-start justify-between gap-3">
-            <div className="flex items-start gap-2">
-              <span className="mt-0.5 flex h-6 w-6 items-center justify-center rounded-full bg-accent-soft text-accent">
-                <CheckIcon className="h-3 w-3" />
-              </span>
+            <div>
               <div>
-                <h2 className="font-display text-lg text-fg">Setup Checklist</h2>
-                <p className="mt-0.5 text-xs text-muted">
+                <h2 className="font-display text-lg leading-tight tracking-tight text-fg">Setup Checklist</h2>
+                <p className="mt-1 text-sm text-muted">
                   {allDone
                     ? "Everything’s checked off 🎉"
                     : `${doneCount} of ${checklistEntries.length} done — keep the momentum`}
@@ -285,7 +293,7 @@ export default function DashboardPage() {
           </div>
 
           {stats?.completeness_checklist ? (
-            <ul className="mt-4 min-h-0 flex-1 space-y-1">
+            <ul className="mt-4 space-y-0.5">
               {checklistEntries.map(([key, label]) => {
                 const done = Boolean(stats.completeness_checklist?.[key]);
                 const isNext = !done && key === firstIncompleteKey;
@@ -294,9 +302,7 @@ export default function DashboardPage() {
                   <li key={key}>
                     {done || !href ? (
                       <div
-                        className={`flex items-center gap-2.5 rounded-lg px-2 py-1.5 text-sm ${
-                          done ? "text-muted" : "text-fg"
-                        }`}
+                        className="flex items-center gap-2.5 rounded-lg px-1 py-1 text-sm text-fg"
                       >
                         <ChecklistMark done={done} />
                         {label}
@@ -304,7 +310,7 @@ export default function DashboardPage() {
                     ) : (
                       <Link
                         href={href}
-                        className={`flex items-center gap-2.5 rounded-lg px-2 py-1.5 text-sm transition ${
+                        className={`flex items-center gap-2.5 rounded-lg px-1 py-1 text-sm transition ${
                           isNext
                             ? "bg-accent-soft font-medium text-fg ring-1 ring-accent/20"
                             : "text-fg hover:bg-[var(--atmosphere-1)]"
@@ -343,90 +349,92 @@ export default function DashboardPage() {
         </section>
       </motion.div>
 
-      {/* Quiet status strip */}
       <motion.div
-        className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-sm text-muted"
+        className="flex flex-wrap items-center justify-between gap-x-8 gap-y-2"
         variants={item}
       >
-        <StatusDot live={published} />
-        <span className="font-medium text-fg">
-          {published ? "Published" : "Draft"}
-        </span>
-        <span aria-hidden className="text-border">
-          ·
-        </span>
-        <span>
-          <CountUp value={score} reduceMotion={reduceMotion} />% complete
-        </span>
-        {stats ? (
-          <>
-            <span aria-hidden className="text-border">
-              ·
+        <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1.5 text-[13px] leading-5 text-muted">
+          <span className="inline-flex items-center gap-2">
+            <StatusDot live={published} />
+            <span className="font-medium text-fg">
+              {published ? "Published" : "Draft"}
             </span>
-            <span>
-              <CountUp value={stats.visits_7d} reduceMotion={reduceMotion} />{" "}
-              visits (7d)
-            </span>
-            {typeof stats.owner_chats_remaining === "number" &&
-            typeof stats.owner_chats_limit === "number" ? (
-              <>
-                <span aria-hidden className="text-border">
-                  ·
-                </span>
-                <span>
-                  {stats.owner_chats_remaining}/{stats.owner_chats_limit} chats
-                  left today
-                </span>
-              </>
-            ) : null}
-          </>
-        ) : null}
-      </motion.div>
+          </span>
+          <BarRule />
+          <span>
+            <CountUp value={score} reduceMotion={reduceMotion} />% complete
+          </span>
+          {stats ? (
+            <>
+              <BarRule />
+              <span>
+                <CountUp value={stats.visits_7d} reduceMotion={reduceMotion} />{" "}
+                visits (7d)
+              </span>
+              {typeof stats.owner_chats_remaining === "number" &&
+              typeof stats.owner_chats_limit === "number" ? (
+                <>
+                  <BarRule />
+                  <span>
+                    {stats.owner_chats_remaining}/{stats.owner_chats_limit}{" "}
+                    chats left today
+                  </span>
+                </>
+              ) : null}
+            </>
+          ) : null}
+        </div>
 
-      {/* Secondary actions */}
-      <motion.nav
-        className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm"
-        variants={item}
-        aria-label="More actions"
-      >
-        <ButtonLink
-          href="/onboarding/publish"
-          variant="ghost"
-          className="gap-1.5 px-0 py-1 text-muted hover:text-fg"
+        <nav
+          className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1.5 text-[13px] leading-5"
+          aria-label="More actions"
         >
-          <ShareIcon className="h-3.5 w-3.5" />
-          Share
-        </ButtonLink>
-        {publicPath ? (
-          <Button
-            type="button"
-            variant="ghost"
-            className="gap-1.5 px-0 py-1 text-muted hover:text-fg"
-            onClick={() => void copyLink()}
-          >
-            <CopyIcon className="h-3.5 w-3.5" />
-            {copied ? "Copied!" : "Copy link"}
-          </Button>
-        ) : null}
-        {stats?.username ? (
           <ButtonLink
-            href={`/u/${stats.username}`}
+            href="/onboarding/publish"
             variant="ghost"
             className="gap-1.5 px-0 py-1 text-muted hover:text-fg"
           >
-            <ExternalIcon className="h-3.5 w-3.5" />
-            Open public page
+            <ShareIcon className="h-3.5 w-3.5" />
+            Share
           </ButtonLink>
-        ) : null}
-        <ButtonLink
-          href="/feedback"
-          variant="ghost"
-          className="gap-1.5 px-0 py-1 text-muted hover:text-fg"
-        >
-          <FeedbackIcon className="h-3.5 w-3.5" />
-          Send feedback
-        </ButtonLink>
-      </motion.nav>
+          {publicPath ? (
+            <>
+              <BarRule />
+              <Button
+                type="button"
+                variant="ghost"
+                className="gap-1.5 px-0 py-1 text-muted hover:text-fg"
+                onClick={() => void copyLink()}
+              >
+                <CopyIcon className="h-3.5 w-3.5" />
+                {copied ? "Copied!" : "Copy link"}
+              </Button>
+            </>
+          ) : null}
+          {stats?.username ? (
+            <>
+              <BarRule />
+              <ButtonLink
+                href={`/u/${stats.username}`}
+                variant="ghost"
+                className="gap-1.5 px-0 py-1 text-muted hover:text-fg"
+              >
+                <ExternalIcon className="h-3.5 w-3.5" />
+                Open public page
+              </ButtonLink>
+            </>
+          ) : null}
+          <BarRule />
+          <ButtonLink
+            href="/feedback"
+            variant="ghost"
+            className="gap-1.5 px-0 py-1 text-muted hover:text-fg"
+          >
+            <FeedbackIcon className="h-3.5 w-3.5" />
+            Send feedback
+          </ButtonLink>
+        </nav>
+      </motion.div>
 
       {error ? <p className="text-sm text-red-700">{error}</p> : null}
       <p className="sr-only" aria-live="polite">
@@ -513,20 +521,15 @@ function RecentVisitorChats({
   } | null>(null);
 
   return (
-    <section className="relative flex min-h-[18rem] flex-col rounded-2xl border border-border bg-white p-5 shadow-[0_10px_30px_-18px_rgba(15,31,28,0.28)]">
+    <section className="relative flex flex-col rounded-[22px] border border-border bg-white p-5 shadow-[0_16px_40px_-24px_rgba(18,40,32,0.28)]">
       <div className="flex shrink-0 items-start justify-between gap-3">
-        <div className="flex items-start gap-2">
-          <span className="mt-0.5 flex h-6 w-6 items-center justify-center rounded-full bg-accent-soft text-accent">
-            <ChatIcon className="h-3.5 w-3.5" />
-          </span>
-          <div>
-            <h2 className="font-display text-lg text-fg">
-              Recent visitor chats
-            </h2>
-            <p className="mt-0.5 text-xs text-muted">
-              Public conversations on your AI page
-            </p>
-          </div>
+        <div>
+          <h2 className="font-display text-lg leading-tight tracking-tight text-fg">
+            Recent visitor chats
+          </h2>
+          <p className="mt-1 text-sm text-muted">
+            Public conversations on your AI page
+          </p>
         </div>
         <Link
           href="/app/conversations"
@@ -537,7 +540,7 @@ function RecentVisitorChats({
         </Link>
       </div>
 
-      <div className="mt-4 flex min-h-0 flex-1 flex-col">
+      <div className="mt-3 flex flex-col">
         {loading ? (
           <p className="text-sm text-muted">Loading chats…</p>
         ) : !published ? (
@@ -599,28 +602,36 @@ function RecentVisitorChats({
             </div>
           </div>
         ) : (
-          <ul className="min-h-0 flex-1 space-y-1">
-            {threads.map((thread) => (
+          <ul className="space-y-1">
+            {threads.map((thread, index) => (
               <li key={thread.id}>
                 <button
                   type="button"
                   onClick={() =>
                     setOpenThread({ id: thread.id, preview: thread.preview })
                   }
-                  className="flex w-full items-start gap-3 rounded-xl px-2.5 py-2.5 text-left transition hover:bg-[var(--atmosphere-1)]"
+                  className={`flex w-full items-center gap-3 rounded-xl border px-3 py-2.5 text-left transition hover:bg-accent-soft ${
+                    index === 0
+                      ? "border-transparent bg-accent-soft"
+                      : "border-border bg-white"
+                  }`}
                 >
-                  <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-accent-soft text-accent">
+                  <span
+                    className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-accent ${
+                      index === 0 ? "bg-white" : "bg-accent-soft"
+                    }`}
+                  >
                     <ChatIcon className="h-3.5 w-3.5" />
                   </span>
                   <span className="min-w-0 flex-1">
-                    <span className="line-clamp-2 text-sm text-fg">
+                    <span className="line-clamp-1 text-sm leading-5 text-fg">
                       {thread.preview}
                     </span>
-                    <span className="mt-0.5 block text-xs text-muted">
+                    <span className="block text-xs leading-4 text-muted">
                       {thread.when}
                     </span>
                   </span>
-                  <ChevronRightIcon className="mt-1 h-3.5 w-3.5 shrink-0 text-muted" />
+                  <ChevronRightIcon className="h-3.5 w-3.5 shrink-0 text-muted" />
                 </button>
               </li>
             ))}
@@ -633,6 +644,12 @@ function RecentVisitorChats({
         onClose={() => setOpenThread(null)}
       />
     </section>
+  );
+}
+
+function BarRule() {
+  return (
+    <span aria-hidden className="h-3.5 w-px shrink-0 bg-border" />
   );
 }
 
@@ -656,15 +673,15 @@ function ChecklistMark({
 }) {
   if (done) {
     return (
-      <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-accent text-white">
-        <CheckIcon className="h-2.5 w-2.5" />
+      <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-accent text-white">
+        <CheckIcon className="h-3 w-3" />
         <span className="sr-only">Completed: </span>
       </span>
     );
   }
   return (
     <span
-      className={`h-4 w-4 shrink-0 rounded-full border ${
+      className={`h-5 w-5 shrink-0 rounded-full border ${
         highlight ? "border-accent bg-white" : "border-border"
       }`}
     >
@@ -684,8 +701,8 @@ function CompletenessRing({
   const c = 2 * Math.PI * r;
   const offset = c - (Math.min(100, Math.max(0, value)) / 100) * c;
   return (
-    <div className="relative h-10 w-10 shrink-0" aria-hidden>
-      <svg viewBox="0 0 36 36" className="h-10 w-10 -rotate-90">
+    <div className="relative h-14 w-14 shrink-0" aria-hidden>
+      <svg viewBox="0 0 36 36" className="h-14 w-14 -rotate-90">
         <circle
           cx="18"
           cy="18"
@@ -712,7 +729,7 @@ function CompletenessRing({
           }
         />
       </svg>
-      <span className="absolute inset-0 flex items-center justify-center text-[0.65rem] font-medium tabular-nums text-fg">
+      <span className="absolute inset-0 flex items-center justify-center text-xs font-medium tabular-nums text-fg">
         {Math.round(value)}
       </span>
     </div>

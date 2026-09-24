@@ -14,6 +14,7 @@ import {
   BriefcaseIcon,
   CalendarIcon,
   ChartIcon,
+  ChevronRightIcon,
   GlobeIcon,
   MicIcon,
   PaperclipIcon,
@@ -227,11 +228,10 @@ export function OwnerChat({
   const shown = pool.slice(0, 4);
 
   return (
-    <div className="space-y-4">
-      {/* Composer card */}
+    <div className="space-y-3.5">
       <form
         onSubmit={onSubmit}
-        className="rounded-2xl border border-border bg-white shadow-[0_10px_30px_-18px_rgba(15,31,28,0.28)]"
+        className="rounded-[20px] border border-border bg-white shadow-[0_10px_28px_-20px_rgba(15,31,28,0.4)]"
       >
         {messages.length > 0 || loading ? (
           <div className="max-h-[280px] space-y-3 overflow-y-auto border-b border-border px-5 py-4 text-sm">
@@ -248,7 +248,7 @@ export function OwnerChat({
           </div>
         ) : null}
 
-        <div className="px-4 pt-4">
+        <div className="px-5 pt-3.5">
           <textarea
             ref={textareaRef}
             value={input}
@@ -259,15 +259,15 @@ export function OwnerChat({
                 void send(input);
               }
             }}
-            rows={3}
-            placeholder="Ask a question to preview answers, or state a preference to save as a memory. Replies use interview personality, facts, and uploaded knowledge when ready."
+            rows={2}
+            placeholder="Ask a question to preview answers, or state a preference to save as a memory."
             disabled={loading}
-            className="w-full resize-none bg-transparent text-sm leading-relaxed text-fg placeholder:text-muted focus:outline-none disabled:opacity-50"
+            className="min-h-[2.75rem] w-full resize-none bg-transparent text-sm leading-relaxed text-fg placeholder:text-muted focus:outline-none disabled:opacity-50"
           />
         </div>
 
-        <div className="flex flex-wrap items-center justify-between gap-2 px-3 pb-3 pt-1">
-          <div className="flex flex-wrap items-center gap-1">
+        <div className="flex flex-wrap items-center justify-between gap-2 px-3 pt-0.5 pb-2.5">
+          <div className="flex flex-wrap items-center gap-0.5">
             <ToolChip icon={<PaperclipIcon className="h-3.5 w-3.5" />} label="Attach" />
             <ToolChip icon={<GlobeIcon className="h-3.5 w-3.5" />} label="Search" />
             <ToolChip
@@ -275,7 +275,7 @@ export function OwnerChat({
               label="Use knowledge"
             />
           </div>
-          <div className="flex items-center gap-1.5">
+          <div className="ml-auto flex items-center gap-1">
             <button
               type="button"
               className="inline-flex h-9 w-9 items-center justify-center rounded-xl text-muted hover:bg-[var(--atmosphere-1)] hover:text-fg"
@@ -285,10 +285,10 @@ export function OwnerChat({
             </button>
             <Button
               type="submit"
-              disabled={loading || !input.trim()}
-              className="h-9 gap-1.5 rounded-xl px-3 py-0"
+              disabled={loading}
+              className="h-9 gap-1.5 rounded-lg px-3.5 py-0"
             >
-              <SendIcon className="h-3.5 w-3.5" />
+              <SendIcon className="h-4 w-4" />
               Send
             </Button>
           </div>
@@ -301,11 +301,10 @@ export function OwnerChat({
         ) : null}
       </form>
 
-      {/* Try asking — equal-width cards in one row */}
       {shown.length > 0 ? (
         <div>
-          <p className="mb-2 text-sm font-medium text-fg">Try asking</p>
-          <div className="grid grid-cols-2 gap-2 lg:grid-cols-5">
+          <p className="mb-2 text-sm font-semibold text-fg">Try asking</p>
+          <div className="flex gap-2.5 overflow-x-auto pb-1 md:grid md:grid-cols-2 md:overflow-visible xl:grid-cols-5">
             {shown.map((q, i) => {
               const meta = SUGGESTION_ICONS[i % SUGGESTION_ICONS.length];
               return (
@@ -314,24 +313,25 @@ export function OwnerChat({
                   type="button"
                   disabled={loading}
                   onClick={() => void send(q)}
-                  className="flex min-h-[4.25rem] w-full flex-col items-start gap-2 rounded-xl border border-border bg-white p-3 text-left shadow-[0_8px_24px_-18px_rgba(15,31,28,0.28)] transition hover:border-accent/40 disabled:opacity-50"
+                  className="flex min-h-[4.75rem] w-[16.5rem] shrink-0 items-center gap-2.5 rounded-2xl border border-border bg-white px-3 py-2.5 text-left shadow-[0_8px_20px_-16px_rgba(15,31,28,0.4)] transition hover:border-accent/40 disabled:opacity-50 md:w-auto"
                 >
                   <span
-                    className={`flex h-7 w-7 items-center justify-center rounded-lg ${toneClass(meta.tone)}`}
+                    className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ${toneClass(meta.tone)}`}
                     aria-hidden
                   >
                     {meta.icon}
                   </span>
-                  <span className="line-clamp-2 text-xs font-medium leading-snug text-fg">
+                  <span className="min-w-0 flex-1 text-[13px] leading-snug font-medium text-balance text-fg">
                     {q}
                   </span>
+                  <ChevronRightIcon className="h-3.5 w-3.5 shrink-0 text-muted/70" />
                 </button>
               );
             })}
             <button
               type="button"
               onClick={shuffleSuggestions}
-              className="flex min-h-[4.25rem] w-full flex-col items-center justify-center gap-1.5 rounded-xl border border-dashed border-border bg-white p-3 text-center text-xs font-medium text-muted transition hover:border-accent/40 hover:text-fg"
+              className="flex min-h-[4.75rem] w-[16.5rem] shrink-0 flex-col items-center justify-center gap-1.5 rounded-2xl border border-dashed border-[#d3ded9] bg-white px-3 py-2.5 text-center text-xs font-medium text-muted transition hover:border-accent/40 hover:text-fg md:w-auto"
             >
               <RefreshIcon className="h-4 w-4" />
               More examples

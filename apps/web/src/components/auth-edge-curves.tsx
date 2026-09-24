@@ -9,13 +9,13 @@ export function AuthEdgeCurves() {
       aria-hidden
       className="pointer-events-none absolute inset-0 -z-10 overflow-hidden"
     >
-      <CurveMark className="absolute -left-2 top-10 hidden h-32 w-8 text-fg/30 md:block xl:-left-1 xl:top-16 xl:h-52 xl:w-12" />
-      <CurveMark className="absolute -right-2 bottom-2 hidden h-28 w-8 -scale-x-100 text-fg/30 md:block xl:-right-1 xl:bottom-6 xl:h-48 xl:w-10" />
+      <AuthCurveMark className="absolute -left-2 top-10 hidden h-32 w-8 text-fg/30 md:block xl:-left-1 xl:top-16 xl:h-52 xl:w-12" />
+      <AuthCurveMark className="absolute -right-2 bottom-2 hidden h-28 w-8 -scale-x-100 text-fg/30 md:block xl:-right-1 xl:bottom-6 xl:h-48 xl:w-10" />
     </div>
   );
 }
 
-function CurveMark({ className }: { className: string }) {
+export function AuthCurveMark({ className }: { className: string }) {
   return (
     <svg viewBox="0 0 72 320" fill="none" className={className}>
       <path
