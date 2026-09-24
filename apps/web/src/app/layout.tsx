@@ -17,7 +17,7 @@ const figtree = Figtree({
 export const metadata: Metadata = {
   title: "PersonaAI",
   description:
-    "Create your professional AI in 10–15 minutes. Share a public link so others learn who you are when you’re busy.",
+    "Turn your knowledge into an AI that represents you. Share a public link people can talk to when you’re busy.",
 };
 
 export default function RootLayout({

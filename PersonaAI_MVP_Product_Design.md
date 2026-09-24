@@ -230,7 +230,7 @@ Public page includes:
 
 Only these surfaces are in MVP. Routes and build order: Implementation Plan §5–7.
 
-1. **Landing** — “Your AI presence for when you’re busy.” CTA: Create My AI  
+1. **Landing** — “Your AI presence for when you’re busy.” CTA: Create Your AI  
 2. **Auth** — Sign up / login  
 3. **Onboarding: Create** — name, headline, avatar  
 4. **Onboarding: Interview** — guided professional interview  

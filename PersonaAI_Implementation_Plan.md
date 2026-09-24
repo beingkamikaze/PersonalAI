@@ -245,7 +245,7 @@ Streaming: SSE or HTTP chunked stream from FastAPI.
 
 | Route | Screen | Purpose |
 | --- | --- | --- |
-| `/` | Landing | “Your AI presence for when you’re busy.” CTA: Create My AI |
+| `/` | Landing | “Your AI presence for when you’re busy.” CTA: Create Your AI |
 | `/pricing` | Pricing | Free / Plus hypothesis (static OK at first) |
 
 ### Auth

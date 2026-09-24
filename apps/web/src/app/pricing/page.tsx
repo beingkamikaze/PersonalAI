@@ -41,7 +41,7 @@ export default function PricingPage() {
             ))}
           </ul>
           <div className="mt-10">
-            <ButtonLink href="/sign-up">Create My AI</ButtonLink>
+            <ButtonLink href="/sign-up">Create Your AI</ButtonLink>
           </div>
           <p className="mt-6 text-xs text-muted">
             Free soft-launch caps (API defaults): ~40 chats with your AI/day, ~8

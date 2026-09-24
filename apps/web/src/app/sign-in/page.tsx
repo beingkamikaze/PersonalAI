@@ -5,7 +5,7 @@ export default function SignInPage() {
   return (
     <Suspense
       fallback={
-        <div className="atmosphere min-h-screen px-6 py-16 text-muted md:px-10">
+        <div className="landing min-h-screen px-6 py-16 text-muted md:px-10">
           Loading…
         </div>
       }
