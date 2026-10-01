@@ -1,0 +1,51 @@
+- generic [active] [ref=f30e1]:
+  - generic [ref=f30e3]:
+    - banner [ref=f30e4]:
+      - link "PersonaAI" [ref=f30e5] [cursor=pointer]:
+        - /url: /
+      - link "Learn more about PersonaAI" [ref=f30e6] [cursor=pointer]:
+        - /url: /
+        - text: Learn more about PersonaAI →
+    - main [ref=f30e7]:
+      - generic [ref=f30e25]:
+        - generic [ref=f30e27]:
+          - heading "Anshu" [level=1] [ref=f30e28]
+          - paragraph [ref=f30e29]: Software Engineer building AI Products
+          - paragraph [ref=f30e30]: Hi I m Mayank, Software enginner using and building saas product.
+        - generic [ref=f30e31]:
+          - button "What does Anshu do?" [ref=f30e32] [cursor=pointer]
+          - button "What are Anshu's main skills?" [ref=f30e33] [cursor=pointer]
+          - button "How does Anshu prefer to work?" [ref=f30e34] [cursor=pointer]
+          - button "What kind of work is Anshu open to?" [ref=f30e35] [cursor=pointer]
+          - button "Tell me about Anshu's recent projects." [ref=f30e36] [cursor=pointer]
+        - generic [ref=f30e37]:
+          - generic [ref=f30e44]:
+            - generic [ref=f30e64]:
+              - generic [ref=f30e65]: "You:"
+              - paragraph [ref=f30e67]: Tell me about Anshu's recent projects.
+            - generic [ref=f30e77]:
+              - generic [ref=f30e78]: "Anshu:"
+              - generic [ref=f30e79]:
+                - paragraph [ref=f30e80]: "Thanks for asking. Here are a few recent projects I’ve been working on, focused on AI-driven SaaS and scalable backend systems:"
+                - list [ref=f30e81]:
+                  - listitem [ref=f30e82]:
+                    - generic [ref=f30e84]: "Agentic AI sales platform on Microsoft Dynamics 365: I contributed to an enterprise sales automation platform for Lenovo, built around event-driven microservices and AI orchestration. I engineered backend services for AI workflows like meeting summarization, automated follow-ups, and CRM updates, and integrated Azure OpenAI, RAG pipelines, and Copilot Studio. I also implemented secure REST APIs and data pipelines for deal tracking and account intelligence, with real-time sync across Dynamics 365 (Dataverse) and external systems. Stack: Java, Spring Boot, Azure, Kafka, D365/Dataverse, Azure OpenAI."
+                - list [ref=f30e85]:
+                  - listitem [ref=f30e86]:
+                    - generic [ref=f30e88]: "LTI 1.3 integrations for Wingspan LMS: I designed and delivered OAuth 2.0/JWT-based LTI 1.3 backend integrations to enable secure interoperability with external learning platforms. I built Spring Boot microservices powering course delivery, grading workflows, and learner activity tracking—supporting AWS Skill Builder’s rollout to 100k+ students via Infosys Springboard. I also implemented grading-progress modules per LTI spec, improving score update latency/accuracy by ~50%, and architected a Kafka-based async pipeline for content ingestion and certificate generation (for Deutsche Bahn). Stack: Java, Spring Boot, Kafka, AWS."
+                - list [ref=f30e89]:
+                  - listitem [ref=f30e90]:
+                    - generic [ref=f30e92]: "Ratings and Likes backend service: I architected a high-throughput feedback service for Wingspan LMS, exposing REST APIs for real-time ratings/likes. I optimized queries and indexing to handle heavy read/write traffic, improving content discovery and engagement, and led production debugging and observability improvements."
+                - list [ref=f30e93]:
+                  - listitem [ref=f30e94]:
+                    - generic [ref=f30e96]: "MCP Natural Language Query Server: A side project where I built a Spring Boot REST API that lets users issue natural-language queries against a database via GPT-4, with strict guardrails—only read-only SELECTs, pagination, and execution-time tracking. It supports H2/PostgreSQL/MySQL via Spring Data JPA and layered architecture. Stack: Java 17, Spring Boot, OpenAI API."
+                - list [ref=f30e97]:
+                  - listitem [ref=f30e98]:
+                    - generic [ref=f30e100]: "Salon appointment booking backend (microservices): I designed modular microservices for scheduling, payments, and notifications with robust handler-based architecture and comprehensive JUnit tests to ensure reliability."
+                - paragraph [ref=f30e101]: If you’d like a deeper dive—architecture diagrams, data flows, or specific AI orchestration patterns—I’m happy to walk through them.
+          - generic [ref=f30e38]:
+            - generic [ref=f30e39]: Message Anshu's AI
+            - textbox "Message Anshu's AI" [ref=f30e40]:
+              - /placeholder: Ask anything about Anshu's work...
+            - button "Send message" [disabled] [ref=f30e41]
+  - alert [ref=f30e24]

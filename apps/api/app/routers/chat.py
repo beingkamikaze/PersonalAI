@@ -3,7 +3,7 @@
 from uuid import UUID
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, status
-from sqlalchemy import func
+from sqlalchemy import func, or_
 from sqlalchemy.orm import Session
 from starlette.concurrency import run_in_threadpool
 
@@ -28,6 +28,21 @@ from app.schemas import (
 )
 
 _PREVIEW_MAX = 72
+
+# The system prompt tells the model: "If you do not know something, say you
+# do not have that information yet." These ILIKE patterns catch the common
+# phrasings of that fallback so the owner can see what visitors asked that
+# the AI could not answer. Deliberately conservative to avoid false positives.
+_UNANSWERED_PATTERNS = (
+    "%have that information%",
+    "%have that info%",
+    "%n't have information%",
+    "%not have information%",
+    "%n't have details%",
+    "%not have details%",
+    "%n't have specific%",
+    "%not have specific%",
+)
 
 logger = get_logger(__name__)
 
@@ -233,6 +248,56 @@ def _first_user_previews(
     }
 
 
+def _unanswered_previews(
+    db: Session, conversation_ids: list[UUID]
+) -> dict[UUID, str]:
+    """Per conversation: the visitor question before the first fallback reply.
+
+    Two queries total regardless of thread count: one to find fallback
+    assistant replies, one to fetch user messages for just those threads.
+    """
+    if not conversation_ids:
+        return {}
+    fallback_filter = or_(
+        *(Message.content.ilike(p) for p in _UNANSWERED_PATTERNS)
+    )
+    fallback_rows = (
+        db.query(
+            Message.conversation_id,
+            func.min(Message.created_at).label("first_at"),
+        )
+        .filter(
+            Message.conversation_id.in_(conversation_ids),
+            Message.role == "assistant",
+            fallback_filter,
+        )
+        .group_by(Message.conversation_id)
+        .all()
+    )
+    if not fallback_rows:
+        return {}
+    first_fallback_at = {conv_id: at for conv_id, at in fallback_rows}
+
+    user_rows = (
+        db.query(Message.conversation_id, Message.content, Message.created_at)
+        .filter(
+            Message.conversation_id.in_(list(first_fallback_at.keys())),
+            Message.role == "user",
+        )
+        .order_by(Message.created_at.asc())
+        .all()
+    )
+    result: dict[UUID, str] = {}
+    for conv_id, content, created_at in user_rows:
+        # Keep the latest user message that precedes the fallback reply.
+        if created_at <= first_fallback_at[conv_id] and content and str(content).strip():
+            result[conv_id] = _truncate_preview(content)
+    # A fallback with no preceding user message still counts as needing review.
+    for conv_id in first_fallback_at:
+        result.setdefault(conv_id, "")
+    return result
+
+
 @router.get("/ai/{profile_id}/conversations", response_model=list[ConversationOut])
 def list_conversations(
     profile_id: UUID,
@@ -253,13 +318,16 @@ def list_conversations(
     if limit is not None:
         q = q.limit(limit)
     rows = q.all()
-    previews = _first_user_previews(db, [r.id for r in rows])
+    ids = [r.id for r in rows]
+    previews = _first_user_previews(db, ids)
+    unanswered = _unanswered_previews(db, ids)
     logger.debug(
-        "chat list conversations profile_id=%s channel=%s limit=%s count=%s",
+        "chat list conversations profile_id=%s channel=%s limit=%s count=%s needs_review=%s",
         profile.id,
         channel,
         limit,
         len(rows),
+        len(unanswered),
     )
     return [
         ConversationOut(
@@ -268,6 +336,12 @@ def list_conversations(
             created_at=r.created_at,
             updated_at=r.updated_at,
             preview=previews.get(r.id),
+            needs_review=r.id in unanswered,
+            unanswered_preview=(
+                (unanswered.get(r.id) or previews.get(r.id))
+                if r.id in unanswered
+                else None
+            ),
         )
         for r in rows
     ]

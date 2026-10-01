@@ -72,20 +72,36 @@ export type DashboardLoadResult<TRecent = null> = {
 /**
  * Prefer live API. If it is down / unreachable / unauthorized in preview,
  * keep the dashboard visible with mock data.
- * Optional `fetchRecent` runs in parallel with analytics after profile loads.
+ *
+ * Profile loads first (chats and stats need its id). Chats and analytics
+ * then run together, but `onRecent` fires as soon as the chat request
+ * settles so the dashboard does not wait on the checklist queries.
+ * A failed chat request becomes null and does not fail the whole load.
  */
 export async function loadDashboardData<TRecent = null>(
   fetchProfile: () => Promise<AiProfile>,
   fetchStats: (id: string) => Promise<AnalyticsSummary>,
   fetchRecent?: (id: string) => Promise<TRecent>,
+  onRecent?: (profileId: string, recent: TRecent | null) => void,
 ): Promise<DashboardLoadResult<TRecent>> {
   try {
     const profile = await fetchProfile();
+    const recentPromise: Promise<TRecent | null> = fetchRecent
+      ? fetchRecent(profile.id).then(
+          (recent) => {
+            onRecent?.(profile.id, recent);
+            return recent;
+          },
+          (err: unknown) => {
+            console.warn("[dashboard] recent visitor chats request failed", err);
+            onRecent?.(profile.id, null);
+            return null;
+          },
+        )
+      : Promise.resolve(null);
     const [stats, recent] = await Promise.all([
       fetchStats(profile.id),
-      fetchRecent
-        ? fetchRecent(profile.id).catch(() => null)
-        : Promise.resolve(null),
+      recentPromise,
     ]);
     return { profile, stats, fromApi: true, recent };
   } catch (err) {
@@ -291,6 +307,9 @@ export type PreviewThread = {
   when: string;
   messages: number;
   lines: { role: "visitor" | "ai"; content: string }[];
+  /** Mirrors the API `needs_review` flag for preview-only rows. */
+  needsReview?: boolean;
+  unansweredPreview?: string;
 };
 
 export const PREVIEW_THREADS: PreviewThread[] = [
@@ -317,6 +336,21 @@ export const PREVIEW_THREADS: PreviewThread[] = [
       {
         role: "ai",
         content: "Async first. Short written updates. Calls for decisions.",
+      },
+    ],
+  },
+  {
+    id: "th-3",
+    preview: "What do you charge for advisory work?",
+    when: "2d ago",
+    messages: 2,
+    needsReview: true,
+    unansweredPreview: "What do you charge for advisory work?",
+    lines: [
+      { role: "visitor", content: "What do you charge for advisory work?" },
+      {
+        role: "ai",
+        content: "I don't have that information yet.",
       },
     ],
   },

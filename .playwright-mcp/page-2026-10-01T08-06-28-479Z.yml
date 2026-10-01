@@ -1,0 +1,26 @@
+- generic [active] [ref=f32e1]:
+  - generic [ref=f32e3]:
+    - banner [ref=f32e4]:
+      - link "PersonaAI" [ref=f32e5] [cursor=pointer]:
+        - /url: /
+      - link "Learn more about PersonaAI" [ref=f32e6] [cursor=pointer]:
+        - /url: /
+        - text: Learn more about PersonaAI →
+    - main [ref=f32e7]:
+      - generic [ref=f32e24]:
+        - generic [ref=f32e26]:
+          - heading "Anshu" [level=1] [ref=f32e27]
+          - paragraph [ref=f32e28]: Software Engineer building AI Products
+          - paragraph [ref=f32e29]: Hi I m Mayank, Software enginner using and building saas product.
+        - generic [ref=f32e30]:
+          - button "What does Anshu do?" [ref=f32e31] [cursor=pointer]
+          - button "What are Anshu's main skills?" [ref=f32e32] [cursor=pointer]
+          - button "How does Anshu prefer to work?" [ref=f32e33] [cursor=pointer]
+          - button "What kind of work is Anshu open to?" [ref=f32e34] [cursor=pointer]
+          - button "Tell me about Anshu's recent projects." [ref=f32e35] [cursor=pointer]
+        - generic [ref=f32e37]:
+          - generic [ref=f32e38]: Message Anshu's AI
+          - textbox "Message Anshu's AI" [ref=f32e39]:
+            - /placeholder: Ask anything about Anshu's work...
+          - button "Send message" [disabled] [ref=f32e40]
+  - alert [ref=f32e43]

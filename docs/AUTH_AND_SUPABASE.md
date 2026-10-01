@@ -18,7 +18,7 @@ Related: `docs/API.md` · `PersonaAI_Implementation_Plan.md`
          ▼                                        │
 ┌─────────────────┐     verify token              │
 │  FastAPI        │◄──────────────────────────────┘
-│  apps/api       │     (Auth /user · JWKS · secret)
+│  apps/api       │     (JWKS · secret · Auth /user)
 └────────┬────────┘
          │
          │  SQLAlchemy
@@ -216,12 +216,12 @@ Authorization: Bearer <access_token>
         │
         ▼
 decode_supabase_token()
-  1. GET {SUPABASE_URL}/auth/v1/user
+  1. Verify locally via JWKS (keys cached after the first fetch)
+       GET {SUPABASE_URL}/auth/v1/.well-known/jwks.json
+  2. Else verify via SUPABASE_JWT_SECRET (legacy HS256)
+  3. Else GET {SUPABASE_URL}/auth/v1/user
        Headers: Authorization + apikey (SUPABASE_ANON_KEY)
        → { id, email, user_metadata }
-  2. Else verify via JWKS
-       GET {SUPABASE_URL}/auth/v1/.well-known/jwks.json
-  3. Else verify via SUPABASE_JWT_SECRET (legacy HS256)
         │
         ▼
 Upsert users row

@@ -238,6 +238,10 @@ export type ConversationListItem = {
   updated_at: string;
   /** First user message preview when provided by the list API. */
   preview?: string | null;
+  /** True when the AI replied that it did not have the information (heuristic). */
+  needs_review?: boolean;
+  /** The visitor question that triggered that fallback reply. */
+  unanswered_preview?: string | null;
 };
 
 export type ConversationDetail = {

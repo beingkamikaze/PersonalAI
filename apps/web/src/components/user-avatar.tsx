@@ -12,16 +12,19 @@ const sizeClass = {
   sm: "h-9 w-9 text-xs",
   md: "h-12 w-12 text-sm",
   lg: "h-16 w-16 text-base",
+  xl: "h-20 w-20 text-lg sm:h-24 sm:w-24 sm:text-xl",
 } as const;
 
 export function UserAvatar({
   name,
   src,
   size = "sm",
+  className = "",
 }: {
   name: string;
   src?: string | null;
-  size?: "xs" | "sm" | "md" | "lg";
+  size?: keyof typeof sizeClass;
+  className?: string;
 }) {
   const dim = sizeClass[size];
   const resolved = resolveMediaUrl(src);
@@ -31,14 +34,14 @@ export function UserAvatar({
       <img
         src={resolved}
         alt=""
-        className={`${dim} shrink-0 rounded-full object-cover`}
+        className={`${dim} shrink-0 rounded-full object-cover ${className}`}
       />
     );
   }
   return (
     <div
       aria-hidden
-      className={`flex ${dim} shrink-0 items-center justify-center rounded-full bg-[var(--atmosphere-2)] font-medium text-fg`}
+      className={`flex ${dim} shrink-0 items-center justify-center rounded-full bg-[var(--atmosphere-2)] font-medium text-fg ${className}`}
     >
       {initials(name)}
     </div>

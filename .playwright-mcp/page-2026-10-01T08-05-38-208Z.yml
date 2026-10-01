@@ -1,0 +1,11 @@
+- generic [active] [ref=f31e1]:
+  - generic [ref=f31e3]:
+    - banner [ref=f31e4]:
+      - link "PersonaAI" [ref=f31e5] [cursor=pointer]:
+        - /url: /
+      - link "Learn more about PersonaAI" [ref=f31e6] [cursor=pointer]:
+        - /url: /
+        - text: Learn more about PersonaAI →
+    - main [ref=f31e7]:
+      - generic [ref=f31e8]: Loading profile
+  - alert [ref=f31e24]

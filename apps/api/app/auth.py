@@ -17,14 +17,31 @@ logger = get_logger(__name__)
 bearer_scheme = HTTPBearer(auto_error=False)
 
 _jwks_client: PyJWKClient | None = None
+_auth_http: httpx.Client | None = None
+_logged_jwks_ok = False
 
 
 def _get_jwks_client(settings: Settings) -> PyJWKClient:
     global _jwks_client
     if _jwks_client is None:
-        logger.debug("Creating JWKS client url=%s", settings.jwks_url)
-        _jwks_client = PyJWKClient(settings.jwks_url, cache_keys=True)
+        # Short timeout so a JWKS miss falls through quickly instead of
+        # blocking every request for the client default (30s).
+        logger.info("auth JWKS client created url=%s", settings.jwks_url)
+        _jwks_client = PyJWKClient(
+            settings.jwks_url,
+            cache_keys=True,
+            timeout=5,
+        )
     return _jwks_client
+
+
+def _get_auth_http() -> httpx.Client:
+    """Shared client for the Auth /user fallback. Not used on the hot path."""
+    global _auth_http
+    if _auth_http is None:
+        logger.info("auth Auth /user client created (fallback only)")
+        _auth_http = httpx.Client(timeout=10.0)
+    return _auth_http
 
 
 @dataclass
@@ -35,49 +52,39 @@ class TokenClaims:
 
 
 def decode_supabase_token(token: str, settings: Settings) -> TokenClaims:
+    """Verify a Supabase access token without a network call when possible.
+
+    Order: cached JWKS, then legacy HS256 secret, then Auth /user.
+    Auth /user is a fallback only — calling it on every request made the
+    dashboard wait on Supabase before any query ran.
+    """
     last_error: Exception | None = None
 
-    if settings.supabase_anon_key:
-        try:
-            claims = _verify_via_auth_api(token, settings)
-            logger.debug("auth ok via Auth /user sub=%s", claims.sub)
-            return claims
-        except Exception as exc:  # noqa: BLE001
-            last_error = exc
-            logger.warning("auth Auth /user failed: %s", exc)
-
     try:
-        client = _get_jwks_client(settings)
-        signing_key = client.get_signing_key_from_jwt(token)
-        payload = jwt.decode(
-            token,
-            signing_key.key,
-            algorithms=["ES256", "RS256", "HS256"],
-            audience="authenticated",
-            options={"require": ["sub", "exp"]},
-        )
-        claims = _claims_from_payload(payload)
-        logger.debug("auth ok via JWKS sub=%s", claims.sub)
+        claims = _verify_via_jwks(token, settings)
         return claims
     except Exception as exc:  # noqa: BLE001
         last_error = exc
-        logger.warning("auth JWKS failed: %s", exc)
+        logger.debug("auth JWKS not used: %s", exc)
 
     if settings.supabase_jwt_secret:
         try:
-            payload = jwt.decode(
-                token,
-                settings.supabase_jwt_secret,
-                algorithms=["HS256"],
-                audience="authenticated",
-                options={"require": ["sub", "exp"]},
-            )
-            claims = _claims_from_payload(payload)
+            claims = _verify_via_jwt_secret(token, settings)
             logger.debug("auth ok via JWT secret sub=%s", claims.sub)
             return claims
         except Exception as exc:  # noqa: BLE001
             last_error = exc
-            logger.warning("auth JWT secret failed: %s", exc)
+            logger.debug("auth JWT secret not used: %s", exc)
+
+    if settings.supabase_anon_key:
+        logger.info("auth local verify missed; falling back to Auth /user")
+        try:
+            claims = _verify_via_auth_api(token, settings)
+            logger.info("auth ok via Auth /user sub=%s", claims.sub)
+            return claims
+        except Exception as exc:  # noqa: BLE001
+            last_error = exc
+            logger.warning("auth Auth /user failed: %s", exc)
 
     logger.error("auth failed all methods last_error=%s", last_error)
     raise HTTPException(
@@ -87,14 +94,46 @@ def decode_supabase_token(token: str, settings: Settings) -> TokenClaims:
     )
 
 
+def _verify_via_jwks(token: str, settings: Settings) -> TokenClaims:
+    global _logged_jwks_ok
+    client = _get_jwks_client(settings)
+    signing_key = client.get_signing_key_from_jwt(token)
+    payload = jwt.decode(
+        token,
+        signing_key.key,
+        algorithms=["ES256", "RS256", "HS256"],
+        audience="authenticated",
+        options={"require": ["sub", "exp"]},
+    )
+    claims = _claims_from_payload(payload)
+    if not _logged_jwks_ok:
+        logger.info("auth using JWKS (local verify; keys cached after first fetch)")
+        _logged_jwks_ok = True
+    logger.debug("auth ok via JWKS sub=%s", claims.sub)
+    return claims
+
+
+def _verify_via_jwt_secret(token: str, settings: Settings) -> TokenClaims:
+    secret = settings.supabase_jwt_secret
+    if not secret:
+        raise RuntimeError("SUPABASE_JWT_SECRET is not set")
+    payload = jwt.decode(
+        token,
+        secret,
+        algorithms=["HS256"],
+        audience="authenticated",
+        options={"require": ["sub", "exp"]},
+    )
+    return _claims_from_payload(payload)
+
+
 def _verify_via_auth_api(token: str, settings: Settings) -> TokenClaims:
     headers = {
         "Authorization": f"Bearer {token}",
         "apikey": settings.supabase_anon_key or "",
     }
     try:
-        with httpx.Client(timeout=10.0) as client:
-            res = client.get(settings.auth_user_url, headers=headers)
+        res = _get_auth_http().get(settings.auth_user_url, headers=headers)
     except httpx.ConnectError as exc:
         logger.error(
             "auth cannot reach Supabase url=%s error=%s", settings.supabase_url, exc

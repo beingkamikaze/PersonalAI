@@ -34,10 +34,16 @@ const config: Config = {
           "0%, 100%": { opacity: "1" },
           "50%": { opacity: "0.35" },
         },
+        "status-float": {
+          "0%, 100%": { transform: "translateY(0)" },
+          "50%": { transform: "translateY(-2px)" },
+        },
       },
       animation: {
         "chat-dot": "chat-dot 1s ease-in-out infinite",
         "chat-mark": "chat-mark 1.2s ease-in-out infinite",
+        "status-float": "status-float 3.6s ease-in-out infinite",
+        "status-float-pill": "status-float 4.2s ease-in-out 0.7s infinite",
       },
     },
   },

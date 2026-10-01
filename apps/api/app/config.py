@@ -15,7 +15,7 @@ class Settings(BaseSettings):
 
     database_url: str
     supabase_url: str
-    # Same publishable/anon key as the web app (for Auth /user verify)
+    # Same publishable/anon key as the web app (Auth /user fallback only)
     supabase_anon_key: str | None = None
     # Service role — used only to delete the Auth user on account deletion
     supabase_service_role_key: str | None = None

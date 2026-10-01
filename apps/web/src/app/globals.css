@@ -71,6 +71,21 @@ html {
       var(--bg);
   }
 
+  /* Public visitor page — flat mint field; rings sit in the page, not this wash. */
+  .public-visit {
+    --bg: #f4f8f6;
+    --fg: #12211c;
+    --muted: #5c6b66;
+    --accent: #0c6b56;
+    --accent-hover: #0a5a48;
+    --accent-soft: #e7f4ef;
+    --border: #e4ece8;
+    --atmosphere-1: #eef6f3;
+    --atmosphere-2: #d7ebe4;
+    background: #f4f8f6;
+    color: var(--fg);
+  }
+
   /* Sign-in only — quieter wash than the landing hero. */
   .auth-surface {
     background:

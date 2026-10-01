@@ -1,0 +1,46 @@
+- generic [active] [ref=f32e1]:
+  - generic [ref=f32e3]:
+    - banner [ref=f32e4]:
+      - link "PersonaAI" [ref=f32e5] [cursor=pointer]:
+        - /url: /
+      - link "Learn more about PersonaAI" [ref=f32e6] [cursor=pointer]:
+        - /url: /
+        - text: Learn more about PersonaAI →
+    - main [ref=f32e7]:
+      - generic [ref=f32e24]:
+        - generic [ref=f32e26]:
+          - heading "Anshu" [level=1] [ref=f32e27]
+          - paragraph [ref=f32e28]: Software Engineer building AI Products
+          - paragraph [ref=f32e29]: Hi I m Mayank, Software enginner using and building saas product.
+        - generic [ref=f32e30]:
+          - button "What does Anshu do?" [ref=f32e31] [cursor=pointer]
+          - button "What are Anshu's main skills?" [ref=f32e32] [cursor=pointer]
+          - button "How does Anshu prefer to work?" [ref=f32e33] [cursor=pointer]
+          - button "What kind of work is Anshu open to?" [ref=f32e34] [cursor=pointer]
+          - button "Tell me about Anshu's recent projects." [ref=f32e35] [cursor=pointer]
+        - generic [ref=f32e36]:
+          - generic [ref=f32e44]:
+            - generic [ref=f32e63]:
+              - generic [ref=f32e64]: "You:"
+              - paragraph [ref=f32e66]: What does Anshu do?
+            - generic [ref=f32e75]:
+              - generic [ref=f32e76]: "Anshu:"
+              - generic [ref=f32e77]:
+                - paragraph [ref=f32e78]: I’m a software engineer focused on building AI-driven SaaS products. I design and ship backend systems and microservices, primarily in Java/Spring Boot and Python/FastAPI, and integrate AI workflows into real-world platforms.
+                - paragraph [ref=f32e79]: "Highlights of what I do:"
+                - list [ref=f32e80]:
+                  - listitem [ref=f32e81]:
+                    - generic [ref=f32e83]: Build AI-powered features like meeting summarization, automated follow-ups, and next-best-action recommendations.
+                  - listitem [ref=f32e84]:
+                    - generic [ref=f32e86]: Architect event-driven microservices and secure REST APIs, integrating with systems like Microsoft Dynamics 365/Dataverse, Azure OpenAI, Kafka, and cloud platforms.
+                  - listitem [ref=f32e87]:
+                    - generic [ref=f32e89]: Deliver reliable backend components for LMS and CRM domains—LTI 1.3 integrations, grading/activity tracking, ratings/likes services, and data pipelines.
+                  - listitem [ref=f32e90]:
+                    - generic [ref=f32e92]: Prototype and ship AI utilities, such as a natural-language query server that translates user requests into safe, read-only SQL.
+                - paragraph [ref=f32e93]: I’m SaaS-oriented, obsessed with clean interfaces and scalable patterns, and I enjoy turning ambiguous AI ideas into production-grade services. I’m open to SDE 2 roles and typically coordinate via async updates rather than meetings.
+          - generic [ref=f32e37]:
+            - generic [ref=f32e38]: Message Anshu's AI
+            - textbox "Message Anshu's AI" [ref=f32e39]:
+              - /placeholder: Ask anything about Anshu's work...
+            - button "Send message" [disabled] [ref=f32e40]
+  - alert [ref=f32e43]

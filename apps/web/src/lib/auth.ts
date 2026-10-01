@@ -1,3 +1,4 @@
+import { clearRecentPublicChats } from "@/lib/recent-public-chats";
 import { createClient } from "@/lib/supabase/client";
 
 /**
@@ -63,6 +64,7 @@ export async function signOut(): Promise<{ error: string | null }> {
     console.error("[auth] sign-out failed", error.message);
     return { error: error.message };
   }
+  clearRecentPublicChats();
   console.info("[auth] sign-out succeeded — session cookies cleared");
   return { error: null };
 }

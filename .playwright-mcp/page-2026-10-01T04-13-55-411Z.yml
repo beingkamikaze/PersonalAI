@@ -1,0 +1,51 @@
+- generic [active] [ref=f13e1]:
+  - generic [ref=f13e2]:
+    - banner [ref=f13e3]:
+      - link "PersonaAI" [ref=f13e4] [cursor=pointer]:
+        - /url: /
+      - navigation [ref=f13e5]:
+        - link "Pricing" [ref=f13e6] [cursor=pointer]:
+          - /url: /pricing
+        - link "Sign in" [ref=f13e7] [cursor=pointer]:
+          - /url: /sign-in
+        - link "Create your AI" [ref=f13e8] [cursor=pointer]:
+          - /url: /sign-up
+    - main [ref=f13e9]:
+      - generic [ref=f13e10]:
+        - generic [ref=f13e11]:
+          - heading "Welcome back to PersonaAI." [level=1] [ref=f13e12]:
+            - generic [ref=f13e13]: Welcome back to
+            - generic [ref=f13e14]: PersonaAI.
+          - paragraph [ref=f13e15]: Manage your AI, update what it knows, and keep it aligned with your work.
+        - list [ref=f13e17]:
+          - listitem [ref=f13e18]:
+            - generic [ref=f13e23]: Update your knowledge anytime
+          - listitem [ref=f13e24]:
+            - generic [ref=f13e28]: Review conversations
+          - listitem [ref=f13e29]:
+            - generic [ref=f13e34]: Share your AI when you're ready
+        - generic [ref=f13e35]:
+          - heading "Sign in" [level=2] [ref=f13e36]
+          - paragraph [ref=f13e37]: Access your AI assistant and workspace.
+          - generic [ref=f13e38]:
+            - generic [ref=f13e39]:
+              - text: Email
+              - textbox "Email" [ref=f13e41]:
+                - /placeholder: you@example.com
+            - generic [ref=f13e42]:
+              - text: Password
+              - generic [ref=f13e43]:
+                - textbox "Password" [ref=f13e44]:
+                  - /placeholder: Enter your password
+                - button "Show password" [ref=f13e46] [cursor=pointer]
+            - paragraph [ref=f13e50]:
+              - link "Forgot password?" [ref=f13e51] [cursor=pointer]:
+                - /url: /forgot-password
+            - button "Sign in" [ref=f13e52] [cursor=pointer]
+          - generic [ref=f13e53]: Or
+          - button "Continue with Google" [ref=f13e56] [cursor=pointer]
+          - paragraph [ref=f13e62]:
+            - text: Don't have an account?
+            - link "Sign up" [ref=f13e63] [cursor=pointer]:
+              - /url: /sign-up
+  - alert [ref=f13e64]

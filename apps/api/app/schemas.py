@@ -153,6 +153,11 @@ class ConversationOut(BaseModel):
     updated_at: datetime
     # First user message (truncated) so clients avoid N+1 detail fetches.
     preview: str | None = None
+    # True when an assistant reply in this thread said it did not have the
+    # information (the fallback the system prompt asks for). Heuristic.
+    needs_review: bool = False
+    # The visitor question (truncated) that triggered that fallback reply.
+    unanswered_preview: str | None = None
 
     model_config = {"from_attributes": True}
 

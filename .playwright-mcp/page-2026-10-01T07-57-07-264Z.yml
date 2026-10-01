@@ -1,0 +1,32 @@
+- generic [active] [ref=f30e1]:
+  - generic [ref=f30e3]:
+    - banner [ref=f30e4]:
+      - link "PersonaAI" [ref=f30e5] [cursor=pointer]:
+        - /url: /
+      - link "Learn more about PersonaAI" [ref=f30e6] [cursor=pointer]:
+        - /url: /
+        - text: Learn more about PersonaAI →
+    - main [ref=f30e7]:
+      - generic [ref=f30e25]:
+        - generic [ref=f30e27]:
+          - heading "Anshu" [level=1] [ref=f30e28]
+          - paragraph [ref=f30e29]: Software Engineer building AI Products
+          - paragraph [ref=f30e30]: Hi I m Mayank, Software enginner using and building saas product.
+        - generic [ref=f30e31]:
+          - button "What does Anshu do?" [disabled] [ref=f30e32]
+          - button "What are Anshu's main skills?" [disabled] [ref=f30e33]
+          - button "How does Anshu prefer to work?" [disabled] [ref=f30e34]
+          - button "What kind of work is Anshu open to?" [disabled] [ref=f30e35]
+          - button "Tell me about Anshu's recent projects." [disabled] [ref=f30e36]
+        - generic [ref=f30e37]:
+          - generic [ref=f30e44]:
+            - generic [ref=f30e46]:
+              - generic [ref=f30e47]: "You:"
+              - paragraph [ref=f30e49]: Tell me about Anshu's recent projects.
+            - status "Composing a reply" [ref=f30e54]
+          - generic [ref=f30e38]:
+            - generic [ref=f30e39]: Message Anshu's AI
+            - textbox "Message Anshu's AI" [disabled] [ref=f30e40]:
+              - /placeholder: Ask anything about Anshu's work...
+            - button "Send message" [disabled] [ref=f30e41]
+  - alert [ref=f30e24]
