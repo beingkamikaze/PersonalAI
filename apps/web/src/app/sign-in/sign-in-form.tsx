@@ -85,6 +85,7 @@ export default function SignInForm() {
       <SiteHeader
         contained
         ctaHref="/sign-up"
+        ctaLabel="Create your AI"
         buttonClassName="!rounded-full"
       />
       <main className="relative mx-auto w-full max-w-[1200px] px-5 pb-10 pt-6 sm:px-8 lg:pt-8">
@@ -92,7 +93,7 @@ export default function SignInForm() {
           <section className="order-1 min-w-0 lg:col-start-1 lg:row-start-1">
             <p className="inline-flex items-center gap-2 rounded-full bg-accent-soft px-3 py-1 text-xs text-muted">
               <span className="h-1.5 w-1.5 rounded-full bg-accent" aria-hidden />
-              Your knowledge. Always available.
+              Your assistant is saved here
             </p>
             <h1 className="mt-4 max-w-xl font-display text-[2.45rem] leading-[1.05] tracking-[-0.02em] text-fg sm:text-[3.15rem] lg:text-[3.45rem]">
               <span className="block">Welcome back</span>

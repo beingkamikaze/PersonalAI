@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ScreenIntro } from "@/components/screen-intro";
 import { UnsavedChangesDialog } from "@/components/unsaved-changes-dialog";
@@ -172,7 +173,7 @@ export default function SettingsPage() {
   return (
     <ScreenIntro
       title="Settings"
-      description="How the AI talks: communication style, formality, humor, verbosity, directness, and traits. Interview facts are on Profile. Account deletion is at the bottom."
+      description="Set how your AI talks. These choices apply to every answer. Your name, interview facts, and public link are on Profile."
     >
       {error ? (
         <p className="mb-6 text-sm text-red-700" role="alert">
@@ -181,8 +182,15 @@ export default function SettingsPage() {
       ) : null}
       {message ? <p className="mb-6 text-sm text-accent">{message}</p> : null}
 
+      <p className="mb-6 text-sm text-muted">
+        <Link href="/app/profile" className="font-medium text-accent hover:text-accent-hover">
+          Open Profile
+        </Link>{" "}
+        to edit your name, the facts from your interview, and the public link.
+      </p>
+
       <form onSubmit={onSavePersonality} className="mb-10 space-y-5">
-        <h2 className="font-display text-xl text-fg">Personality</h2>
+        <h2 className="font-display text-xl text-fg">How it talks</h2>
         {loading ? (
           <p className="text-sm text-muted">Loading saved values…</p>
         ) : null}

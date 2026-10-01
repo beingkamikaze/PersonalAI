@@ -13,7 +13,7 @@ export default function LandingPage() {
       <SiteHeader
         contained
         ctaHref={createHref}
-        ctaLabel="Create Your AI →"
+        ctaLabel="Create your AI"
         compactLabel="Create"
         buttonClassName="!rounded-full"
       />

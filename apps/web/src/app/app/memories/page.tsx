@@ -16,6 +16,7 @@ import {
   BriefcaseIcon,
   CalendarIcon,
   ChatIcon,
+  ChevronRightIcon,
   ExternalIcon,
   LightbulbIcon,
   LockIcon,
@@ -43,7 +44,7 @@ const MEMORY_TYPES = [
 ] as const;
 
 /**
- * Owner memories manager — mockup layout with equal-width cards.
+ * Owner memories manager. Presentation matches the Knowledge / Chats shell.
  */
 export default function MemoriesPage() {
   const router = useRouter();
@@ -230,108 +231,133 @@ export default function MemoriesPage() {
     }
   }
 
+  const noMemories = memories.length === 0;
+
   return (
-    <div className="mx-auto w-full max-w-6xl space-y-3">
-      {/* Compact hero: info chips fill blank under copy, beside robot */}
-      <header className="grid items-stretch gap-3 lg:grid-cols-[1fr_auto]">
-        <div className="flex min-w-0 flex-col">
-          <p className="text-xs font-medium tracking-[0.14em] text-muted uppercase">
+    <div className="relative w-full space-y-4">
+      <header className="relative">
+        <div className="min-w-0 xl:pr-[12rem]">
+          <p className="text-[11px] font-medium tracking-[0.16em] text-muted uppercase">
             Memories
           </p>
-          <h1 className="mt-1 font-display text-3xl tracking-tight text-fg md:text-[2rem]">
-            Your saved memories
+          <h1 className="mt-2 font-display text-[2.05rem] leading-[1.08] tracking-tight text-fg sm:text-[2.35rem]">
+            Your saved <span className="text-accent">memories</span>
           </h1>
-          <p className="mt-1.5 max-w-xl text-sm text-muted text-balance">
-            Facts saved from conversations with your AI. Edit or delete anything
-            that looks wrong before visitors hear them.
+          <p className="mt-2 max-w-xl text-sm leading-snug text-muted">
+            Short facts, preferences, and boundaries you want your AI to follow.
+            This list is private. Visitors never see it, but answers can use
+            what you save. Longer documents belong in Knowledge.
           </p>
 
-          <div className="mt-3 grid flex-1 grid-cols-1 gap-2 sm:grid-cols-3 sm:items-stretch">
+          <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:mt-6 xl:gap-3.5 xl:grid-cols-3">
             <FeatureChip
               tone="mint"
-              icon={<BrainIcon className="h-3.5 w-3.5" />}
-              title="Personalized"
-              subtitle="Knows you better"
+              icon={<BrainIcon className="h-4 w-4" />}
+              title="Used in answers"
+              subtitle="Your AI can follow these"
             />
             <FeatureChip
               tone="purple"
-              icon={<LockIcon className="h-3.5 w-3.5" />}
-              title="Private"
-              subtitle="Only you see these"
+              icon={<LockIcon className="h-4 w-4" />}
+              title="Private list"
+              subtitle="Visitors never see this page"
             />
             <FeatureChip
               tone="amber"
-              icon={<ShieldIcon className="h-3.5 w-3.5" />}
+              icon={<ShieldIcon className="h-4 w-4" />}
               title="In your control"
               subtitle="Edit anytime"
+              className="sm:col-span-2 xl:col-span-1"
             />
           </div>
         </div>
 
-        <div className="relative hidden w-[140px] shrink-0 self-stretch lg:block lg:w-[180px]">
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-[-8%] rounded-full bg-[radial-gradient(circle_at_center,rgba(180,220,230,0.45)_0%,rgba(180,220,230,0.18)_42%,transparent_68%)]"
-          />
-          <Image
-            src="/dashboard/memory-companion-3d.png"
-            alt=""
-            width={320}
-            height={320}
-            className="relative h-auto w-full select-none"
-            priority
-          />
-          <p className="pointer-events-none absolute top-2 left-0 z-10 max-w-[7rem] font-display text-[11px] italic leading-snug text-accent">
-            A more you, a better AI.
+        <div className="pointer-events-none absolute inset-y-0 right-0 hidden w-[11.75rem] xl:block">
+          <p className="absolute top-1 -left-[6.4rem] w-[7.2rem] text-right font-display text-[13px] leading-[1.25] font-medium text-accent italic">
+            A more you,
+            <br />
+            a better AI.
           </p>
+          <svg
+            viewBox="0 0 72 36"
+            className="absolute top-[2.7rem] -left-1 h-6 w-12 text-accent"
+            fill="none"
+            aria-hidden
+          >
+            <path
+              d="M2 8c18 1 28 8 58 16"
+              stroke="currentColor"
+              strokeWidth="1.35"
+              strokeLinecap="round"
+            />
+            <path
+              d="M48 18 62 24.5 49 28"
+              stroke="currentColor"
+              strokeWidth="1.35"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+          <div className="absolute inset-0 origin-top-right scale-[0.87] overflow-hidden">
+            <Image
+              src="/dashboard/memory-companion-3d.png"
+              alt=""
+              width={1024}
+              height={1024}
+              priority
+              className="absolute h-auto max-w-none select-none"
+              style={{ width: "149%", left: "-39%", top: "-10%" }}
+            />
+          </div>
         </div>
       </header>
 
-      {/* List panel sits higher — chips no longer take a full row */}
-      <section className="rounded-2xl border border-border bg-white p-4 shadow-[0_10px_30px_-18px_rgba(15,31,28,0.28)] md:p-5">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+      <section className="rounded-[22px] border border-border bg-white px-4 pt-5 pb-4 shadow-[0_16px_40px_-24px_rgba(18,40,32,0.28)] md:px-5 md:pt-6 md:pb-5">
+        <div className="flex flex-col gap-2.5 lg:flex-row lg:items-center">
           <div className="relative min-w-0 flex-1">
-            <SearchIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
+            <SearchIcon className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
             <input
               type="search"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search memories..."
-              className="w-full rounded-xl border border-border bg-[var(--atmosphere-1)]/30 py-2.5 pl-9 pr-3 text-sm text-fg placeholder:text-muted focus:border-accent focus:outline-none"
+              className="h-11 w-full rounded-xl border border-border bg-white py-2 pl-10 pr-3 text-sm text-fg placeholder:text-muted focus:border-accent focus:outline-none"
               aria-label="Search memories"
             />
           </div>
-          <select
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
-            className="rounded-xl border border-border bg-white px-3 py-2.5 text-sm text-fg focus:border-accent focus:outline-none"
-            aria-label="Filter by category"
-          >
-            <option value="all">All categories</option>
-            {MEMORY_TYPES.map((t) => (
-              <option key={t} value={t}>
-                {t}
-              </option>
-            ))}
-          </select>
-          <Button
-            type="button"
-            className="gap-1.5 rounded-xl"
-            onClick={() => {
-              setAdding(true);
-              setEditingId(null);
-              setMessage(null);
-            }}
-          >
-            <PlusIcon className="h-4 w-4" />
-            Add a memory
-          </Button>
+          <div className="flex gap-2.5 lg:shrink-0">
+            <select
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              className="h-11 min-w-0 flex-1 rounded-xl border border-border bg-white px-3 text-sm text-fg focus:border-accent focus:outline-none sm:w-[10.5rem] sm:flex-none"
+              aria-label="Filter by category"
+            >
+              <option value="all">All categories</option>
+              {MEMORY_TYPES.map((t) => (
+                <option key={t} value={t}>
+                  {memoryTypeLabel(t)}
+                </option>
+              ))}
+            </select>
+            <Button
+              type="button"
+              className="!h-11 shrink-0 gap-1.5 !rounded-xl px-4"
+              onClick={() => {
+                setAdding(true);
+                setEditingId(null);
+                setMessage(null);
+              }}
+            >
+              <PlusIcon className="h-4 w-4" />
+              Add a memory
+            </Button>
+          </div>
         </div>
 
         {adding ? (
           <form
             onSubmit={onAdd}
-            className="mt-4 rounded-xl border border-border bg-[var(--atmosphere-1)]/30 p-4"
+            className="mt-4 rounded-2xl border border-border bg-[#f7fbf9] p-4"
           >
             <textarea
               value={newContent}
@@ -345,7 +371,7 @@ export default function MemoriesPage() {
               <select
                 value={newType}
                 onChange={(e) => setNewType(e.target.value)}
-                className="rounded-xl border border-border bg-white px-3 py-2 text-sm"
+                className="h-10 rounded-xl border border-border bg-white px-3 text-sm"
                 disabled={busy}
               >
                 {MEMORY_TYPES.map((t) => (
@@ -354,7 +380,11 @@ export default function MemoriesPage() {
                   </option>
                 ))}
               </select>
-              <Button type="submit" disabled={busy || !newContent.trim()} className="rounded-xl">
+              <Button
+                type="submit"
+                disabled={busy || !newContent.trim()}
+                className="!h-10 !rounded-xl"
+              >
                 Save
               </Button>
               <Button
@@ -372,20 +402,30 @@ export default function MemoriesPage() {
           </form>
         ) : null}
 
-        {/* Step 4: stacked equal-width memory rows */}
         {filtered.length === 0 ? (
-          <p className="mt-4 rounded-xl border border-dashed border-border bg-[var(--atmosphere-1)]/40 px-4 py-10 text-center text-sm text-muted">
-            No memories yet. Open Chat and state a preference — it will appear
-            here shortly.
-          </p>
+          noMemories ? (
+            adding ? null : (
+              <EmptyMemories
+                onAdd={() => {
+                  setAdding(true);
+                  setEditingId(null);
+                  setMessage(null);
+                }}
+              />
+            )
+          ) : (
+            <p className="mt-5 rounded-2xl border border-dashed border-border bg-[#f7fbf9] px-4 py-8 text-center text-sm text-muted">
+              No memories match this search.
+            </p>
+          )
         ) : (
-          <ul className="mt-4 space-y-3">
-            {filtered.map((mem) => (
+          <ul className="mt-5 space-y-2.5">
+            {filtered.map((mem, index) => (
               <li key={mem.id} className="w-full">
                 {editingId === mem.id ? (
                   <form
                     onSubmit={onSave}
-                    className="w-full rounded-xl border border-border bg-[var(--atmosphere-1)]/30 p-4"
+                    className="w-full rounded-2xl border border-border bg-[#f7fbf9] p-4"
                   >
                     <textarea
                       value={editContent}
@@ -398,7 +438,7 @@ export default function MemoriesPage() {
                       <select
                         value={editType}
                         onChange={(e) => setEditType(e.target.value)}
-                        className="rounded-xl border border-border bg-white px-3 py-2 text-sm"
+                        className="h-10 rounded-xl border border-border bg-white px-3 text-sm"
                         disabled={busy}
                       >
                         {MEMORY_TYPES.map((t) => (
@@ -410,7 +450,7 @@ export default function MemoriesPage() {
                       <Button
                         type="submit"
                         disabled={busy || !editContent.trim()}
-                        className="rounded-xl"
+                        className="!h-10 !rounded-xl"
                       >
                         Save
                       </Button>
@@ -428,6 +468,7 @@ export default function MemoriesPage() {
                   <MemoryCard
                     mem={mem}
                     busy={busy}
+                    highlighted={index === 0}
                     onEdit={() => startEdit(mem)}
                     onDelete={() => void onDelete(mem.id)}
                   />
@@ -438,29 +479,36 @@ export default function MemoriesPage() {
         )}
       </section>
 
-      {/* Step 5: tip banner — same full width as list */}
-      <div className="flex w-full flex-wrap items-center justify-between gap-3 rounded-2xl border border-accent/15 bg-accent-soft/70 px-4 py-3.5">
-        <div className="flex min-w-0 items-start gap-3">
-          <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white text-accent">
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-[20px] border border-border bg-[#f6faf8] px-4 py-2.5 sm:flex-nowrap sm:px-5">
+        <div className="flex min-w-0 items-center gap-2.5">
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white text-accent">
             <LightbulbIcon className="h-4 w-4" />
           </span>
-          <p className="text-sm text-fg text-balance">
-            <span className="font-medium">Tip:</span> The more memories you save,
-            the more personalized and accurate your AI becomes.
+          <p className="text-sm leading-snug text-fg">
+            <span className="font-medium">Tip:</span> The more memories you
+            save, the more personalized and accurate your AI becomes.
           </p>
         </div>
         <ButtonLink
           href="/app/chat"
           variant="secondary"
-          className="gap-2 rounded-xl bg-white py-2"
+          className="!h-9 shrink-0 gap-1.5 !rounded-xl bg-white px-3.5 py-0 text-sm"
         >
           Learn more
           <ExternalIcon className="h-3.5 w-3.5" />
         </ButtonLink>
       </div>
 
-      {error ? <p className="text-sm text-red-700">{error}</p> : null}
-      {message ? <p className="text-sm text-muted">{message}</p> : null}
+      {error ? (
+        <p className="text-sm text-red-700" role="alert">
+          {error}
+        </p>
+      ) : null}
+      {message ? (
+        <p className="text-sm text-muted" role="status">
+          {message}
+        </p>
+      ) : null}
     </div>
   );
 }
@@ -470,11 +518,13 @@ function FeatureChip({
   icon,
   title,
   subtitle,
+  className = "",
 }: {
   tone: "mint" | "purple" | "amber";
   icon: ReactNode;
   title: string;
   subtitle: string;
+  className?: string;
 }) {
   const tones = {
     mint: "bg-[var(--tone-mint)] text-accent",
@@ -483,21 +533,45 @@ function FeatureChip({
   } as const;
 
   return (
-    <div className="flex h-full min-h-[4.75rem] min-w-0 items-center gap-2.5 rounded-xl border border-border bg-white px-3 py-3 shadow-[0_6px_16px_-14px_rgba(15,31,28,0.28)] sm:min-h-[5.5rem]">
+    <div
+      className={`flex h-full min-h-[4.35rem] min-w-0 items-center gap-2.5 rounded-[20px] border border-border bg-white px-3.5 py-2.5 shadow-[0_8px_20px_-16px_rgba(15,31,28,0.4)] ${className}`}
+    >
       <span
-        className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${tones[tone]}`}
+        className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${tones[tone]}`}
         aria-hidden
       >
         {icon}
       </span>
-      <div className="min-w-0">
-        <p className="truncate text-sm font-medium leading-snug text-fg">
+      <span className="min-w-0 flex-1">
+        <span className="block truncate text-sm font-semibold leading-tight text-fg">
           {title}
-        </p>
-        <p className="mt-0.5 truncate text-xs leading-snug text-muted">
+        </span>
+        <span className="mt-0.5 block truncate text-xs leading-tight text-muted">
           {subtitle}
-        </p>
-      </div>
+        </span>
+      </span>
+      <ChevronRightIcon className="h-4 w-4 shrink-0 text-muted/80" />
+    </div>
+  );
+}
+
+function EmptyMemories({ onAdd }: { onAdd: () => void }) {
+  return (
+    <div className="mt-5 flex flex-col items-center rounded-2xl border border-dashed border-border bg-[#f7fbf9] px-6 py-10 text-center">
+      <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[var(--tone-mint)] text-accent">
+        <BrainIcon className="h-5 w-5" />
+      </span>
+      <p className="mt-3 font-display text-lg leading-tight text-fg">
+        No memories yet
+      </p>
+      <p className="mt-1.5 max-w-sm text-sm leading-snug text-muted">
+        Add a preference, a boundary, or a fact. You can also say one in Chat
+        and it will show up here.
+      </p>
+      <Button type="button" className="mt-4 gap-1.5 !rounded-xl" onClick={onAdd}>
+        <PlusIcon className="h-4 w-4" />
+        Add a memory
+      </Button>
     </div>
   );
 }
@@ -505,51 +579,54 @@ function FeatureChip({
 function MemoryCard({
   mem,
   busy,
+  highlighted,
   onEdit,
   onDelete,
 }: {
   mem: MemoryItem;
   busy: boolean;
+  highlighted: boolean;
   onEdit: () => void;
   onDelete: () => void;
 }) {
   const meta = typeMeta(mem.memory_type);
 
   return (
-    <article className="flex w-full items-start gap-3 rounded-xl border border-border bg-white p-4 shadow-[0_6px_18px_-14px_rgba(15,31,28,0.28)]">
-      <span
-        className={`mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${meta.tone}`}
-        aria-hidden
-      >
-        {meta.icon}
-      </span>
+    <article
+      className={`flex w-full flex-col gap-3 rounded-2xl border px-3.5 py-3 transition lg:flex-row lg:items-start lg:gap-3.5 lg:px-4 lg:py-3.5 ${
+        highlighted
+          ? "border-[#d7ebe4] bg-[#f4faf7]"
+          : "border-border bg-white hover:bg-[#f7fbf9]"
+      }`}
+    >
+      <div className="flex min-w-0 flex-1 items-start gap-3">
+        <span
+          className={`mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${meta.tone}`}
+          aria-hidden
+        >
+          {meta.icon}
+        </span>
 
-      <div className="min-w-0 flex-1">
-        <p className="text-sm font-medium leading-snug text-fg">{mem.content}</p>
-        <div className="mt-2 flex flex-wrap items-center gap-1.5">
-          <span
-            className={`inline-flex rounded-full px-2 py-0.5 text-[11px] font-medium ${meta.pill}`}
-          >
-            {mem.memory_type}
-          </span>
-          <span className="rounded-full bg-[var(--atmosphere-1)] px-2 py-0.5 text-[11px] text-muted">
-            importance {mem.importance.toFixed(2)}
-          </span>
-          <span className="rounded-full bg-[var(--atmosphere-1)] px-2 py-0.5 text-[11px] text-muted">
-            confidence {mem.confidence.toFixed(2)}
-          </span>
-          <span className="rounded-full bg-[var(--atmosphere-1)] px-2 py-0.5 text-[11px] text-muted">
-            {mem.source}
-          </span>
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-medium leading-snug text-fg">
+            {mem.content}
+          </p>
+          <div className="mt-2 flex flex-wrap items-center gap-1.5">
+            <span
+              className={`inline-flex rounded-full px-2 py-0.5 text-[11px] font-medium ${meta.pill}`}
+            >
+              {memoryTypeLabel(mem.memory_type)}
+            </span>
+          </div>
         </div>
       </div>
 
-      <div className="flex shrink-0 flex-col items-end gap-1.5">
-        <div className="flex items-center gap-1">
+      <div className="flex shrink-0 items-center justify-between gap-3 lg:flex-col lg:items-end lg:justify-start lg:gap-2">
+        <div className="flex items-center gap-1.5">
           <Button
             type="button"
-            variant="secondary"
-            className="h-8 gap-1 rounded-lg px-2.5 py-0 text-xs"
+            variant="ghost"
+            className="!h-8 gap-1 !rounded-lg border border-border bg-white px-2 py-0 text-xs font-normal text-muted hover:text-fg"
             disabled={busy}
             onClick={onEdit}
           >
@@ -558,16 +635,16 @@ function MemoryCard({
           </Button>
           <button
             type="button"
-            className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-red-600 hover:bg-red-50 disabled:opacity-50"
+            className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-red-100 bg-red-50 text-red-600 hover:bg-red-100 disabled:opacity-50"
             disabled={busy}
             onClick={onDelete}
             aria-label="Delete memory"
           >
-            <TrashIcon className="h-4 w-4" />
+            <TrashIcon className="h-3.5 w-3.5" />
           </button>
           <button
             type="button"
-            className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-muted hover:bg-[var(--atmosphere-1)] hover:text-fg"
+            className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-white text-muted hover:bg-[#f3f6f5] hover:text-fg"
             aria-label="More options"
           >
             <MoreIcon className="h-4 w-4" />
@@ -577,6 +654,23 @@ function MemoryCard({
       </div>
     </article>
   );
+}
+
+function memoryTypeLabel(type: string): string {
+  switch (type) {
+    case "preference":
+      return "Preference";
+    case "fact":
+      return "Fact";
+    case "boundary":
+      return "Boundary";
+    case "project":
+      return "Project";
+    case "other":
+      return "Other";
+    default:
+      return type;
+  }
 }
 
 function typeMeta(type: string): {

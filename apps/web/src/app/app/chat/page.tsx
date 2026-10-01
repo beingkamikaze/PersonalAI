@@ -10,7 +10,6 @@ import {
   BrainIcon,
   ChatIcon,
   ChevronRightIcon,
-  ExternalIcon,
   KnowledgeIcon,
   SproutIcon,
 } from "@/components/ui/icons";
@@ -74,8 +73,8 @@ export default function AppChatPage() {
             Talk to your <span className="text-accent">AI</span>
           </h1>
           <p className="mt-2 max-w-[34rem] text-sm leading-snug text-muted">
-            Get personalized answers, save what matters, and build a smarter
-            version of yourself.
+            Ask questions and see whether it uses what you taught it. Say a
+            preference or a boundary if you want to save one to Memory.
           </p>
         </div>
 
@@ -127,19 +126,19 @@ export default function AppChatPage() {
             tone="mint"
             icon={<ChatIcon className="h-4 w-4" />}
             title="Ask anything"
-            subtitle="Instant answers"
+            subtitle="See how it answers"
           />
           <FeatureCard
             tone="purple"
             icon={<BrainIcon className="h-4 w-4" />}
             title="Save to memory"
-            subtitle="Keep what matters"
+            subtitle="Keep a fact or a rule"
           />
           <FeatureCard
             tone="amber"
             icon={<KnowledgeIcon className="h-4 w-4" />}
-            title="Use knowledge"
-            subtitle="From your content"
+            title="Uses knowledge"
+            subtitle="From your documents"
             className="md:col-span-2 xl:col-span-1"
           />
         </div>
@@ -163,11 +162,11 @@ export default function AppChatPage() {
           </span>
           <div className="min-w-0">
             <p className="text-sm font-semibold text-fg">
-              Your conversations stay private
+              This chat is private
             </p>
             <p className="mt-0.5 text-sm leading-snug text-muted">
-              Use chats to get instant answers. Save important information to
-              Memory for a better, more personalized experience.
+              Other people use your public link, not this page. Save a fact,
+              preference, or boundary in Memory when an answer should keep it.
             </p>
           </div>
         </div>
@@ -176,8 +175,8 @@ export default function AppChatPage() {
           variant="secondary"
           className="shrink-0 self-center gap-1.5 rounded-xl bg-white px-3.5 py-2 text-sm"
         >
-          Learn more
-          <ExternalIcon className="h-3.5 w-3.5" />
+          Open Memory
+          <ChevronRightIcon className="h-3.5 w-3.5" />
         </ButtonLink>
       </div>
     </div>

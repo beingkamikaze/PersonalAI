@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  FormEvent,
-  useEffect,
-  useRef,
-  useState,
-  type ReactNode,
-} from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ChatBuffering } from "@/components/chat-buffering";
 import { ChatRow } from "@/components/chat-mark";
@@ -15,12 +9,8 @@ import {
   CalendarIcon,
   ChartIcon,
   ChevronRightIcon,
-  GlobeIcon,
-  MicIcon,
-  PaperclipIcon,
   RefreshIcon,
   SendIcon,
-  SlidersIcon,
   TargetIcon,
 } from "@/components/ui/icons";
 import {
@@ -166,9 +156,8 @@ export function OwnerChat({
         <div className="flex-1 space-y-3 overflow-y-auto p-5 text-sm">
           {messages.length === 0 ? (
             <p className="text-muted">
-              Ask a question to preview answers, or state a preference to save
-              as a memory. Replies use interview personality, facts, and
-              uploaded knowledge when ready.
+              Ask something a visitor might ask. To save a preference or a
+              boundary, say it in a sentence, such as “I prefer async updates.”
             </p>
           ) : (
             messages.map((m) => (
@@ -260,29 +249,14 @@ export function OwnerChat({
               }
             }}
             rows={2}
-            placeholder="Ask a question to preview answers, or state a preference to save as a memory."
+            placeholder="Ask a question, or state a preference or boundary to save."
             disabled={loading}
             className="min-h-[2.75rem] w-full resize-none bg-transparent text-sm leading-relaxed text-fg placeholder:text-muted focus:outline-none disabled:opacity-50"
           />
         </div>
 
         <div className="flex flex-wrap items-center justify-between gap-2 px-3 pt-0.5 pb-2.5">
-          <div className="flex flex-wrap items-center gap-0.5">
-            <ToolChip icon={<PaperclipIcon className="h-3.5 w-3.5" />} label="Attach" />
-            <ToolChip icon={<GlobeIcon className="h-3.5 w-3.5" />} label="Search" />
-            <ToolChip
-              icon={<SlidersIcon className="h-3.5 w-3.5" />}
-              label="Use knowledge"
-            />
-          </div>
           <div className="ml-auto flex items-center gap-1">
-            <button
-              type="button"
-              className="inline-flex h-9 w-9 items-center justify-center rounded-xl text-muted hover:bg-[var(--atmosphere-1)] hover:text-fg"
-              aria-label="Voice input"
-            >
-              <MicIcon className="h-4 w-4" />
-            </button>
             <Button
               type="submit"
               disabled={loading}
@@ -340,18 +314,6 @@ export function OwnerChat({
         </div>
       ) : null}
     </div>
-  );
-}
-
-function ToolChip({ icon, label }: { icon: ReactNode; label: string }) {
-  return (
-    <button
-      type="button"
-      className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs text-muted hover:bg-[var(--atmosphere-1)] hover:text-fg"
-    >
-      {icon}
-      {label}
-    </button>
   );
 }
 

@@ -102,16 +102,16 @@ export default function OnboardingCreatePage() {
   if (checking) {
     return (
       <ScreenIntro
-        title="Create your AI profile"
-        description="Checking for an existing draft…"
+        title="Name your AI"
+        description="Checking whether you already started one…"
       />
     );
   }
 
   return (
     <ScreenIntro
-      title="Create your AI profile"
-      description="Name, headline, and an optional photo. Done when a draft profile exists."
+      title="Name your AI"
+      description="This is the assistant you will teach and share. Add your name, a one-line headline, and an optional photo. Next you’ll answer a short interview."
     >
       <OnboardingProgress step={1} />
       <form onSubmit={onSubmit} className="mt-8 space-y-5">
@@ -133,7 +133,7 @@ export default function OnboardingCreatePage() {
         <Field
           label="Headline"
           name="headline"
-          placeholder="Software engineer building personal AI products"
+          placeholder="What you want people to know in one line"
           value={headline}
           onChange={setHeadline}
         />
@@ -162,7 +162,7 @@ export default function OnboardingCreatePage() {
           </p>
         ) : null}
         <Button type="submit" disabled={loading || !name.trim()}>
-          {loading ? "Creating…" : "Continue"}
+          {loading ? "Creating…" : "Continue to the interview"}
         </Button>
       </form>
     </ScreenIntro>

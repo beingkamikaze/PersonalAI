@@ -278,8 +278,8 @@ export function KnowledgePanel({
               Add your <span className="text-accent">knowledge</span>
             </h1>
             <p className="mt-1 max-w-xl text-sm leading-snug text-muted">
-              Upload documents, add notes or a URL, and track processing
-              status.
+              Documents, notes, and links your AI can answer from. Short facts,
+              preferences, and boundaries belong in Memory.
             </p>
           </div>
 

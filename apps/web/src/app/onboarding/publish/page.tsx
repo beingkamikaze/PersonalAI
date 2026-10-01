@@ -102,7 +102,7 @@ export default function OnboardingPublishPage() {
   return (
     <ScreenIntro
       title="Publish your public link"
-      description="Pick a username, add optional contact links, then publish and share."
+      description="Choose the name in your link. After you publish, anyone with the link can talk to your AI. They see answers, not your documents or your memory list."
     >
       <OnboardingProgress step={5} />
       <form onSubmit={onPublish} className="mt-8 space-y-5">
@@ -184,7 +184,7 @@ export default function OnboardingPublishPage() {
 
         <div className="flex flex-wrap gap-3">
           <Button type="submit" disabled={busy || !username.trim()}>
-            {busy ? "Publishing…" : "Publish & open preview"}
+            {busy ? "Publishing…" : "Publish your link"}
           </Button>
           <ButtonLink href="/app" variant="secondary">
             Go to dashboard

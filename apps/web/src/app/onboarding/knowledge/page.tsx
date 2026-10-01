@@ -6,7 +6,7 @@ export default function OnboardingKnowledgePage() {
   return (
     <ScreenIntro
       title="Add knowledge"
-      description="Resume / PDF / TXT, notes, and an optional URL. Prefer at least one source before publish."
+      description="Add documents, notes, or a link. This is reference material your AI can answer from. Short facts, preferences, and boundaries belong in Memory."
     >
       <OnboardingProgress step={3} />
       <div className="mt-8">

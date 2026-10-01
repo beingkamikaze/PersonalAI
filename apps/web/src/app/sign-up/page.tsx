@@ -12,18 +12,18 @@ import { createClient } from "@/lib/supabase/client";
 
 const BENEFITS = [
   {
-    title: "Build your profile",
-    body: "Share your work, experience, and interests",
+    title: "Tell it about you",
+    body: "A short interview about your work, preferences, and limits",
     icon: ProfileIcon,
   },
   {
-    title: "Add your knowledge",
-    body: "Upload links, documents, or notes",
+    title: "Add what it should know",
+    body: "Documents, notes, memories, and boundaries",
     icon: DocIcon,
   },
   {
-    title: "Share anywhere",
-    body: "Use your link on LinkedIn, your site, or email",
+    title: "Share a link",
+    body: "People can ask about your work when you are not available",
     icon: LinkIcon,
   },
 ] as const;
@@ -85,6 +85,7 @@ export default function SignUpPage() {
       <SiteHeader
         contained
         ctaHref="/sign-up"
+        ctaLabel="Create your AI"
         buttonClassName="!rounded-full"
       />
       <main className="relative mx-auto w-full max-w-[1200px] px-5 pb-10 pt-6 sm:px-8 lg:pt-8">
@@ -92,15 +93,15 @@ export default function SignUpPage() {
           <section className="order-1 min-w-0 lg:col-start-1 lg:row-start-1">
             <p className="inline-flex items-center gap-2 rounded-full bg-accent-soft px-3 py-1 text-xs text-muted">
               <span className="h-1.5 w-1.5 rounded-full bg-accent" aria-hidden />
-              Your knowledge. Always available.
+              No code required
             </p>
             <h1 className="mt-4 max-w-xl font-display text-[2.45rem] leading-[1.05] tracking-[-0.02em] text-fg sm:text-[3.15rem] lg:text-[3.45rem]">
               <span className="block">Create your</span>
-              <span className="block text-accent">PersonaAI.</span>
+              <span className="block text-accent">AI assistant.</span>
             </h1>
             <p className="mt-4 max-w-lg text-[16px] leading-relaxed text-muted">
-              Set up your AI in minutes and give people a new way to understand
-              your work, expertise, and personality.
+              Answer a short interview, add what it should know, then share a
+              link. No coding.
             </p>
           </section>
 
@@ -144,7 +145,7 @@ export default function SignUpPage() {
                     Mayank Sandilya
                   </span>
                   <span className="mt-0.5 block text-xs text-muted">
-                    Software Developer
+                    Uses PersonaAI to answer repeat questions
                   </span>
                 </figcaption>
               </div>
@@ -156,7 +157,7 @@ export default function SignUpPage() {
               Create your account
             </h2>
             <p className="mt-2 text-sm text-muted">
-              After sign-up you will create a draft AI profile.
+              After sign-up you’ll name your AI and start a short interview.
             </p>
             <form onSubmit={onSubmit} className="mt-6 space-y-4">
               <Field

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { FormEvent, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { BellIcon, ChevronRightIcon, SearchIcon } from "@/components/ui/icons";
+import { ChevronRightIcon, SearchIcon } from "@/components/ui/icons";
 import { UserAvatar } from "@/components/user-avatar";
 import { SignOutButton } from "@/components/sign-out-button";
 import {
@@ -126,11 +126,6 @@ export function AppTopBar() {
       >
         <SearchIcon className="h-4 w-4" />
       </Link>
-
-      <button type="button" className={iconBtn} aria-label="Notifications">
-        <BellIcon className="h-4 w-4" />
-        <span className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-red-500" />
-      </button>
 
       <div className="relative shrink-0" ref={menuRef}>
         <button

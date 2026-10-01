@@ -8,7 +8,7 @@ const steps = [
   { href: "/onboarding/interview", label: "Interview" },
   { href: "/onboarding/knowledge", label: "Knowledge" },
   { href: "/onboarding/test", label: "Test" },
-  { href: "/onboarding/publish", label: "Publish" },
+  { href: "/onboarding/publish", label: "Share" },
 ] as const;
 
 /**

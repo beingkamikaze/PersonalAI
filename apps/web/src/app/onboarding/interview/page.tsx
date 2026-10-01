@@ -117,7 +117,7 @@ export default function OnboardingInterviewPage() {
   return (
     <ScreenIntro
       title="Professional interview"
-      description="Answer a short fixed set of questions. We structure your answers into personality and facts — the browser never calls the LLM."
+        description="A short set of questions about your work, how you communicate, and what your AI should never invent. Your answers become facts and tone it uses. You can edit them later."
     >
       <OnboardingProgress step={2} />
       {progressLabel ? (

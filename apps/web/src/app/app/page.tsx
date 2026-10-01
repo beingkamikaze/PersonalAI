@@ -39,22 +39,22 @@ type RecentThread = {
 };
 
 const CHECKLIST_LABELS: Record<string, string> = {
-  profile_basics: "Name / headline",
-  interview_completed: "Interview completed",
-  personality: "Personality saved",
-  knowledge_ready: "At least one knowledge source ready",
-  has_memory: "At least one memory",
-  username_set: "Username chosen",
-  published: "Published",
+  profile_basics: "Name and headline",
+  interview_completed: "Interview finished",
+  personality: "How it talks",
+  knowledge_ready: "Knowledge added",
+  has_memory: "A memory saved",
+  username_set: "Public link name",
+  published: "Link shared",
 };
 
 const CHECKLIST_HREF: Record<string, string> = {
   profile_basics: "/app/profile",
   interview_completed: "/onboarding/interview",
-  personality: "/app/profile",
+  personality: "/app/settings",
   knowledge_ready: "/app/knowledge",
   has_memory: "/app/memories",
-  username_set: "/app/settings",
+  username_set: "/app/profile",
   published: "/onboarding/publish",
 };
 
@@ -147,7 +147,7 @@ export default function DashboardPage() {
     if (!c.published)
       return {
         href: "/onboarding/publish",
-        label: "Publish your link",
+        label: "Share your link",
         key: "published",
       };
     return null;
@@ -173,7 +173,7 @@ export default function DashboardPage() {
   const welcomeLine = allDone
     ? published
       ? "Your AI is live — share it or jump into a chat."
-      : "You’re all set. Publish when you’re ready."
+      : "You’re all set. Share it when you’re ready."
     : nextStep
       ? `Your AI is ${score}% ready — ${nextStep.label.toLowerCase()} to keep going.`
       : `Your AI is ${score}% ready. Keep building!`;
@@ -182,7 +182,7 @@ export default function DashboardPage() {
     ? { href: nextStep.href, label: nextStep.label }
     : published
       ? { href: "/app/chat", label: "Talk to your AI" }
-      : { href: "/onboarding/publish", label: "Publish your link" };
+      : { href: "/onboarding/publish", label: "Share your link" };
 
   const secondaryCta =
     primaryCta.href === "/app/chat"
@@ -342,8 +342,8 @@ export default function DashboardPage() {
               </ButtonLink>
             </div>
           ) : allDone ? (
-            <p className="mt-3 shrink-0 font-display text-base italic text-accent">
-              You’re all set — go show it off!
+            <p className="mt-3 shrink-0 text-sm text-muted">
+              Your AI is ready. Share the link when you want other people to ask it questions.
             </p>
           ) : null}
         </section>
@@ -546,7 +546,7 @@ function RecentVisitorChats({
         ) : !published ? (
           <div className="flex flex-1 flex-col justify-center gap-3 rounded-xl bg-[var(--atmosphere-1)] px-4 py-6 text-center">
             <p className="font-display text-base text-fg text-balance">
-              Publish to start getting visitor chats ✨
+              Share your link to let other people ask questions.
             </p>
             <p className="text-sm text-muted text-balance">
               Once your link is live, conversations from your public page show
@@ -557,7 +557,7 @@ function RecentVisitorChats({
                 href="/onboarding/publish"
                 className="rounded-xl px-4 py-2.5"
               >
-                Publish your link
+                Share your link
                 <ChevronRightIcon className="ml-1.5 h-3.5 w-3.5" />
               </ButtonLink>
             </div>

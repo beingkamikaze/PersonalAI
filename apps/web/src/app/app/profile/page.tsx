@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ScreenIntro } from "@/components/screen-intro";
 import { UnsavedChangesDialog } from "@/components/unsaved-changes-dialog";
@@ -264,7 +265,7 @@ export default function ProfilePage() {
       setSavedFacts(next);
       setFactsDraft(next);
       setFactsLock((n) => n + 1);
-      setMessage("Facts saved — chat will use the updated Known facts.");
+      setMessage("Saved. Your AI will use these answers.");
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Could not save facts");
     } finally {
@@ -365,7 +366,7 @@ export default function ProfilePage() {
   return (
     <ScreenIntro
       title="Profile"
-      description="Who you are, Known facts the AI uses in chat, and publish state. Click the pencil to edit a field, then save that section. Photo saves as soon as you pick a file."
+      description="Your name and the facts from your interview. Visitors see your public page, not this list. Your AI uses these facts when it answers. How it talks is in Settings."
     >
       <div className="mb-10">
         {profile ? (
@@ -379,7 +380,9 @@ export default function ProfilePage() {
                 <p className="text-fg">{displayName}</p>
                 <p className="truncate text-sm text-muted">
                   {account?.email ?? "Signed in"}
-                  {` · ${profile.visibility}`}
+                  {profile.visibility === "published"
+                    ? " · Public link is live"
+                    : " · Not shared yet"}
                 </p>
               </>
             }
@@ -452,8 +455,11 @@ export default function ProfilePage() {
           <p className="text-sm text-muted">Loading facts…</p>
         ) : factKeys.length === 0 ? (
           <p className="text-sm text-muted">
-            No interview facts yet. Complete the onboarding interview to
-            populate this section.
+            No interview answers yet.{" "}
+            <Link href="/onboarding/interview" className="font-medium text-accent hover:text-accent-hover">
+              Finish the interview
+            </Link>{" "}
+            and they will show up here.
           </p>
         ) : (
           factKeys.map((key) => (

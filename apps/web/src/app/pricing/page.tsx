@@ -7,13 +7,13 @@ const plans = [
     name: "Free",
     price: "₹0",
     blurb:
-      "One AI profile, publish + share, limited chats with your AI/day and knowledge sources. Enough to validate the loop.",
+      "One AI profile you create and teach yourself. Publish and share a link, with limited daily chats and knowledge sources while we soft-launch.",
   },
   {
     name: "Plus",
     price: "Soon",
     blurb:
-      "Higher chat and document limits, richer analytics. Billing (Razorpay/Stripe) after soft launch feedback.",
+      "Higher chat and document limits. Billing starts after the soft launch, once we know which limits matter.",
   },
 ] as const;
 
@@ -25,7 +25,7 @@ export default function PricingPage() {
       <main className="px-6 py-16 md:px-10">
         <ScreenIntro
           title="Simple pricing"
-          description="Start free while we soft-launch with professionals. Paid plans after we learn what limits matter."
+          description="Create an assistant around your own information. Start free. Paid plans raise the limits after the soft launch."
         >
           <ul className="space-y-8">
             {plans.map((plan) => (
@@ -41,11 +41,11 @@ export default function PricingPage() {
             ))}
           </ul>
           <div className="mt-10">
-            <ButtonLink href="/sign-up">Create Your AI</ButtonLink>
+            <ButtonLink href="/sign-up">Create your AI</ButtonLink>
           </div>
           <p className="mt-6 text-xs text-muted">
-            Free soft-launch caps (API defaults): ~40 chats with your AI/day, ~8
-            knowledge sources, public chat rate-limited per visitor.
+            Free soft-launch limits: about 40 chats with your AI a day, about 8
+            knowledge sources, and a limit on how often each visitor can chat.
           </p>
         </ScreenIntro>
       </main>

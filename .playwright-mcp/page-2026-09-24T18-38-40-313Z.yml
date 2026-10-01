@@ -1,0 +1,104 @@
+- generic [ref=f3e2]:
+  - navigation "Workspace" [ref=f3e3]:
+    - generic [ref=f3e4]:
+      - link "Home" [ref=f3e5] [cursor=pointer]:
+        - /url: /app
+      - link "Chats" [ref=f3e12] [cursor=pointer]:
+        - /url: /app/chat
+      - link "Knowledge" [ref=f3e16] [cursor=pointer]:
+        - /url: /app/knowledge
+      - link "Memory" [ref=f3e21] [cursor=pointer]:
+        - /url: /app/memories
+      - link "Settings" [ref=f3e27] [cursor=pointer]:
+        - /url: /app/settings
+  - generic [ref=f3e32]:
+    - banner [ref=f3e33]:
+      - link "PersonaAI" [ref=f3e34] [cursor=pointer]:
+        - /url: /app
+      - link "39/40 Upgrade" [ref=f3e35] [cursor=pointer]:
+        - /url: /pricing
+        - generic [ref=f3e39]: 39/40
+        - generic [ref=f3e40]: Upgrade
+      - generic [ref=f3e42]:
+        - link "Search conversations" [ref=f3e43] [cursor=pointer]:
+          - /url: /app/conversations
+        - button "Notifications" [ref=f3e47] [cursor=pointer]
+        - button "Profile menu" [ref=f3e53] [cursor=pointer]:
+          - generic [aria-hidden] [ref=f3e54]: PR
+    - generic [ref=f3e58]:
+      - banner [ref=f3e59]:
+        - generic [ref=f3e60]:
+          - paragraph [ref=f3e61]: Memories
+          - heading "Your saved memories" [level=1] [ref=f3e62]
+          - paragraph [ref=f3e63]: Facts saved from conversations with your AI. Edit or delete anything that looks wrong before visitors hear them.
+          - generic [ref=f3e64]:
+            - generic [ref=f3e71]:
+              - generic [ref=f3e72]: Personalized
+              - generic [ref=f3e73]: Knows you better
+            - generic [ref=f3e81]:
+              - generic [ref=f3e82]: Private
+              - generic [ref=f3e83]: Only you can see these
+            - generic [ref=f3e90]:
+              - generic [ref=f3e91]: In your control
+              - generic [ref=f3e92]: Edit anytime
+      - generic [ref=f3e95]:
+        - generic [ref=f3e96]:
+          - searchbox "Search memories" [ref=f3e98]
+          - combobox "Filter by category" [ref=f3e99]:
+            - option "All categories" [selected]
+            - option "preference"
+            - option "fact"
+            - option "boundary"
+            - option "project"
+            - option "other"
+          - button "Add a memory" [ref=f3e100] [cursor=pointer]
+        - list [ref=f3e102]:
+          - listitem [ref=f3e103]:
+            - article [ref=f3e104]:
+              - generic [ref=f3e109]:
+                - paragraph [ref=f3e110]: I prefer async Slack updates over meetings.
+                - generic [ref=f3e111]:
+                  - generic [ref=f3e112]: preference
+                  - generic [ref=f3e113]: importance 0.82
+                  - generic [ref=f3e114]: confidence 0.90
+                  - generic [ref=f3e115]: owner_chat
+              - generic [ref=f3e116]:
+                - generic [ref=f3e117]:
+                  - button "Edit" [ref=f3e118] [cursor=pointer]
+                  - button "Delete memory" [ref=f3e122] [cursor=pointer]
+                  - button "More options" [ref=f3e126] [cursor=pointer]
+                - paragraph [ref=f3e131]: Saved 1 week ago
+          - listitem [ref=f3e132]:
+            - article [ref=f3e133]:
+              - generic [ref=f3e139]:
+                - paragraph [ref=f3e140]: Never invent compensation, personal numbers, or internal docs.
+                - generic [ref=f3e141]:
+                  - generic [ref=f3e142]: boundary
+                  - generic [ref=f3e143]: importance 0.95
+                  - generic [ref=f3e144]: confidence 0.98
+                  - generic [ref=f3e145]: owner_chat
+              - generic [ref=f3e146]:
+                - generic [ref=f3e147]:
+                  - button "Edit" [ref=f3e148] [cursor=pointer]
+                  - button "Delete memory" [ref=f3e152] [cursor=pointer]
+                  - button "More options" [ref=f3e156] [cursor=pointer]
+                - paragraph [ref=f3e161]: Saved 2 weeks ago
+          - listitem [ref=f3e162]:
+            - article [ref=f3e163]:
+              - generic [ref=f3e168]:
+                - paragraph [ref=f3e169]: I prefer morning calls.
+                - generic [ref=f3e170]:
+                  - generic [ref=f3e171]: preference
+                  - generic [ref=f3e172]: importance 0.70
+                  - generic [ref=f3e173]: confidence 0.85
+                  - generic [ref=f3e174]: owner_chat
+              - generic [ref=f3e175]:
+                - generic [ref=f3e176]:
+                  - button "Edit" [ref=f3e177] [cursor=pointer]
+                  - button "Delete memory" [ref=f3e181] [cursor=pointer]
+                  - button "More options" [ref=f3e185] [cursor=pointer]
+                - paragraph [ref=f3e190]: Saved 2 weeks ago
+      - generic [ref=f3e191]:
+        - paragraph [ref=f3e196]: "Tip: The more memories you save, the more personalized and accurate your AI becomes."
+        - link "Learn more" [ref=f3e197] [cursor=pointer]:
+          - /url: /app/chat

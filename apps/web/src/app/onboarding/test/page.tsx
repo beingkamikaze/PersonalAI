@@ -42,7 +42,7 @@ export default function OnboardingTestPage() {
   return (
     <ScreenIntro
       title="Test your AI"
-      description="Try the answers visitors will hear. Preferences you state here can be saved as memories."
+      description="Ask the questions someone else would ask. If an answer is wrong, add the missing piece in Knowledge or Memory before you share."
     >
       <OnboardingProgress step={4} />
       <div className="mt-8">
@@ -57,12 +57,9 @@ export default function OnboardingTestPage() {
         )}
       </div>
       <div className="mt-6 flex flex-wrap gap-3">
-        <ButtonLink href="/onboarding/publish">Looks good — continue</ButtonLink>
+        <ButtonLink href="/onboarding/publish">Continue to share</ButtonLink>
         <ButtonLink href="/onboarding/knowledge" variant="ghost">
-          Back
-        </ButtonLink>
-        <ButtonLink href="/app/chat" variant="secondary">
-          Talk to your AI
+          Back to knowledge
         </ButtonLink>
       </div>
     </ScreenIntro>
