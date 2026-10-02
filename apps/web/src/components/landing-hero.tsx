@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { MotionConfig, motion, useAnimation, useReducedMotion } from "motion/react";
 import { ButtonLink } from "@/components/ui/button";
@@ -249,32 +249,7 @@ export function LandingHero() {
         <p className="mt-3 max-w-lg text-[17px] leading-relaxed text-muted">
           One path. You stay in control the whole way.
         </p>
-        <ol className={`${CARD} mt-8 grid grid-cols-1 divide-y divide-border lg:grid-cols-5 lg:divide-x lg:divide-y-0`}>
-          {STEPS.map((step, index) => (
-            <li key={step.id} className="flex flex-col p-4 sm:p-5">
-              <div className="flex items-center gap-3">
-                <span className="inline-flex h-7 min-w-7 items-center justify-center rounded-lg bg-accent-soft px-2 text-sm font-medium text-accent">
-                  {step.number}
-                </span>
-                {index < STEPS.length - 1 ? (
-                  <span
-                    className="hidden h-px flex-1 bg-border lg:block"
-                    aria-hidden
-                  />
-                ) : null}
-              </div>
-              <h3 className="mt-3 text-[1.05rem] font-medium leading-snug text-fg">
-                {step.title}
-              </h3>
-              <p className="mt-1.5 text-sm leading-[1.55] text-muted">
-                {step.body}
-              </p>
-              <div className="mt-3">
-                <StepMock id={step.id} />
-              </div>
-            </li>
-          ))}
-        </ol>
+        <HowItWorks />
       </Reveal>
 
       <Reveal className="mx-auto w-full max-w-[1200px] px-5 py-12 sm:px-8 lg:py-14">
@@ -465,94 +440,351 @@ export function LandingHero() {
   );
 }
 
-function StepMock({ id }: { id: (typeof STEPS)[number]["id"] }) {
-  if (id === "interview") {
-    return (
-      <div className="rounded-xl border border-border bg-[var(--bg)] p-3" aria-hidden>
-        <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-accent">
-          Interview
-        </p>
-        <p className="mt-2 text-[13px] font-medium leading-snug text-fg">
-          What do you do day to day?
-        </p>
-        <p className="mt-2 rounded-lg border border-border bg-white px-2.5 py-2 text-[11px] leading-relaxed text-muted">
-          I advise clients, write the plan, and stay with the work until it ships.
-        </p>
-      </div>
-    );
-  }
+const STEP_DWELL_MS = 1800;
+const STEP_PAUSE_MS = 1100;
 
-  if (id === "knowledge") {
-    const rows = ["Resume.pdf", "Project notes", "yoursite.com"];
-    return (
-      <div className="rounded-xl border border-border bg-[var(--bg)] p-3" aria-hidden>
-        <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-accent">
-          Knowledge
-        </p>
-        <ul className="mt-2 space-y-1.5">
-          {rows.map((row) => (
-            <li
-              key={row}
-              className="flex items-center justify-between gap-3 rounded-lg bg-white px-2.5 py-1.5 text-[11px]"
-            >
-              <span className="truncate text-fg">{row}</span>
-              <span className="shrink-0 text-accent">Ready</span>
-            </li>
-          ))}
-        </ul>
-      </div>
-    );
-  }
+function HowItWorks() {
+  const listRef = useRef<HTMLOListElement>(null);
+  const [active, setActive] = useState<number | null>(null);
 
-  if (id === "customize") {
-    const rows = [
-      ["Preference", "Async first"],
-      ["Boundary", "No fees"],
-      ["Personality", "Concise"],
-    ];
-    return (
-      <div className="rounded-xl border border-border bg-[var(--bg)] p-3" aria-hidden>
-        <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-accent">
-          Memory and settings
-        </p>
-        <ul className="mt-2 space-y-1.5">
-          {rows.map(([label, value]) => (
-            <li
-              key={label}
-              className="flex items-center justify-between gap-3 rounded-lg bg-white px-2.5 py-1.5 text-[11px]"
-            >
-              <span className="text-muted">{label}</span>
-              <span className="truncate text-fg">{value}</span>
-            </li>
-          ))}
-        </ul>
-      </div>
-    );
-  }
+  useEffect(() => {
+    const node = listRef.current;
+    if (!node) return;
 
-  if (id === "chat") {
-    return (
-      <div className="space-y-2 rounded-xl border border-border bg-[var(--bg)] p-3" aria-hidden>
-        <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-accent">
-          Private chat
-        </p>
-        <p className="ml-6 rounded-2xl rounded-br-md bg-white px-2.5 py-1.5 text-[11px] leading-relaxed text-fg">
-          How do you usually start a project?
-        </p>
-        <p className="mr-4 rounded-2xl rounded-bl-md bg-accent-soft px-2.5 py-1.5 text-[11px] leading-relaxed text-fg">
-          A short call first, then I work async.
-        </p>
-      </div>
+    let timer = 0;
+    let index = 0;
+    let alive = true;
+
+    const schedule = () => {
+      const wait = index === STEPS.length - 1 ? STEP_DWELL_MS + STEP_PAUSE_MS : STEP_DWELL_MS;
+      timer = window.setTimeout(() => {
+        if (!alive) return;
+        index = (index + 1) % STEPS.length;
+        setActive(index);
+        schedule();
+      }, wait);
+    };
+
+    const start = () => {
+      window.clearTimeout(timer);
+      index = 0;
+      setActive(0);
+      schedule();
+    };
+
+    const stop = () => {
+      window.clearTimeout(timer);
+      setActive(null);
+    };
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry?.isIntersecting) start();
+        else stop();
+      },
+      { threshold: 0.28 },
     );
-  }
+    observer.observe(node);
+
+    return () => {
+      alive = false;
+      window.clearTimeout(timer);
+      observer.disconnect();
+    };
+  }, []);
 
   return (
-    <div className="rounded-xl border border-border bg-[var(--bg)] p-3" aria-hidden>
+    <ol
+      ref={listRef}
+      className="mt-8 grid grid-cols-1 gap-2.5 lg:grid-cols-5"
+    >
+      {STEPS.map((step, index) => {
+        const isActive = active === index;
+        const lineLeads = active === index;
+        const mobileEdge = index > 0 && active === index - 1;
+        return (
+          <li
+            key={step.id}
+            data-step={step.number}
+            data-active={isActive ? "true" : "false"}
+            className={`${CARD} relative flex flex-col p-4 outline outline-1 transition-[transform,box-shadow,outline-color] duration-500 ease-in-out sm:p-5 ${
+              isActive
+                ? "z-10 -translate-y-0.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.95),0_12px_24px_-16px_rgba(12,107,86,0.45)] outline-[rgba(12,107,86,0.22)]"
+                : "translate-y-0 outline-transparent"
+            }`}
+          >
+            {index > 0 ? (
+              <span
+                className={`pointer-events-none absolute inset-x-0 top-0 z-10 h-px bg-accent transition-opacity duration-500 ease-in-out lg:hidden ${
+                  mobileEdge ? "opacity-40" : "opacity-0"
+                }`}
+                aria-hidden
+              />
+            ) : null}
+            <div className="flex items-center gap-3">
+              <span
+                className={`inline-flex h-7 min-w-7 items-center justify-center rounded-lg px-2 text-sm font-medium transition-[background-color,color,box-shadow] duration-500 ease-in-out ${
+                  isActive
+                    ? "bg-accent text-white shadow-[0_0_0_4px_rgba(12,107,86,0.12)]"
+                    : "bg-accent-soft text-accent shadow-none"
+                }`}
+              >
+                {step.number}
+              </span>
+              {index < STEPS.length - 1 ? (
+                <span
+                  className="relative hidden h-px flex-1 overflow-hidden bg-border lg:block"
+                  aria-hidden
+                >
+                  <span
+                    className={`absolute inset-0 origin-left bg-accent opacity-40 transition-transform duration-700 ease-in-out ${
+                      lineLeads ? "scale-x-100" : "scale-x-0"
+                    }`}
+                  />
+                </span>
+              ) : null}
+            </div>
+            <h3 className="mt-3 text-[1.05rem] font-medium leading-snug text-fg">
+              {step.title}
+            </h3>
+            <p className="mt-1.5 text-sm leading-[1.55] text-muted">
+              {step.body}
+            </p>
+            <div className="mt-auto pt-3">
+              <StepMock id={step.id} active={isActive} />
+            </div>
+          </li>
+        );
+      })}
+    </ol>
+  );
+}
+
+function StepMock({
+  id,
+  active,
+}: {
+  id: (typeof STEPS)[number]["id"];
+  active: boolean;
+}) {
+  const shell = `rounded-xl border bg-[var(--bg)] p-3 transition-[border-color,box-shadow] duration-500 ease-in-out ${
+    active
+      ? "border-[rgba(12,107,86,0.25)] shadow-[0_0_0_3px_rgba(12,107,86,0.06)]"
+      : "border-border shadow-none"
+  }`;
+
+  if (id === "interview") return <InterviewMock active={active} shell={shell} />;
+  if (id === "knowledge") return <KnowledgeMock active={active} shell={shell} />;
+  if (id === "customize") return <CustomizeMock active={active} shell={shell} />;
+  if (id === "chat") return <ChatMock active={active} shell={shell} />;
+  return <ShareMock active={active} shell={shell} />;
+}
+
+function InterviewMock({ active, shell }: { active: boolean; shell: string }) {
+  const [answerIn, setAnswerIn] = useState(true);
+
+  useEffect(() => {
+    if (!active) {
+      setAnswerIn(true);
+      return;
+    }
+    setAnswerIn(false);
+    const id = window.setTimeout(() => setAnswerIn(true), 280);
+    return () => window.clearTimeout(id);
+  }, [active]);
+
+  return (
+    <div className={shell} aria-hidden>
       <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-accent">
+        Interview
+      </p>
+      <p
+        className={`mt-2 text-[13px] font-medium leading-snug transition-colors duration-500 ease-in-out ${
+          active ? "text-accent" : "text-fg"
+        }`}
+      >
+        What do you do day to day?
+      </p>
+      <p
+        className={`mt-2 rounded-lg border border-border bg-white px-2.5 py-2 text-[11px] leading-relaxed text-muted transition-[opacity,transform] duration-500 ease-in-out ${
+          answerIn ? "translate-y-0 opacity-100" : "translate-y-1 opacity-0"
+        }`}
+      >
+        I advise clients, write the plan, and stay with the work until it ships.
+      </p>
+    </div>
+  );
+}
+
+function KnowledgeMock({ active, shell }: { active: boolean; shell: string }) {
+  const rows = ["Resume.pdf", "Project notes", "yoursite.com"];
+  const [lit, setLit] = useState(rows.length);
+
+  useEffect(() => {
+    if (!active) {
+      setLit(rows.length);
+      return;
+    }
+    setLit(-1);
+    const timers = rows.map((_, index) =>
+      window.setTimeout(() => setLit(index), 180 + index * 420),
+    );
+    return () => timers.forEach((id) => window.clearTimeout(id));
+  }, [active]);
+
+  return (
+    <div className={shell} aria-hidden>
+      <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-accent">
+        Knowledge
+      </p>
+      <ul className="mt-2 space-y-1.5">
+        {rows.map((row, index) => {
+          const on = !active || lit >= index;
+          return (
+            <li
+              key={row}
+              className={`flex items-center justify-between gap-3 rounded-lg px-2.5 py-1.5 text-[11px] transition-colors duration-500 ease-in-out ${
+                active && lit >= index && lit < rows.length ? "bg-accent-soft" : "bg-white"
+              }`}
+            >
+              <span className="truncate text-fg">{row}</span>
+              <span
+                className={`shrink-0 text-accent transition-opacity duration-500 ease-in-out ${
+                  on ? "opacity-100" : "opacity-35"
+                }`}
+              >
+                Ready
+              </span>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
+}
+
+function CustomizeMock({ active, shell }: { active: boolean; shell: string }) {
+  const rows = [
+    ["Preference", "Async first"],
+    ["Boundary", "No fees"],
+    ["Personality", "Concise"],
+  ];
+  const [lit, setLit] = useState(-1);
+
+  useEffect(() => {
+    if (!active) {
+      setLit(-1);
+      return;
+    }
+    setLit(0);
+    const timers = [1, 2].map((index) =>
+      window.setTimeout(() => setLit(index), index * 480),
+    );
+    return () => timers.forEach((id) => window.clearTimeout(id));
+  }, [active]);
+
+  return (
+    <div className={shell} aria-hidden>
+      <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-accent">
+        Memory and settings
+      </p>
+      <ul className="mt-2 space-y-1.5">
+        {rows.map(([label, value], index) => (
+          <li
+            key={label}
+            className={`flex items-center justify-between gap-3 rounded-lg px-2.5 py-1.5 text-[11px] transition-colors duration-500 ease-in-out ${
+              active && lit === index ? "bg-accent-soft" : "bg-white"
+            }`}
+          >
+            <span className="text-muted">{label}</span>
+            <span className="truncate text-fg">{value}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function ChatMock({ active, shell }: { active: boolean; shell: string }) {
+  const [replyIn, setReplyIn] = useState(true);
+  const [replyInstant, setReplyInstant] = useState(false);
+
+  useEffect(() => {
+    if (!active) {
+      setReplyInstant(false);
+      setReplyIn(true);
+      return;
+    }
+    setReplyInstant(true);
+    setReplyIn(false);
+    const reply = window.setTimeout(() => {
+      setReplyInstant(false);
+      setReplyIn(true);
+    }, 640);
+    return () => window.clearTimeout(reply);
+  }, [active]);
+
+  return (
+    <div className={`space-y-2 ${shell}`} aria-hidden>
+      <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-accent">
+        Private chat
+      </p>
+      <p
+        className={`ml-6 rounded-2xl rounded-br-md bg-white px-2.5 py-1.5 text-[11px] leading-relaxed transition-colors duration-500 ease-in-out ${
+          active ? "text-accent" : "text-fg"
+        }`}
+      >
+        How do you usually start a project?
+      </p>
+      <p
+        className={`mr-4 rounded-2xl rounded-bl-md bg-accent-soft px-2.5 py-1.5 text-[11px] leading-relaxed text-fg ease-in-out ${
+          replyInstant ? "transition-none" : "transition-[opacity,transform] duration-500"
+        } ${replyIn ? "translate-y-0 opacity-100" : "translate-y-1 opacity-0"}`}
+      >
+        A short call first, then I work async.
+      </p>
+    </div>
+  );
+}
+
+function ShareMock({ active, shell }: { active: boolean; shell: string }) {
+  const [stage, setStage] = useState(2);
+
+  useEffect(() => {
+    if (!active) {
+      setStage(2);
+      return;
+    }
+    setStage(0);
+    const url = window.setTimeout(() => setStage(1), 480);
+    const published = window.setTimeout(() => setStage(2), 980);
+    return () => {
+      window.clearTimeout(url);
+      window.clearTimeout(published);
+    };
+  }, [active]);
+
+  return (
+    <div className={shell} aria-hidden>
+      <p
+        className={`text-[10px] font-medium uppercase tracking-[0.14em] text-accent transition-[opacity,box-shadow] duration-500 ease-in-out ${
+          active && stage === 0 ? "shadow-[inset_0_-1px_0_rgba(12,107,86,0.45)]" : "shadow-none"
+        }`}
+      >
         Your public page
       </p>
-      <p className="mt-2 text-[13px] font-medium text-accent">persona.ai/u/alex</p>
-      <p className="mt-1 text-[11px] leading-relaxed text-muted">
+      <p
+        className={`mt-2 text-[13px] font-medium text-accent transition-[opacity,transform] duration-500 ease-in-out ${
+          !active || stage >= 1 ? "translate-y-0 opacity-100" : "translate-y-0.5 opacity-40"
+        }`}
+      >
+        persona.ai/u/alex
+      </p>
+      <p
+        className={`mt-1 text-[11px] leading-relaxed transition-colors duration-500 ease-in-out ${
+          active && stage >= 2 ? "text-accent" : "text-muted"
+        }`}
+      >
         Published. People can ask about your work.
       </p>
     </div>
@@ -593,38 +825,47 @@ function Eyebrow({ children }: { children: string }) {
   );
 }
 
-const PREVIEW_USER =
-  "Are you taking on new consulting clients?";
-const PREVIEW_AI =
-  "Yes — a few advisory clients at a time. I start with a short call, then work async. I can walk through past projects. I don’t share fees or private client details.";
+const PREVIEW_CHATS = [
+  {
+    user: "Are you taking on new consulting clients?",
+    ai: "Yes — a few advisory clients at a time. I start with a short call, then work async. I can walk through past projects. I don’t share fees or private client details.",
+  },
+  {
+    user: "How do you like to work?",
+    ai: "Async first. I write a short plan, then we meet only when a decision needs it. Updates stay brief.",
+  },
+  {
+    user: "What projects have you worked on?",
+    ai: "A client workshop series, and a product rollout I stayed with until it shipped. I can walk through the ones closest to what you need.",
+  },
+  {
+    user: "Can you share your rates?",
+    ai: "I don’t share fees or private client details. If we’re a fit, I’ll send a written scope after a short call.",
+  },
+  {
+    user: "What should I know before we talk?",
+    ai: "Bring the outcome you want and any deadline. I’ll tell you honestly if it’s work I take on, and I won’t invent an answer I don’t have.",
+  },
+] as const;
 
 const USER_CHAR_MS = 42;
 const AI_CHAR_MS = 24;
 const ENTER_MS = 600;
 const AFTER_ENTER_MS = 500;
-const AFTER_USER_MS = 500;
-const THINK_MS = 1400;
-const HOLD_MS = 6000;
-const CLEAR_MS = 280;
-const IDLE_MS = 450;
+const AFTER_USER_MS = 700;
+const THINK_MS = 800;
+const HOLD_MS = 900;
 
-type PreviewPhase =
-  | "enter"
-  | "user"
-  | "gap"
-  | "think"
-  | "ai"
-  | "hold"
-  | "clearAi"
-  | "clearUser"
-  | "idle";
+type PreviewPhase = "enter" | "user" | "gap" | "think" | "ai" | "hold" | "done";
+
+type PreviewTurn = { user: string; ai: string };
 
 function useLandingChatPlayback(controls: ReturnType<typeof useAnimation>) {
   const [phase, setPhase] = useState<PreviewPhase>("enter");
+  const [exchange, setExchange] = useState(0);
+  const [settled, setSettled] = useState<PreviewTurn[]>([]);
   const [userCount, setUserCount] = useState(0);
   const [aiCount, setAiCount] = useState(0);
-  const [userOpacity, setUserOpacity] = useState(1);
-  const [aiOpacity, setAiOpacity] = useState(1);
   const [live, setLive] = useState("");
 
   useEffect(() => {
@@ -664,39 +905,33 @@ function useLandingChatPlayback(controls: ReturnType<typeof useAnimation>) {
       scale: 1,
       transition: { duration: ENTER_MS / 1000, ease: [0.22, 1, 0.36, 1] as const },
     };
-    const hideCard = {
-      opacity: 0,
-      y: 12,
-      scale: 0.98,
-      transition: { duration: 0.45, ease: [0.4, 0, 1, 1] as const },
-    };
 
     const run = async () => {
       controls.set({ opacity: 0, y: 12, scale: 0.98 });
       setPhase("enter");
+      setExchange(0);
+      setSettled([]);
       setUserCount(0);
       setAiCount(0);
-      setUserOpacity(1);
-      setAiOpacity(1);
       setLive("");
 
-      let first = true;
-      while (alive) {
-        if (!first) {
-          await controls.start(hideCard);
-          if (!alive) return;
-        }
-        first = false;
-        setPhase("enter");
-        await controls.start(showCard);
-        if (!alive) return;
-        await sleep(AFTER_ENTER_MS);
-        if (!alive) return;
+      await controls.start(showCard);
+      if (!alive) return;
+      await sleep(AFTER_ENTER_MS);
+      if (!alive) return;
+
+      const history: PreviewTurn[] = [];
+
+      for (let cursor = 0; alive && cursor < PREVIEW_CHATS.length; cursor += 1) {
+        const chat = PREVIEW_CHATS[cursor];
+        setExchange(cursor);
+        setUserCount(0);
+        setAiCount(0);
 
         setPhase("user");
-        await typeMessage(PREVIEW_USER, setUserCount, USER_CHAR_MS);
+        await typeMessage(chat.user, setUserCount, USER_CHAR_MS);
         if (!alive) return;
-        setLive(`Visitor: ${PREVIEW_USER}`);
+        setLive(`Visitor: ${chat.user}`);
 
         setPhase("gap");
         await sleep(AFTER_USER_MS);
@@ -707,34 +942,20 @@ function useLandingChatPlayback(controls: ReturnType<typeof useAnimation>) {
         if (!alive) return;
 
         setPhase("ai");
-        await typeMessage(PREVIEW_AI, setAiCount, AI_CHAR_MS);
+        await typeMessage(chat.ai, setAiCount, AI_CHAR_MS);
         if (!alive) return;
-        setLive(`Visitor: ${PREVIEW_USER} Alex’s AI: ${PREVIEW_AI}`);
+        setLive(`Alex’s AI: ${chat.ai}`);
 
+        history.push({ user: chat.user, ai: chat.ai });
+        setSettled(history.slice());
+        setUserCount(0);
+        setAiCount(0);
         setPhase("hold");
         await sleep(HOLD_MS);
         if (!alive) return;
-
-        setPhase("clearAi");
-        setAiOpacity(0);
-        await sleep(CLEAR_MS);
-        if (!alive) return;
-        setAiCount(0);
-        setAiOpacity(1);
-
-        await sleep(180);
-        if (!alive) return;
-        setPhase("clearUser");
-        setUserOpacity(0);
-        await sleep(CLEAR_MS);
-        if (!alive) return;
-        setUserCount(0);
-        setUserOpacity(1);
-
-        setPhase("idle");
-        await sleep(IDLE_MS);
-        if (!alive) return;
       }
+
+      if (alive) setPhase("done");
     };
 
     void run();
@@ -747,10 +968,10 @@ function useLandingChatPlayback(controls: ReturnType<typeof useAnimation>) {
 
   return {
     phase,
+    exchange,
+    settled,
     userCount,
     aiCount,
-    userOpacity,
-    aiOpacity,
     live,
   };
 }
@@ -766,6 +987,56 @@ function HeroPreview() {
 function HeroPreviewCard() {
   const controls = useAnimation();
   const playback = useLandingChatPlayback(controls);
+  const chat = PREVIEW_CHATS[playback.exchange];
+  const threadRef = useRef<HTMLDivElement>(null);
+  const innerRef = useRef<HTMLDivElement>(null);
+  const basisRef = useRef<HTMLDivElement>(null);
+  const [threadHeight, setThreadHeight] = useState<number | null>(null);
+  const showActive =
+    playback.phase === "user" ||
+    playback.phase === "gap" ||
+    playback.phase === "think" ||
+    playback.phase === "ai";
+
+  useLayoutEffect(() => {
+    const scroller = threadRef.current;
+    const inner = innerRef.current;
+    const basis = basisRef.current;
+    if (!scroller || !inner || !basis) return;
+
+    const measure = () => {
+      const minH = basis.offsetHeight;
+      const maxRaw = Number.parseFloat(getComputedStyle(scroller).maxHeight);
+      const cap = Number.isFinite(maxRaw) ? maxRaw : inner.scrollHeight;
+      const next = Math.min(Math.max(inner.scrollHeight, minH), cap);
+      setThreadHeight((prev) => (prev === next ? prev : next));
+    };
+
+    measure();
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, [playback.settled, playback.userCount, playback.aiCount, playback.phase]);
+
+  useEffect(() => {
+    const scroller = threadRef.current;
+    if (!scroller) return;
+    const pin = () => {
+      scroller.scrollTop = scroller.scrollHeight;
+    };
+    pin();
+    const interval = window.setInterval(pin, 48);
+    const stop = window.setTimeout(() => window.clearInterval(interval), 560);
+    return () => {
+      window.clearInterval(interval);
+      window.clearTimeout(stop);
+    };
+  }, [
+    threadHeight,
+    playback.userCount,
+    playback.aiCount,
+    playback.phase,
+    playback.settled,
+  ]);
 
   return (
     <motion.div
@@ -796,28 +1067,51 @@ function HeroPreviewCard() {
       </div>
 
       <div className="relative mt-4">
-        <div className="px-0.5">
-          <PreviewThread ghost userText={PREVIEW_USER} aiText={PREVIEW_AI} />
-        </div>
-        <div className="absolute inset-0 px-0.5">
+        <div
+          ref={basisRef}
+          className="pointer-events-none invisible absolute inset-x-0 top-0"
+          aria-hidden
+        >
           <PreviewThread
-            userText={PREVIEW_USER.slice(0, playback.userCount)}
-            aiText={
-              playback.phase === "think"
-                ? ""
-                : PREVIEW_AI.slice(0, playback.aiCount)
-            }
-            userTyping={
-              playback.phase === "user" &&
-              playback.userCount < PREVIEW_USER.length
-            }
-            aiTyping={
-              playback.phase === "ai" && playback.aiCount < PREVIEW_AI.length
-            }
-            thinking={playback.phase === "think"}
-            userOpacity={playback.userOpacity}
-            aiOpacity={playback.aiOpacity}
+            ghost
+            userText={PREVIEW_CHATS[0].user}
+            aiText={PREVIEW_CHATS[0].ai}
           />
+        </div>
+        <div
+          ref={threadRef}
+          className="app-scroll max-h-[18rem] overflow-x-hidden overflow-y-auto overscroll-contain transition-[height] duration-500 ease-out motion-reduce:transition-none sm:max-h-[26rem]"
+          style={{
+            height: threadHeight ?? undefined,
+          }}
+        >
+          <div ref={innerRef} className="space-y-3 px-0.5">
+            {playback.settled.map((turn) => (
+              <PreviewThread
+                key={turn.user}
+                userText={turn.user}
+                aiText={turn.ai}
+              />
+            ))}
+            {showActive ? (
+              <PreviewThread
+                userText={chat.user.slice(0, playback.userCount)}
+                aiText={
+                  playback.phase === "think" || playback.phase === "gap"
+                    ? ""
+                    : chat.ai.slice(0, playback.aiCount)
+                }
+                userTyping={
+                  playback.phase === "user" &&
+                  playback.userCount < chat.user.length
+                }
+                aiTyping={
+                  playback.phase === "ai" && playback.aiCount < chat.ai.length
+                }
+                thinking={playback.phase === "think"}
+              />
+            ) : null}
+          </div>
         </div>
       </div>
 
