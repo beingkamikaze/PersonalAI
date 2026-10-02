@@ -38,12 +38,17 @@ const config: Config = {
           "0%, 100%": { transform: "translateY(0)" },
           "50%": { transform: "translateY(-2px)" },
         },
+        "landing-caret": {
+          "0%, 45%": { opacity: "1" },
+          "50%, 100%": { opacity: "0" },
+        },
       },
       animation: {
         "chat-dot": "chat-dot 1s ease-in-out infinite",
         "chat-mark": "chat-mark 1.2s ease-in-out infinite",
         "status-float": "status-float 3.6s ease-in-out infinite",
         "status-float-pill": "status-float 4.2s ease-in-out 0.7s infinite",
+        "landing-caret": "landing-caret 1.05s steps(1, end) infinite",
       },
     },
   },

@@ -1,8 +1,8 @@
 "use client";
 
-import { useMemo, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import Link from "next/link";
-import { motion, useReducedMotion } from "motion/react";
+import { MotionConfig, motion, useAnimation, useReducedMotion } from "motion/react";
 import { ButtonLink } from "@/components/ui/button";
 import {
   ChatIcon,
@@ -223,15 +223,18 @@ export function LandingHero() {
             <CurveMark />
           </div>
 
-          <motion.div variants={item} className="min-w-0">
-            <p className="mb-3 text-sm leading-relaxed text-muted">
+          <div className="min-w-0">
+            <motion.p
+              variants={item}
+              className="mb-3 text-sm leading-relaxed text-muted"
+            >
               Someone asks your AI about your work.
               <span className="mt-0.5 block">
                 It answers using what you’ve taught it.
               </span>
-            </p>
-            <HeroPreview reduceMotion={Boolean(reduceMotion)} />
-          </motion.div>
+            </motion.p>
+            <HeroPreview />
+          </div>
         </section>
       </motion.div>
 
@@ -590,18 +593,191 @@ function Eyebrow({ children }: { children: string }) {
   );
 }
 
-function HeroPreview({ reduceMotion }: { reduceMotion: boolean }) {
+const PREVIEW_USER =
+  "Are you taking on new consulting clients?";
+const PREVIEW_AI =
+  "Yes — a few advisory clients at a time. I start with a short call, then work async. I can walk through past projects. I don’t share fees or private client details.";
+
+const USER_CHAR_MS = 42;
+const AI_CHAR_MS = 24;
+const ENTER_MS = 600;
+const AFTER_ENTER_MS = 500;
+const AFTER_USER_MS = 500;
+const THINK_MS = 1400;
+const HOLD_MS = 6000;
+const CLEAR_MS = 280;
+const IDLE_MS = 450;
+
+type PreviewPhase =
+  | "enter"
+  | "user"
+  | "gap"
+  | "think"
+  | "ai"
+  | "hold"
+  | "clearAi"
+  | "clearUser"
+  | "idle";
+
+function useLandingChatPlayback(controls: ReturnType<typeof useAnimation>) {
+  const [phase, setPhase] = useState<PreviewPhase>("enter");
+  const [userCount, setUserCount] = useState(0);
+  const [aiCount, setAiCount] = useState(0);
+  const [userOpacity, setUserOpacity] = useState(1);
+  const [aiOpacity, setAiOpacity] = useState(1);
+  const [live, setLive] = useState("");
+
+  useEffect(() => {
+    let alive = true;
+    const timers = new Set<number>();
+
+    const sleep = (ms: number) =>
+      new Promise<void>((resolve) => {
+        const id = window.setTimeout(() => {
+          timers.delete(id);
+          resolve();
+        }, ms);
+        timers.add(id);
+      });
+
+    const stop = () => {
+      alive = false;
+      timers.forEach((id) => window.clearTimeout(id));
+      timers.clear();
+    };
+
+    const typeMessage = async (
+      text: string,
+      setCount: (count: number) => void,
+      ms: number,
+    ) => {
+      for (let i = 1; i <= text.length; i += 1) {
+        if (!alive) return;
+        setCount(i);
+        if (i < text.length) await sleep(ms);
+      }
+    };
+
+    const showCard = {
+      opacity: 1,
+      y: 0,
+      scale: 1,
+      transition: { duration: ENTER_MS / 1000, ease: [0.22, 1, 0.36, 1] as const },
+    };
+    const hideCard = {
+      opacity: 0,
+      y: 12,
+      scale: 0.98,
+      transition: { duration: 0.45, ease: [0.4, 0, 1, 1] as const },
+    };
+
+    const run = async () => {
+      controls.set({ opacity: 0, y: 12, scale: 0.98 });
+      setPhase("enter");
+      setUserCount(0);
+      setAiCount(0);
+      setUserOpacity(1);
+      setAiOpacity(1);
+      setLive("");
+
+      let first = true;
+      while (alive) {
+        if (!first) {
+          await controls.start(hideCard);
+          if (!alive) return;
+        }
+        first = false;
+        setPhase("enter");
+        await controls.start(showCard);
+        if (!alive) return;
+        await sleep(AFTER_ENTER_MS);
+        if (!alive) return;
+
+        setPhase("user");
+        await typeMessage(PREVIEW_USER, setUserCount, USER_CHAR_MS);
+        if (!alive) return;
+        setLive(`Visitor: ${PREVIEW_USER}`);
+
+        setPhase("gap");
+        await sleep(AFTER_USER_MS);
+        if (!alive) return;
+
+        setPhase("think");
+        await sleep(THINK_MS);
+        if (!alive) return;
+
+        setPhase("ai");
+        await typeMessage(PREVIEW_AI, setAiCount, AI_CHAR_MS);
+        if (!alive) return;
+        setLive(`Visitor: ${PREVIEW_USER} Alex’s AI: ${PREVIEW_AI}`);
+
+        setPhase("hold");
+        await sleep(HOLD_MS);
+        if (!alive) return;
+
+        setPhase("clearAi");
+        setAiOpacity(0);
+        await sleep(CLEAR_MS);
+        if (!alive) return;
+        setAiCount(0);
+        setAiOpacity(1);
+
+        await sleep(180);
+        if (!alive) return;
+        setPhase("clearUser");
+        setUserOpacity(0);
+        await sleep(CLEAR_MS);
+        if (!alive) return;
+        setUserCount(0);
+        setUserOpacity(1);
+
+        setPhase("idle");
+        await sleep(IDLE_MS);
+        if (!alive) return;
+      }
+    };
+
+    void run();
+
+    return () => {
+      stop();
+      controls.stop();
+    };
+  }, [controls]);
+
+  return {
+    phase,
+    userCount,
+    aiCount,
+    userOpacity,
+    aiOpacity,
+    live,
+  };
+}
+
+function HeroPreview() {
+  return (
+    <MotionConfig reducedMotion="never">
+      <HeroPreviewCard />
+    </MotionConfig>
+  );
+}
+
+function HeroPreviewCard() {
+  const controls = useAnimation();
+  const playback = useLandingChatPlayback(controls);
+
   return (
     <motion.div
       className={`${CARD} p-4 sm:p-5`}
+      data-landing-chat={playback.phase}
       aria-label="Example of someone asking a consultant’s AI about new clients, answered from their work, preferences, and boundaries"
-      animate={reduceMotion ? undefined : { y: [0, -4, 0] }}
-      transition={
-        reduceMotion
-          ? undefined
-          : { duration: 8, repeat: Infinity, ease: "easeInOut" }
-      }
+      initial={{ opacity: 0, y: 12, scale: 0.98 }}
+      animate={controls}
     >
+      <p className="sr-only" aria-live="polite">
+        {playback.live}
+      </p>
       <div className="flex flex-wrap items-center justify-between gap-3 px-1">
         <div className="flex min-w-0 items-center gap-2.5">
           <Face src="/landing/alex.jpg" alt="" className="h-9 w-9" />
@@ -619,20 +795,29 @@ function HeroPreview({ reduceMotion }: { reduceMotion: boolean }) {
         </p>
       </div>
 
-      <div className="mt-4 space-y-3 px-0.5">
-        <div className="flex items-end justify-end gap-2">
-          <p className="max-w-[82%] rounded-2xl rounded-br-md bg-[var(--atmosphere-1)] px-3.5 py-2.5 text-[13.5px] leading-relaxed text-fg">
-            Are you taking on new consulting clients?
-          </p>
-          <Face src="/landing/visitor.jpg" alt="" className="h-7 w-7" />
+      <div className="relative mt-4">
+        <div className="px-0.5">
+          <PreviewThread ghost userText={PREVIEW_USER} aiText={PREVIEW_AI} />
         </div>
-        <div className="flex items-end gap-2">
-          <Face src="/landing/alex.jpg" alt="" className="h-7 w-7" />
-          <p className="max-w-[82%] rounded-2xl rounded-bl-md bg-accent-soft px-3.5 py-2.5 text-[13.5px] leading-relaxed text-fg">
-            Yes — a few advisory clients at a time. I start with a short call,
-            then work async. I can walk through past projects. I don’t share
-            fees or private client details.
-          </p>
+        <div className="absolute inset-0 px-0.5">
+          <PreviewThread
+            userText={PREVIEW_USER.slice(0, playback.userCount)}
+            aiText={
+              playback.phase === "think"
+                ? ""
+                : PREVIEW_AI.slice(0, playback.aiCount)
+            }
+            userTyping={
+              playback.phase === "user" &&
+              playback.userCount < PREVIEW_USER.length
+            }
+            aiTyping={
+              playback.phase === "ai" && playback.aiCount < PREVIEW_AI.length
+            }
+            thinking={playback.phase === "think"}
+            userOpacity={playback.userOpacity}
+            aiOpacity={playback.aiOpacity}
+          />
         </div>
       </div>
 
@@ -648,6 +833,135 @@ function HeroPreview({ reduceMotion }: { reduceMotion: boolean }) {
         </span>
       </div>
     </motion.div>
+  );
+}
+
+function PreviewThread({
+  ghost = false,
+  userText,
+  aiText,
+  userTyping = false,
+  aiTyping = false,
+  thinking = false,
+  userOpacity = 1,
+  aiOpacity = 1,
+}: {
+  ghost?: boolean;
+  userText: string;
+  aiText: string;
+  userTyping?: boolean;
+  aiTyping?: boolean;
+  thinking?: boolean;
+  userOpacity?: number;
+  aiOpacity?: number;
+}) {
+  return (
+    <div
+      className={
+        ghost
+          ? "invisible select-none space-y-3"
+          : "space-y-3"
+      }
+      aria-hidden={ghost ? true : undefined}
+    >
+      {userText ? (
+        <div
+          className="flex items-end justify-end gap-2 motion-reduce:transition-none transition-opacity duration-300 ease-out"
+          style={ghost ? undefined : { opacity: userOpacity }}
+        >
+          <p className="max-w-[82%] rounded-2xl rounded-br-md bg-[var(--atmosphere-1)] px-3.5 py-2.5 text-[13.5px] leading-relaxed text-fg">
+            {userText}
+            {userTyping ? <TypingCaret /> : null}
+          </p>
+          <Face src="/landing/visitor.jpg" alt="" className="h-7 w-7" />
+        </div>
+      ) : null}
+      {thinking ? <PreviewThinking /> : null}
+      {aiText ? (
+        <div
+          className="flex items-end gap-2 motion-reduce:transition-none transition-opacity duration-300 ease-out"
+          style={ghost ? undefined : { opacity: aiOpacity }}
+        >
+          <Face src="/landing/alex.jpg" alt="" className="h-7 w-7" />
+          <p className="max-w-[82%] rounded-2xl rounded-bl-md bg-accent-soft px-3.5 py-2.5 text-[13.5px] leading-relaxed text-fg">
+            {aiText}
+            {aiTyping ? <TypingCaret /> : null}
+          </p>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function PreviewThinking() {
+  return (
+    <div
+      className="flex items-end gap-2"
+      role="status"
+      aria-label="Alex’s AI is thinking"
+    >
+      <Face src="/landing/alex.jpg" alt="" className="h-7 w-7" />
+      <div className="inline-flex max-w-[82%] items-center gap-1.5 rounded-2xl rounded-bl-md bg-accent-soft px-3.5 py-2.5">
+        <span className="inline-block h-[1.625em] w-0 text-[13.5px]" aria-hidden />
+        <PreviewSpark />
+        <ThinkingDots />
+      </div>
+    </div>
+  );
+}
+
+function PreviewSpark() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      className="h-3.5 w-3.5 text-accent"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.75"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3L12 3Z" />
+      <path d="M5 3v4" />
+      <path d="M3 5h4" />
+    </svg>
+  );
+}
+
+function ThinkingDots() {
+  const [count, setCount] = useState(1);
+
+  useEffect(() => {
+    const pattern = [1, 2, 3, 2, 1];
+    let step = 0;
+    const id = window.setInterval(() => {
+      step = (step + 1) % pattern.length;
+      setCount(pattern[step]);
+    }, 280);
+    return () => window.clearInterval(id);
+  }, []);
+
+  return (
+    <span className="inline-flex items-center gap-1" aria-hidden>
+      {[1, 2, 3].map((dot) => (
+        <span
+          key={dot}
+          className={`h-1.5 w-1.5 rounded-full bg-accent shadow-[inset_0_1px_1px_rgba(4,28,22,0.5)] transition-opacity duration-200 motion-reduce:transition-none ${
+            dot <= count ? "opacity-100" : "opacity-0"
+          }`}
+        />
+      ))}
+    </span>
+  );
+}
+
+function TypingCaret() {
+  return (
+    <span
+      className="inline-block h-[0.9em] w-px -mr-px translate-y-px bg-current align-[-0.06em] animate-landing-caret motion-reduce:animate-none"
+      aria-hidden
+    />
   );
 }
 
