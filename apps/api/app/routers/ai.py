@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 
 from app.analytics import summarize
 from app.auth import get_current_user
-from app.completeness import refresh_completeness
+from app.completeness import compute_completeness, refresh_completeness
 from app.config import get_settings
 from app.db import get_db
 from app.logging_config import get_logger
@@ -138,6 +138,7 @@ def update_ai_profile(
             value = value.strip() or None
         setattr(profile, key, value)
 
+    refresh_completeness(db, profile.id)
     try:
         db.commit()
     except IntegrityError as exc:
@@ -271,6 +272,7 @@ def unpublish_ai(
 ) -> AiProfile:
     profile = get_owned_profile(db, user, profile_id)
     profile.visibility = "draft"
+    refresh_completeness(db, profile.id)
     db.commit()
     db.refresh(profile)
     logger.info("profile unpublished id=%s username=%s", profile.id, profile.username)
@@ -284,11 +286,13 @@ def analytics_summary(
     user: User = Depends(get_current_user),
 ) -> AnalyticsSummaryOut:
     profile = get_owned_profile(db, user, profile_id)
-    report = refresh_completeness(db, profile.id)
+    # Read-only. The checklist is not stored, so it is derived here in one
+    # EXISTS query. Mutations persist completeness_score; this view does not
+    # write or commit.
+    report = compute_completeness(db, profile)
     stats = summarize(db, profile.id)
     usage = usage_snapshot(db, profile.id)
     path = f"/u/{profile.username}" if profile.username else None
-    db.commit()
     logger.debug(
         "analytics summary profile_id=%s visits_7d=%s completeness=%s",
         profile.id,

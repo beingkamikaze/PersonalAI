@@ -27,10 +27,16 @@ import {
   ApiError,
   apiFetch,
   apiUpload,
-  type AiProfile,
   type KnowledgeDocument,
 } from "@/lib/api";
 import { isUiPreview, PREVIEW_DOCS } from "@/lib/ui-preview";
+import {
+  invalidateAnalytics,
+  invalidateKnowledge,
+  loadProfile,
+  readDocumentsCache,
+  rememberDocuments,
+} from "@/lib/owner-cache";
 
 const POLL_MS = 2500;
 const NOTE_MAX = 1000;
@@ -98,8 +104,15 @@ export function KnowledgePanel({
   }
 
   const loadDocs = useCallback(async (id: string) => {
+    const previous = readDocumentsCache(id);
     const list = await apiFetch<KnowledgeDocument[]>(`/ai/${id}/documents`);
     setDocs(list);
+    rememberDocuments(id, list);
+    const ready = (rows: KnowledgeDocument[]) =>
+      rows.filter((row) => row.status === "ready").length;
+    if (previous && ready(previous) !== ready(list)) {
+      invalidateAnalytics(id);
+    }
     return list;
   }, []);
 
@@ -107,7 +120,7 @@ export function KnowledgePanel({
     let cancelled = false;
     (async () => {
       try {
-        const me = await apiFetch<AiProfile>("/ai/me");
+        const me = await loadProfile();
         if (cancelled) return;
         setProfileId(me.id);
         await loadDocs(me.id);
@@ -162,6 +175,7 @@ export function KnowledgePanel({
     setMessage(null);
     try {
       await apiUpload<KnowledgeDocument>(`/ai/${profileId}/documents`, file);
+      invalidateKnowledge(profileId);
       setMessage(`Uploaded ${file.name} — processing…`);
       await loadDocs(profileId);
     } catch (err) {
@@ -190,6 +204,7 @@ export function KnowledgePanel({
         method: "POST",
         body: JSON.stringify({ content: notes.trim(), title: "notes" }),
       });
+      invalidateKnowledge(profileId);
       setNotes("");
       setMessage("Notes saved — processing…");
       await loadDocs(profileId);
@@ -218,6 +233,7 @@ export function KnowledgePanel({
         method: "POST",
         body: JSON.stringify({ url: url.trim() }),
       });
+      invalidateKnowledge(profileId);
       setUrl("");
       setMessage("URL queued — processing…");
       await loadDocs(profileId);
@@ -241,6 +257,7 @@ export function KnowledgePanel({
     setError(null);
     try {
       await apiFetch(`/documents/${docId}`, { method: "DELETE" });
+      invalidateKnowledge(profileId);
       setMessage("Document deleted.");
       await loadDocs(profileId);
     } catch (err) {

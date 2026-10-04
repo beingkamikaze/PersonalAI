@@ -11,6 +11,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.auth import get_current_user
+from app.completeness import refresh_completeness
 from app.db import get_db
 from app.logging_config import get_logger
 from app.models import PersonalityProfile, StructuredFact, User
@@ -98,6 +99,7 @@ def update_personality(
     for key, value in data.items():
         setattr(personality, key, value)
 
+    refresh_completeness(db, profile.id)
     db.commit()
     db.refresh(personality)
     logger.info(

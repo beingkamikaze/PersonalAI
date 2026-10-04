@@ -12,10 +12,13 @@ import { DashboardCard } from "./dashboard-card";
  */
 export function AiSnapshot({
   stats,
+  activityUnavailable = false,
   knowledgeSources,
 }: {
   /** null = never loaded */
   stats: AnalyticsSummary | null;
+  /** Analytics failed and there is no cached summary to show. */
+  activityUnavailable?: boolean;
   /** Ready knowledge sources; null while loading, undefined if the request failed */
   knowledgeSources: number | null | undefined;
 }) {
@@ -32,17 +35,19 @@ export function AiSnapshot({
         <Stat
           icon={<UsersIcon className="h-4 w-4" />}
           label="Visitors"
-          value={loading ? null : stats.visits_7d}
+          value={loading ? (activityUnavailable ? undefined : null) : stats.visits_7d}
         />
         <Stat
           icon={<ChatIcon className="h-4 w-4" />}
           label="Conversations"
-          value={loading ? null : stats.conversations_7d}
+          value={
+            loading ? (activityUnavailable ? undefined : null) : stats.conversations_7d
+          }
         />
         <Stat
           icon={<SendIcon className="h-4 w-4" />}
           label="Messages"
-          value={loading ? null : stats.messages_7d}
+          value={loading ? (activityUnavailable ? undefined : null) : stats.messages_7d}
         />
         <Stat
           icon={<DocIcon className="h-4 w-4" />}
@@ -51,7 +56,12 @@ export function AiSnapshot({
           value={knowledgeSources}
         />
       </dl>
-      {quiet ? (
+      {activityUnavailable ? (
+        <p className="mt-4 text-xs text-muted">
+          Couldn&apos;t load activity. The rest of your dashboard is still
+          available.
+        </p>
+      ) : quiet ? (
         <p className="mt-4 text-xs text-muted">
           Activity will appear here once people start using your AI.
         </p>

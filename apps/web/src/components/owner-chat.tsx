@@ -20,6 +20,7 @@ import {
   type ChatResult,
 } from "@/lib/api";
 import { isUiPreview } from "@/lib/ui-preview";
+import { invalidateMemories } from "@/lib/owner-cache";
 
 type Props = {
   profileId: string;
@@ -107,6 +108,7 @@ export function OwnerChat({
         }),
       });
       setConversationId(result.conversation_id);
+      invalidateMemories(profileId);
       setMessages((prev) => {
         const withoutOptimistic = prev.filter((m) => m.id !== optimistic.id);
         return [...withoutOptimistic, ...result.messages];

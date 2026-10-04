@@ -8,9 +8,9 @@ import { ChevronRightIcon } from "@/components/ui/icons";
 import {
   ApiError,
   apiFetch,
-  type AiProfile,
   type ConversationListItem,
 } from "@/lib/api";
+import { loadProfile } from "@/lib/owner-cache";
 
 /**
  * Owner view of visitor (public) conversation threads — read-only list.
@@ -28,7 +28,7 @@ export default function ConversationsPage() {
     let cancelled = false;
     (async () => {
       try {
-        const me = await apiFetch<AiProfile>("/ai/me");
+        const me = await loadProfile();
         const list = await apiFetch<ConversationListItem[]>(
           `/ai/${me.id}/conversations?channel=public`,
         );

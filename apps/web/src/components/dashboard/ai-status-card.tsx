@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useMemo } from "react";
-import { motion, useReducedMotion } from "motion/react";
+import { motion, useReducedMotion, type Variants } from "motion/react";
 import { Button, ButtonLink } from "@/components/ui/button";
 import {
   ChatIcon,
@@ -24,6 +24,8 @@ export type SetupNextStep = { href: string; label: string };
  */
 export function AiStatusCard({
   loading,
+  actionsPending = false,
+  setupUnknown = false,
   name,
   headline,
   published,
@@ -36,6 +38,10 @@ export function AiStatusCard({
   onCopyLink,
 }: {
   loading: boolean;
+  /** Profile is visible, but the draft next-step still depends on analytics. */
+  actionsPending?: boolean;
+  /** Analytics failed, so the draft primary action must not guess "Publish". */
+  setupUnknown?: boolean;
   name: string | null | undefined;
   headline: string | null | undefined;
   published: boolean;
@@ -49,15 +55,25 @@ export function AiStatusCard({
   onCopyLink: () => void;
 }) {
   const reduceMotion = useReducedMotion();
-  const idle = useMemo(
-    () => (reduceMotion ? undefined : { y: [0, -6, 0] }),
-    [reduceMotion],
-  );
-
+  const reduce = !!reduceMotion;
   const aiName = possessiveAiName(name);
   const setupDone =
     completeness !== null && completeness.done >= completeness.total;
   const showSetupProgress = !loading && completeness !== null && !setupDone;
+  const actionsAt = showSetupProgress ? 1.92 : 1.7;
+  const entrance = useMemo(
+    () => ({
+      status: beat(reduce, "rise", 0.46),
+      name: beat(reduce, "rise", 0.68),
+      badge: beat(reduce, "pop", 0.9),
+      description: beat(reduce, "fade", 1.12),
+      link: beat(reduce, "slide", 1.34),
+      progress: beat(reduce, "fade", 1.56),
+      actions: actionGroup(reduce, actionsAt),
+      action: actionChild(reduce),
+    }),
+    [reduce, actionsAt],
+  );
 
   return (
     <section
@@ -77,138 +93,183 @@ export function AiStatusCard({
 
       <div className="relative grid gap-6 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
         <div className="min-w-0">
-          <p
-            className={`inline-flex items-center gap-2 text-[13px] font-medium ${
-              published || loading ? "text-accent" : "text-muted"
-            }`}
-          >
-            <span
-              className={`h-2 w-2 rounded-full ${
-                published ? "bg-accent" : "bg-[#b45309]"
+          {loading ? (
+            <p className="inline-flex items-center gap-2 text-[13px] font-medium text-accent">
+              <span className="h-2 w-2 rounded-full bg-accent" aria-hidden />
+              Checking your AI…
+            </p>
+          ) : (
+            <motion.p
+              className={`inline-flex items-center gap-2 text-[13px] font-medium ${
+                published ? "text-accent" : "text-muted"
               }`}
-              aria-hidden
-            />
-            {loading
-              ? "Checking your AI…"
-              : published
-                ? "Your AI is live"
-                : "Your AI is not public yet"}
-          </p>
+              {...entrance.status}
+            >
+              <span
+                className={`h-2 w-2 rounded-full ${
+                  published ? "bg-accent" : "bg-[#b45309]"
+                }`}
+                aria-hidden
+              />
+              {published ? "Your AI is live" : "Your AI is not public yet"}
+            </motion.p>
+          )}
 
           <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-2">
-            <h1
-              id="ai-status-title"
-              className="font-display text-[2rem] leading-[1.1] tracking-[-0.02em] text-fg sm:text-[2.5rem]"
-            >
-              {loading ? (
-                <span className="inline-block h-9 w-48 animate-pulse rounded-lg bg-[var(--atmosphere-1)] align-middle" />
-              ) : (
-                aiName
-              )}
-            </h1>
-            {!loading ? (
-              <StatusPill
-                tone={published ? "green" : "neutral"}
-                className="!px-3 !py-1.5 !text-xs"
-              >
-                <span
-                  className={`h-1.5 w-1.5 rounded-full ${
-                    published ? "bg-accent" : "bg-muted"
-                  }`}
-                  aria-hidden
-                />
-                {published ? "Published" : "Draft"}
-              </StatusPill>
-            ) : null}
-          </div>
-
-          <p className="mt-3 max-w-xl text-[15px] leading-6 text-muted">
             {loading ? (
-              <span className="inline-block h-4 w-72 max-w-full animate-pulse rounded bg-[var(--atmosphere-1)]" />
-            ) : headline?.trim() ? (
-              headline
+              <h1
+                id="ai-status-title"
+                className="font-display text-[2rem] leading-[1.1] tracking-[-0.02em] text-fg sm:text-[2.5rem]"
+              >
+                <span className="inline-block h-9 w-48 animate-pulse rounded-lg bg-[var(--atmosphere-1)] align-middle" />
+              </h1>
             ) : (
               <>
-                Add a headline so visitors know what your AI can answer.{" "}
-                <Link
-                  href="/app/profile"
-                  className="font-medium text-accent hover:text-accent-hover"
+                <motion.h1
+                  id="ai-status-title"
+                  className="font-display text-[2rem] leading-[1.1] tracking-[-0.02em] text-fg sm:text-[2.5rem]"
+                  {...entrance.name}
                 >
-                  Edit profile
-                </Link>
+                  {aiName}
+                </motion.h1>
+                <motion.span className="inline-flex origin-center" {...entrance.badge}>
+                  <StatusPill
+                    tone={published ? "green" : "neutral"}
+                    className="!px-3 !py-1.5 !text-xs"
+                  >
+                    <span
+                      className={`h-1.5 w-1.5 rounded-full ${
+                        published ? "bg-accent" : "bg-muted"
+                      }`}
+                      aria-hidden
+                    />
+                    {published ? "Published" : "Draft"}
+                  </StatusPill>
+                </motion.span>
               </>
             )}
-          </p>
+          </div>
+
+          {loading ? (
+            <p className="mt-3 max-w-xl text-[15px] leading-6 text-muted">
+              <span className="inline-block h-4 w-72 max-w-full animate-pulse rounded bg-[var(--atmosphere-1)]" />
+            </p>
+          ) : (
+            <motion.p
+              className="mt-3 max-w-xl text-[15px] leading-6 text-muted"
+              {...entrance.description}
+            >
+              {headline?.trim() ? (
+                headline
+              ) : (
+                <>
+                  Add a headline so visitors know what your AI can answer.{" "}
+                  <Link
+                    href="/app/profile"
+                    className="font-medium text-accent hover:text-accent-hover"
+                  >
+                    Edit profile
+                  </Link>
+                </>
+              )}
+            </motion.p>
+          )}
 
           {!loading ? (
-            <PublicLinkLine
-              published={published}
-              username={username}
-              publicPath={publicPath}
-              publicHost={publicHost}
-            />
+            <motion.div {...entrance.link}>
+              <PublicLinkLine
+                published={published}
+                username={username}
+                publicPath={publicPath}
+                publicHost={publicHost}
+              />
+            </motion.div>
           ) : null}
 
           {showSetupProgress && completeness ? (
-            <SetupProgress
-              done={completeness.done}
-              total={completeness.total}
-              score={completeness.score}
-              nextStep={nextStep}
-            />
+            <motion.div {...entrance.progress}>
+              <SetupProgress
+                done={completeness.done}
+                total={completeness.total}
+                score={completeness.score}
+                nextStep={nextStep}
+              />
+            </motion.div>
           ) : null}
 
-          {!loading ? (
-            <div className="mt-5 flex flex-wrap items-center gap-2.5">
+          {!loading && !actionsPending ? (
+            <motion.div
+              className="mt-5 flex flex-wrap items-center gap-2.5"
+              initial={reduce ? false : "hidden"}
+              animate="visible"
+              variants={entrance.actions}
+            >
               {published ? (
                 <>
+                  <motion.div className="inline-flex" variants={entrance.action}>
+                    <ButtonLink href="/app/chat" className="!h-10 !rounded-xl px-4">
+                      <ChatIcon className="mr-1.5 h-4 w-4" />
+                      Talk to your AI
+                      <ChevronRightIcon className="ml-1 h-3.5 w-3.5 opacity-90" />
+                    </ButtonLink>
+                  </motion.div>
+                  {username ? (
+                    <motion.div className="inline-flex" variants={entrance.action}>
+                      <ButtonLink
+                        href={`/u/${username}`}
+                        variant="secondary"
+                        className="!h-10 !rounded-xl border border-border bg-white px-4"
+                      >
+                        <ExternalIcon className="mr-1.5 h-4 w-4" />
+                        Open public page
+                      </ButtonLink>
+                    </motion.div>
+                  ) : null}
+                  {publicPath ? (
+                    <motion.div className="inline-flex" variants={entrance.action}>
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        className="!h-10 !rounded-xl border border-border bg-white px-4"
+                        onClick={onCopyLink}
+                      >
+                        <CopyIcon className="mr-1.5 h-4 w-4" />
+                        {copied ? "Copied!" : "Copy link"}
+                      </Button>
+                    </motion.div>
+                  ) : null}
+                </>
+              ) : setupUnknown ? (
+                <motion.div className="inline-flex" variants={entrance.action}>
                   <ButtonLink href="/app/chat" className="!h-10 !rounded-xl px-4">
                     <ChatIcon className="mr-1.5 h-4 w-4" />
                     Talk to your AI
-                    <ChevronRightIcon className="ml-1 h-3.5 w-3.5 opacity-90" />
                   </ButtonLink>
-                  {username ? (
-                    <ButtonLink
-                      href={`/u/${username}`}
-                      variant="secondary"
-                      className="!h-10 !rounded-xl border border-border bg-white px-4"
-                    >
-                      <ExternalIcon className="mr-1.5 h-4 w-4" />
-                      Open public page
-                    </ButtonLink>
-                  ) : null}
-                  {publicPath ? (
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      className="!h-10 !rounded-xl border border-border bg-white px-4"
-                      onClick={onCopyLink}
-                    >
-                      <CopyIcon className="mr-1.5 h-4 w-4" />
-                      {copied ? "Copied!" : "Copy link"}
-                    </Button>
-                  ) : null}
-                </>
+                </motion.div>
               ) : (
                 <>
-                  <ButtonLink
-                    href={nextStep?.href ?? "/onboarding/publish"}
-                    className="!h-10 !rounded-xl px-4"
-                  >
-                    {nextStep ? "Continue setup" : "Publish your AI"}
-                    <ChevronRightIcon className="ml-1.5 h-3.5 w-3.5 opacity-90" />
-                  </ButtonLink>
-                  <ButtonLink
-                    href="/app/chat"
-                    variant="secondary"
-                    className="!h-10 !rounded-xl border border-border bg-white px-4"
-                  >
-                    <ChatIcon className="mr-1.5 h-4 w-4" />
-                    Talk to your AI
-                  </ButtonLink>
+                  <motion.div className="inline-flex" variants={entrance.action}>
+                    <ButtonLink
+                      href={nextStep?.href ?? "/onboarding/publish"}
+                      className="!h-10 !rounded-xl px-4"
+                    >
+                      {nextStep ? "Continue setup" : "Publish your AI"}
+                      <ChevronRightIcon className="ml-1.5 h-3.5 w-3.5 opacity-90" />
+                    </ButtonLink>
+                  </motion.div>
+                  <motion.div className="inline-flex" variants={entrance.action}>
+                    <ButtonLink
+                      href="/app/chat"
+                      variant="secondary"
+                      className="!h-10 !rounded-xl border border-border bg-white px-4"
+                    >
+                      <ChatIcon className="mr-1.5 h-4 w-4" />
+                      Talk to your AI
+                    </ButtonLink>
+                  </motion.div>
                 </>
               )}
-            </div>
+            </motion.div>
           ) : (
             <div className="mt-5 flex gap-2.5" aria-hidden>
               <span className="h-10 w-36 animate-pulse rounded-xl bg-[var(--atmosphere-1)]" />
@@ -217,27 +278,126 @@ export function AiStatusCard({
           )}
         </div>
 
-        <motion.div
-          className="relative hidden w-[200px] shrink-0 justify-self-end lg:block xl:w-[220px]"
-          animate={idle}
-          transition={
-            reduceMotion
-              ? { duration: 0 }
-              : { duration: 6, repeat: Infinity, ease: "easeInOut" }
-          }
-          aria-hidden
-        >
-          <Image
-            src="/dashboard/chat-companion-3d-v2.png"
-            alt=""
-            width={420}
-            height={420}
-            className="h-auto w-full select-none drop-shadow-[0_18px_28px_rgba(15,31,28,0.14)]"
-            priority
+        {loading ? (
+          <div
+            className="hidden aspect-square w-[200px] shrink-0 lg:block xl:w-[220px]"
+            aria-hidden
           />
-        </motion.div>
+        ) : (
+          <Companion reduce={reduce} />
+        )}
       </div>
     </section>
+  );
+}
+
+const EASE = [0.22, 1, 0.36, 1] as const;
+
+type BeatKind = "rise" | "fade" | "slide" | "pop";
+
+/** One step of the hero entrance. Mounted only after the card has real data. */
+function beat(reduce: boolean, kind: BeatKind, delay: number) {
+  if (reduce) {
+    return {
+      initial: false as const,
+      animate: { opacity: 1, x: 0, y: 0, scale: 1 },
+      transition: { duration: 0 },
+    };
+  }
+  if (kind === "fade") {
+    return {
+      initial: { opacity: 0 },
+      animate: { opacity: 1 },
+      transition: { delay, duration: 0.5, ease: EASE },
+    };
+  }
+  if (kind === "slide") {
+    return {
+      initial: { opacity: 0, x: -18 },
+      animate: { opacity: 1, x: 0 },
+      transition: { delay, duration: 0.5, ease: EASE },
+    };
+  }
+  if (kind === "pop") {
+    return {
+      initial: { opacity: 0, scale: 0.55 },
+      animate: { opacity: 1, scale: 1 },
+      transition: {
+        delay,
+        type: "spring" as const,
+        stiffness: 520,
+        damping: 16,
+        mass: 0.62,
+      },
+    };
+  }
+  return {
+    initial: { opacity: 0, y: 12 },
+    animate: { opacity: 1, y: 0 },
+    transition: { delay, duration: 0.48, ease: EASE },
+  };
+}
+
+function actionGroup(reduce: boolean, delayChildren: number): Variants {
+  return {
+    hidden: {},
+    visible: {
+      transition: reduce
+        ? { duration: 0 }
+        : { delayChildren, staggerChildren: 0.1 },
+    },
+  };
+}
+
+function actionChild(reduce: boolean): Variants {
+  return {
+    hidden: reduce ? {} : { opacity: 0, y: 10 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: reduce
+        ? { duration: 0 }
+        : { duration: 0.4, ease: EASE },
+    },
+  };
+}
+
+function Companion({ reduce }: { reduce: boolean }) {
+  return (
+    <motion.div
+      className="relative hidden w-[200px] shrink-0 justify-self-end lg:block xl:w-[220px]"
+      initial={reduce ? false : { opacity: 0, x: 84, y: 16, scale: 0.92 }}
+      animate={{ opacity: 1, x: 0, y: 0, scale: 1 }}
+      transition={
+        reduce
+          ? { duration: 0 }
+          : { duration: 0.78, ease: [0.16, 1, 0.3, 1] }
+      }
+      aria-hidden
+    >
+      <motion.div
+        animate={reduce ? undefined : { y: [0, -6, 0] }}
+        transition={
+          reduce
+            ? { duration: 0 }
+            : {
+                duration: 6,
+                repeat: Infinity,
+                ease: "easeInOut",
+                delay: 0.78,
+              }
+        }
+      >
+        <Image
+          src="/dashboard/chat-companion-3d-v2.png"
+          alt=""
+          width={420}
+          height={420}
+          className="h-auto w-full select-none drop-shadow-[0_18px_28px_rgba(15,31,28,0.14)]"
+          priority
+        />
+      </motion.div>
+    </motion.div>
   );
 }
 

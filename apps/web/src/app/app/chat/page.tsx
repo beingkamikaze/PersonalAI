@@ -13,7 +13,8 @@ import {
   KnowledgeIcon,
   SproutIcon,
 } from "@/components/ui/icons";
-import { ApiError, apiFetch, type AiProfile } from "@/lib/api";
+import { ApiError, type AiProfile } from "@/lib/api";
+import { loadProfile } from "@/lib/owner-cache";
 import { isUiPreview, PREVIEW_PROFILE } from "@/lib/ui-preview";
 
 const SUGGESTIONS = [
@@ -36,7 +37,7 @@ export default function AppChatPage() {
     let cancelled = false;
     (async () => {
       try {
-        const me = await apiFetch<AiProfile>("/ai/me");
+        const me = await loadProfile();
         if (!cancelled) setProfile(me);
       } catch (err) {
         if (cancelled) return;

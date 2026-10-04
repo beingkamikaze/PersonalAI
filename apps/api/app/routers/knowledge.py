@@ -21,6 +21,7 @@ from starlette.concurrency import run_in_threadpool
 from sqlalchemy.orm import Session
 
 from app.auth import get_current_user
+from app.completeness import refresh_completeness
 from app.config import get_settings
 from app.db import get_db
 from app.ingest import process_document
@@ -179,6 +180,7 @@ def delete_document(
         .delete()
     )
     db.delete(doc)
+    refresh_completeness(db, doc.ai_profile_id)
     db.commit()
     delete_file(file_url)
     logger.info(

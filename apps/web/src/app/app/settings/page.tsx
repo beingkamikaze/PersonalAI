@@ -14,6 +14,7 @@ import {
 } from "@/lib/auth";
 import { useLeaveGuard } from "@/lib/use-leave-guard";
 import { ApiError, apiFetch, type AiProfile, type Personality } from "@/lib/api";
+import { invalidateAnalytics, loadProfile } from "@/lib/owner-cache";
 import {
   draftsEqual,
   personalityDraftFrom,
@@ -54,7 +55,7 @@ export default function SettingsPage() {
         const session = await getSessionUser();
         if (cancelled) return;
         setAccount(session);
-        const me = await apiFetch<AiProfile>("/ai/me");
+        const me = await loadProfile();
         if (cancelled) return;
         setProfile(me);
         try {
@@ -142,6 +143,7 @@ export default function SettingsPage() {
       setSavedPersonality(next);
       setPersonalityDraft(next);
       setPersonalityLock((n) => n + 1);
+      invalidateAnalytics(profile.id);
       setMessage("Personality saved.");
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Save failed");

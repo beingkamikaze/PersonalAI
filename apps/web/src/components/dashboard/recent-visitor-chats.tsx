@@ -24,6 +24,7 @@ import { formatWhen } from "./format";
 export function RecentVisitorChats({
   published,
   threads,
+  unavailable = false,
   username,
   publicPath,
   copied,
@@ -33,6 +34,8 @@ export function RecentVisitorChats({
   published: boolean;
   /** null = never loaded */
   threads: RecentPublicThread[] | null;
+  /** The request failed and there is no cached list to show. */
+  unavailable?: boolean;
   username: string | null | undefined;
   publicPath: string;
   copied: boolean;
@@ -51,7 +54,14 @@ export function RecentVisitorChats({
       }
     >
       {loading ? (
-        <CardSkeleton rows={3} />
+        unavailable ? (
+          <CardEmptyState
+            title="Couldn't load visitor chats."
+            description="The rest of your dashboard is still available."
+          />
+        ) : (
+          <CardSkeleton rows={3} />
+        )
       ) : empty ? (
         published ? (
           <CardEmptyState

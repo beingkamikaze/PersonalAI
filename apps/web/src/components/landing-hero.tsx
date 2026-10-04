@@ -4,19 +4,14 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode }
 import Link from "next/link";
 import { MotionConfig, motion, useAnimation, useReducedMotion } from "motion/react";
 import { ButtonLink } from "@/components/ui/button";
+import { ContextAssembly } from "@/components/landing-context";
 import {
-  ChatIcon,
   CheckIcon,
   ChevronRightIcon,
   DocIcon,
   GlobeIcon,
-  KnowledgeIcon,
   LinkIcon,
-  MemoryIcon,
   ProfileIcon,
-  SettingsIcon,
-  ShieldIcon,
-  SlidersIcon,
 } from "@/components/ui/icons";
 import { isUiPreview } from "@/lib/env";
 import { revealContainer, revealItem } from "@/lib/motion";
@@ -59,51 +54,6 @@ const STEPS = [
     number: "05",
     title: "Share it",
     body: "Publish a link so other people can ask about your work.",
-  },
-] as const;
-
-const KNOW = [
-  {
-    title: "Your knowledge",
-    body: "Documents, notes, and links it can answer from.",
-    example: "Resume.pdf · Project notes · a link to your site",
-    icon: KnowledgeIcon,
-    tone: "bg-[var(--tone-sky)] text-[#2563eb]",
-  },
-  {
-    title: "Your memory",
-    body: "Facts and project details you want remembered.",
-    example: "Led the client workshop series in 2024",
-    icon: MemoryIcon,
-    tone: "bg-accent-soft text-accent",
-  },
-  {
-    title: "Your preferences",
-    body: "How you like to work and communicate.",
-    example: "Async first. Short written updates.",
-    icon: SlidersIcon,
-    tone: "bg-[var(--tone-mint)] text-accent",
-  },
-  {
-    title: "Your boundaries",
-    body: "What it should never invent or share.",
-    example: "Do not invent fees or private contacts.",
-    icon: ShieldIcon,
-    tone: "bg-[var(--tone-purple)] text-[var(--tone-purple-ink)]",
-  },
-  {
-    title: "Your personality",
-    body: "Tone: formal or warm, brief or detailed.",
-    example: "Clear, warm, and concise",
-    icon: SettingsIcon,
-    tone: "bg-[#fff7e6] text-[var(--tone-amber)]",
-  },
-  {
-    title: "Your conversations",
-    body: "Private chats where you check answers and save what matters.",
-    example: "“How do you start a project?” — saved to memory",
-    icon: ChatIcon,
-    tone: "bg-[var(--tone-sky)] text-[#2563eb]",
   },
 ] as const;
 
@@ -258,34 +208,9 @@ export function LandingHero() {
           Give your AI the context that makes it yours.
         </h2>
         <p className="mt-3 max-w-xl text-[17px] leading-relaxed text-muted">
-          Add the knowledge, memories, preferences, boundaries, personality, and
-          conversations you want your assistant to use.
+          Teach it what to know, remember, how to work, and what never to say.
         </p>
-        <ul className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {KNOW.map((item) => {
-            const Icon = item.icon;
-            return (
-              <li key={item.title}>
-                <article className={`${CARD} flex h-full flex-col p-5 sm:p-6`}>
-                  <span
-                    className={`inline-flex h-9 w-9 items-center justify-center rounded-xl ${item.tone}`}
-                  >
-                    <Icon className="h-4 w-4" />
-                  </span>
-                  <h3 className="mt-4 text-[1.05rem] font-medium text-fg">
-                    {item.title}
-                  </h3>
-                  <p className="mt-2 text-sm leading-[1.65] text-muted">
-                    {item.body}
-                  </p>
-                  <p className="mt-4 rounded-xl bg-[var(--bg)] px-3 py-2.5 text-xs leading-relaxed text-fg">
-                    {item.example}
-                  </p>
-                </article>
-              </li>
-            );
-          })}
-        </ul>
+        <ContextAssembly />
         <p className="mt-5 text-sm text-muted">
           Memories stay private to you. You can edit or remove them anytime.
         </p>

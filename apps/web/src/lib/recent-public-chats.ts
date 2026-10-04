@@ -25,6 +25,8 @@ export type RecentPublicThread = {
 type CacheEntry = {
   profileId: string;
   threads: RecentPublicThread[];
+  /** When this list was last confirmed by the API. */
+  fetchedAt: number;
 };
 
 let cache: CacheEntry | null = null;
@@ -68,14 +70,16 @@ export function publishRecentPublicChats(
   profileId: string,
   threads: RecentPublicThread[],
 ): { threads: RecentPublicThread[]; changed: boolean } {
+  const fetchedAt = Date.now();
   if (
     cache &&
     cache.profileId === profileId &&
     recentPublicThreadsUnchanged(cache.threads, threads)
   ) {
+    cache = { profileId, threads: cache.threads, fetchedAt };
     return { threads: cache.threads, changed: false };
   }
   const next = threads.map((row) => ({ ...row }));
-  cache = { profileId, threads: next };
+  cache = { profileId, threads: next, fetchedAt };
   return { threads: next, changed: true };
 }

@@ -30,10 +30,14 @@ import {
 import {
   ApiError,
   apiFetch,
-  type AiProfile,
   type MemoryItem,
 } from "@/lib/api";
 import { isUiPreview, PREVIEW_MEMORY_ITEMS } from "@/lib/ui-preview";
+import {
+  invalidateMemories,
+  loadProfile,
+  rememberMemories,
+} from "@/lib/owner-cache";
 
 const MEMORY_TYPES = [
   "preference",
@@ -67,13 +71,14 @@ export default function MemoriesPage() {
   const load = useCallback(async (id: string) => {
     const list = await apiFetch<MemoryItem[]>(`/ai/${id}/memories`);
     setMemories(list);
+    rememberMemories(id, list);
   }, []);
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
       try {
-        const me = await apiFetch<AiProfile>("/ai/me");
+        const me = await loadProfile();
         if (cancelled) return;
         setProfileId(me.id);
         await load(me.id);
@@ -148,6 +153,7 @@ export default function MemoriesPage() {
           memory_type: editType,
         }),
       });
+      invalidateMemories(profileId);
       setEditingId(null);
       setMessage("Memory saved.");
       await load(profileId);
@@ -172,6 +178,7 @@ export default function MemoriesPage() {
     setError(null);
     try {
       await apiFetch(`/memories/${id}`, { method: "DELETE" });
+      invalidateMemories(profileId);
       setMessage("Memory deleted.");
       if (editingId === id) setEditingId(null);
       await load(profileId);
@@ -216,6 +223,7 @@ export default function MemoriesPage() {
           memory_type: newType,
         }),
       });
+      invalidateMemories(profileId);
       setNewContent("");
       setAdding(false);
       setMessage("Memory added.");

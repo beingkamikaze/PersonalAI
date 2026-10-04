@@ -1,4 +1,4 @@
-import { clearRecentPublicChats } from "@/lib/recent-public-chats";
+import { clearOwnerCache, invalidateProfileAndAnalytics } from "@/lib/owner-cache";
 import { createClient } from "@/lib/supabase/client";
 
 /**
@@ -30,6 +30,7 @@ export type SessionUser = {
 export const ACCOUNT_CHANGED_EVENT = "personaai:account-changed";
 
 export function notifyAccountChanged() {
+  invalidateProfileAndAnalytics();
   if (typeof window !== "undefined") {
     window.dispatchEvent(new Event(ACCOUNT_CHANGED_EVENT));
   }
@@ -64,7 +65,7 @@ export async function signOut(): Promise<{ error: string | null }> {
     console.error("[auth] sign-out failed", error.message);
     return { error: error.message };
   }
-  clearRecentPublicChats();
+  clearOwnerCache();
   console.info("[auth] sign-out succeeded — session cookies cleared");
   return { error: null };
 }

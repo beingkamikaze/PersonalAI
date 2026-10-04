@@ -6,6 +6,7 @@ import { OnboardingProgress } from "@/components/onboarding-progress";
 import { ScreenIntro } from "@/components/screen-intro";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { ApiError, apiFetch, type AiProfile } from "@/lib/api";
+import { invalidateProfileAndAnalytics } from "@/lib/owner-cache";
 
 /**
  * Onboarding publish step — set username, publish, copy share helpers.
@@ -71,6 +72,7 @@ export default function OnboardingPublishPage() {
         }),
       });
       setProfile(updated);
+      invalidateProfileAndAnalytics();
       setMessage("Published. Your public link is live.");
       if (updated.username) {
         router.push(`/u/${updated.username}`);

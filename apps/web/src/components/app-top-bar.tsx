@@ -11,7 +11,8 @@ import {
   getSessionUser,
   type SessionUser,
 } from "@/lib/auth";
-import { ApiError, apiFetch, type AiProfile } from "@/lib/api";
+import { ApiError, type AiProfile } from "@/lib/api";
+import { loadProfile, readProfileCache } from "@/lib/owner-cache";
 import { PREVIEW_PROFILE } from "@/lib/ui-preview";
 
 /**
@@ -22,7 +23,9 @@ export function AppTopBar() {
   const router = useRouter();
   const [query, setQuery] = useState("");
   const [session, setSession] = useState<SessionUser | null>(null);
-  const [profile, setProfile] = useState<AiProfile | null>(null);
+  const [profile, setProfile] = useState<AiProfile | null>(() =>
+    readProfileCache(),
+  );
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -32,13 +35,15 @@ export function AppTopBar() {
       try {
         const [user, me] = await Promise.all([
           getSessionUser().catch(() => null),
-          apiFetch<AiProfile>("/ai/me").catch((err) => {
+          loadProfile().catch((err: unknown) => {
             if (
               err instanceof ApiError &&
               (err.status === 401 || err.status === 404)
             ) {
               return null;
             }
+            const cached = readProfileCache();
+            if (cached) return cached;
             throw err;
           }),
         ]);

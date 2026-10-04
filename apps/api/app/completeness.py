@@ -9,6 +9,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from uuid import UUID
 
+from sqlalchemy import exists
 from sqlalchemy.orm import Session
 
 from app.logging_config import get_logger
@@ -30,32 +31,36 @@ class CompletenessReport:
 
 
 def compute_completeness(db: Session, profile: AiProfile) -> CompletenessReport:
-    """Derive completeness from current DB state (idempotent)."""
+    """Derive completeness from current DB state (idempotent).
+
+    Checklist flags are one SELECT of EXISTS clauses. The score column is
+    persisted only by refresh_completeness, which mutations call.
+    """
     has_basics = bool(profile.name and (profile.headline or profile.bio))
-    interview = (
-        db.query(InterviewSession)
-        .filter(InterviewSession.ai_profile_id == profile.id)
-        .one_or_none()
-    )
-    has_interview = bool(interview and interview.status == "completed")
-    has_personality = (
-        db.query(PersonalityProfile.id)
-        .filter(PersonalityProfile.ai_profile_id == profile.id)
-        .first()
-        is not None
-    )
-    has_doc = (
-        db.query(Document.id)
-        .filter(Document.ai_profile_id == profile.id, Document.status == "ready")
-        .first()
-        is not None
-    )
-    has_memory = (
-        db.query(Memory.id)
-        .filter(Memory.ai_profile_id == profile.id)
-        .first()
-        is not None
-    )
+    flags = db.query(
+        exists()
+        .where(
+            InterviewSession.ai_profile_id == profile.id,
+            InterviewSession.status == "completed",
+        )
+        .label("has_interview"),
+        exists()
+        .where(PersonalityProfile.ai_profile_id == profile.id)
+        .label("has_personality"),
+        exists()
+        .where(
+            Document.ai_profile_id == profile.id,
+            Document.status == "ready",
+        )
+        .label("has_doc"),
+        exists()
+        .where(Memory.ai_profile_id == profile.id)
+        .label("has_memory"),
+    ).one()
+    has_interview = bool(flags.has_interview)
+    has_personality = bool(flags.has_personality)
+    has_doc = bool(flags.has_doc)
+    has_memory = bool(flags.has_memory)
     has_username = bool(profile.username)
     is_published = profile.visibility == "published"
 
@@ -91,7 +96,12 @@ def compute_completeness(db: Session, profile: AiProfile) -> CompletenessReport:
 
 
 def refresh_completeness(db: Session, profile_id: UUID) -> CompletenessReport:
-    """Recompute and persist completeness_score on the profile."""
+    """Recompute and persist completeness_score on the profile.
+
+    Flushes pending inserts/deletes first so this transaction's changes are
+    visible. Does not commit — the caller does.
+    """
+    db.flush()
     profile = db.query(AiProfile).filter(AiProfile.id == profile_id).one_or_none()
     if profile is None:
         return CompletenessReport(score=0, checklist={})

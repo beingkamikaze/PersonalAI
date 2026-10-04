@@ -2,43 +2,68 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import { CrownIcon } from "@/components/ui/icons";
+import type { AnalyticsSummary } from "@/lib/api";
 import {
-  apiFetch,
-  type AiProfile,
-  type AnalyticsSummary,
-} from "@/lib/api";
+  loadAnalytics,
+  loadProfile,
+  readAnalyticsCache,
+  readProfileCache,
+} from "@/lib/owner-cache";
 import { PREVIEW_ANALYTICS } from "@/lib/ui-preview";
 
+function usageFromSummary(summary: AnalyticsSummary | null): {
+  remaining: number;
+  limit: number;
+} | null {
+  if (
+    summary &&
+    typeof summary.owner_chats_remaining === "number" &&
+    typeof summary.owner_chats_limit === "number"
+  ) {
+    return {
+      remaining: summary.owner_chats_remaining,
+      limit: summary.owner_chats_limit,
+    };
+  }
+  return null;
+}
+
 export function useOwnerChatUsage() {
+  const pathname = usePathname();
   const [usage, setUsage] = useState<{
     remaining: number;
     limit: number;
-  } | null>({
-    remaining: PREVIEW_ANALYTICS.owner_chats_remaining ?? 39,
-    limit: PREVIEW_ANALYTICS.owner_chats_limit ?? 40,
+  } | null>(() => {
+    const profile = readProfileCache();
+    return (
+      (profile ? usageFromSummary(readAnalyticsCache(profile.id)) : null) ?? {
+        remaining: PREVIEW_ANALYTICS.owner_chats_remaining ?? 39,
+        limit: PREVIEW_ANALYTICS.owner_chats_limit ?? 40,
+      }
+    );
   });
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
       try {
-        const me = await apiFetch<AiProfile>("/ai/me");
-        const summary = await apiFetch<AnalyticsSummary>(
-          `/ai/${me.id}/analytics/summary`,
-        );
+        const me = await loadProfile();
+        const summary = await loadAnalytics(me.id);
         if (cancelled) return;
-        if (
-          typeof summary.owner_chats_remaining === "number" &&
-          typeof summary.owner_chats_limit === "number"
-        ) {
-          setUsage({
-            remaining: summary.owner_chats_remaining,
-            limit: summary.owner_chats_limit,
-          });
-        }
+        const next = usageFromSummary(summary);
+        if (next) setUsage(next);
       } catch {
         if (cancelled) return;
+        const profile = readProfileCache();
+        const cached = profile
+          ? usageFromSummary(readAnalyticsCache(profile.id))
+          : null;
+        if (cached) {
+          setUsage(cached);
+          return;
+        }
         setUsage({
           remaining: PREVIEW_ANALYTICS.owner_chats_remaining ?? 39,
           limit: PREVIEW_ANALYTICS.owner_chats_limit ?? 40,
@@ -48,7 +73,7 @@ export function useOwnerChatUsage() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [pathname]);
 
   const used = usage ? Math.max(0, usage.limit - usage.remaining) : 0;
   const pct =

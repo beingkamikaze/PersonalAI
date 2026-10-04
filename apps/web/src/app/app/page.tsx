@@ -1,20 +1,18 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, useReducedMotion } from "motion/react";
 import { revealContainer, revealItem } from "@/lib/motion";
 import {
-  apiFetch,
+  ApiError,
   type AiProfile,
   type AnalyticsSummary,
-  type ConversationListItem,
   type KnowledgeDocument,
   type MemoryItem,
 } from "@/lib/api";
 import {
   isUiPreview,
-  loadDashboardData,
   PREVIEW_ANALYTICS,
   PREVIEW_DOCS,
   PREVIEW_MEMORY_ITEMS,
@@ -24,10 +22,19 @@ import {
 } from "@/lib/ui-preview";
 import { VisitorConversationModal } from "@/components/visitor-conversation-modal";
 import {
-  clearRecentPublicChats,
-  publishRecentPublicChats,
+  clearOwnerCache,
+  loadAnalytics,
+  loadDocuments,
+  loadMemories,
+  loadProfile,
+  loadRecentVisitorChats,
+  readAnalyticsCache,
+  readDocumentsCache,
+  readMemoriesCache,
+  readProfileCache,
+} from "@/lib/owner-cache";
+import {
   readRecentPublicChats,
-  recentPublicThreadsUnchanged,
   type RecentPublicThread,
 } from "@/lib/recent-public-chats";
 import { AiStatusCard } from "@/components/dashboard/ai-status-card";
@@ -35,10 +42,8 @@ import { RecentVisitorChats } from "@/components/dashboard/recent-visitor-chats"
 import { NeedsAttention } from "@/components/dashboard/needs-attention";
 import { AiSnapshot } from "@/components/dashboard/ai-snapshot";
 import { KeepUpToDate } from "@/components/dashboard/keep-up-to-date";
-import { truncate } from "@/components/dashboard/format";
 
-/** Public threads fetched per load: the first few are "recent", flagged ones feed "needs attention". */
-const PUBLIC_THREADS_LIMIT = 10;
+/** The first few public threads are "recent"; flagged ones feed "needs attention". */
 const RECENT_VISIBLE = 3;
 
 const CHECKLIST_KEYS = [
@@ -60,23 +65,35 @@ export default function DashboardPage() {
   );
   const item = useMemo(() => revealItem(reduceMotion), [reduceMotion]);
 
-  // null = still loading. Mock data is only used when the API is unreachable
-  // (or NEXT_PUBLIC_UI_PREVIEW=true), and that case is labelled on screen.
-  const [profile, setProfile] = useState<AiProfile | null>(null);
-  const [stats, setStats] = useState<AnalyticsSummary | null>(null);
-  const [recentThreads, setRecentThreads] = useState<RecentPublicThread[] | null>(
-    () => readRecentPublicChats()?.threads ?? null,
+  // null = still loading. Cached rows paint immediately. Mock data is only
+  // used when the API is unreachable, and that case is labelled on screen.
+  const [profile, setProfile] = useState<AiProfile | null>(() =>
+    readProfileCache(),
   );
-  // null = loading, undefined = request failed
+  const [stats, setStats] = useState<AnalyticsSummary | null>(() => {
+    const cached = readProfileCache();
+    return cached ? readAnalyticsCache(cached.id) : null;
+  });
+  const [recentThreads, setRecentThreads] = useState<
+    RecentPublicThread[] | null
+  >(() => threadsForProfile(readProfileCache()?.id));
+  // null = loading, undefined = request failed with nothing to show
   const [documents, setDocuments] = useState<
     KnowledgeDocument[] | null | undefined
-  >(null);
+  >(() => {
+    const cached = readProfileCache();
+    return cached ? readDocumentsCache(cached.id) : null;
+  });
   const [memories, setMemories] = useState<MemoryItem[] | null | undefined>(
-    null,
+    () => {
+      const cached = readProfileCache();
+      return cached ? readMemoriesCache(cached.id) : null;
+    },
   );
-  const [apiProfileId, setApiProfileId] = useState<string | null>(null);
   const [usingSampleData, setUsingSampleData] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [statsFailed, setStatsFailed] = useState(false);
+  const [chatsFailed, setChatsFailed] = useState(false);
   const [copied, setCopied] = useState(false);
   const [openThread, setOpenThread] = useState<{
     id: string;
@@ -84,18 +101,14 @@ export default function DashboardPage() {
   } | null>(null);
   const [publicHost, setPublicHost] = useState("");
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     setPublicHost(window.location.host);
     const cached = readRecentPublicChats();
-    if (!cached) return;
+    const profileId = readProfileCache()?.id;
+    if (!cached || cached.profileId !== profileId) return;
     console.info(
       "[dashboard] recent visitor chats restored count=%s",
       cached.threads.length,
-    );
-    setRecentThreads((current) =>
-      current && recentPublicThreadsUnchanged(current, cached.threads)
-        ? current
-        : cached.threads,
     );
   }, []);
 
@@ -107,124 +120,145 @@ export default function DashboardPage() {
 
   useEffect(() => {
     let cancelled = false;
+    let activeProfileId: string | null = null;
 
-    // Keep the module cache even if this visit unmounts mid-request.
-    // Only touch React state while this effect is still current.
-    const rememberRecent = (
-      profileId: string,
-      threads: RecentPublicThread[],
-    ) => {
-      const published = publishRecentPublicChats(profileId, threads);
-      console.info(
-        published.changed
-          ? "[dashboard] recent visitor chats updated count=%s"
-          : "[dashboard] recent visitor chats unchanged count=%s",
-        threads.length,
-      );
-      if (cancelled) return;
-      setRecentThreads((current) =>
-        current && recentPublicThreadsUnchanged(current, published.threads)
-          ? current
-          : published.threads,
-      );
-    };
+    // Each section settles on its own. A slow or failed call does not block
+    // the others, and a failed refresh keeps whatever is already on screen.
+    function loadSections(profileId: string) {
+      activeProfileId = profileId;
+      const still = () => !cancelled && activeProfileId === profileId;
 
-    (async () => {
-      const result = await loadDashboardData(
-        () => apiFetch<AiProfile>("/ai/me"),
-        (id) => apiFetch<AnalyticsSummary>(`/ai/${id}/analytics/summary`),
-        (id) => loadRecentPublicThreads(id),
-        (profileId, recent) => {
-          // null means the chat request failed. Keep whatever is already shown.
-          if (recent == null) return;
-          rememberRecent(profileId, recent);
+      const cachedStats = readAnalyticsCache(profileId);
+      if (cachedStats) setStats(cachedStats);
+      const cachedDocs = readDocumentsCache(profileId);
+      setDocuments(cachedDocs);
+      const cachedMemories = readMemoriesCache(profileId);
+      setMemories(cachedMemories);
+      setRecentThreads(threadsForProfile(profileId));
+
+      void loadAnalytics(profileId).then(
+        (summary) => {
+          if (!still()) return;
+          setStats(summary);
+          setStatsFailed(false);
+        },
+        (err: unknown) => {
+          console.warn("[dashboard] analytics request failed", err);
+          if (!still()) return;
+          if (!readAnalyticsCache(profileId)) setStatsFailed(true);
         },
       );
-      if (cancelled) return;
+      void loadDocuments(profileId).then(
+        (docs) => {
+          if (still()) setDocuments(docs);
+        },
+        (err: unknown) => {
+          console.warn("[dashboard] documents request failed", err);
+          if (still() && !readDocumentsCache(profileId)) setDocuments(undefined);
+        },
+      );
+      void loadMemories(profileId).then(
+        (rows) => {
+          if (still()) setMemories(rows);
+        },
+        (err: unknown) => {
+          console.warn("[dashboard] memories request failed", err);
+          if (still() && !readMemoriesCache(profileId)) setMemories(undefined);
+        },
+      );
+      void loadRecentVisitorChats(profileId).then(
+        (threads) => {
+          if (!still()) return;
+          setChatsFailed(false);
+          setRecentThreads(threads);
+        },
+        (err: unknown) => {
+          console.warn(
+            "[dashboard] recent visitor chats refresh failed; keeping cache",
+            err,
+          );
+          if (!still()) return;
+          if (threadsForProfile(profileId) == null) setChatsFailed(true);
+        },
+      );
+    }
 
-      if (result.needsAuth && !isUiPreview()) {
-        clearRecentPublicChats();
-        router.replace("/sign-in?next=/app");
-        return;
-      }
-      if (result.needsOnboarding && !isUiPreview()) {
-        clearRecentPublicChats();
-        router.replace("/onboarding/create");
-        return;
-      }
-
-      setProfile(result.profile);
-      setStats(result.stats);
-      setError(null);
-
-      if (!result.fromApi) {
-        // Preview fallback is not a real thread list — do not cache it.
-        setUsingSampleData(true);
-        setRecentThreads(previewThreadsToRecent(PREVIEW_THREADS));
-        setDocuments(PREVIEW_DOCS);
-        setMemories(PREVIEW_MEMORY_ITEMS);
-        return;
-      }
-
-      setUsingSampleData(false);
-      setApiProfileId(result.profile.id);
-
-      // A successful list (including []) was published in onRecent.
-      if (result.recent != null) return;
-
-      if (readRecentPublicChats()?.profileId === result.profile.id) {
-        console.info(
-          "[dashboard] recent visitor chats refresh failed; keeping cache",
-        );
-        return;
-      }
-      setRecentThreads([]);
-    })().catch((err) => {
-      if (cancelled) return;
+    function showSample(err: unknown) {
+      if (readProfileCache()) return;
       setProfile(PREVIEW_PROFILE);
       setStats(PREVIEW_ANALYTICS);
       setRecentThreads(previewThreadsToRecent(PREVIEW_THREADS));
       setDocuments(PREVIEW_DOCS);
       setMemories(PREVIEW_MEMORY_ITEMS);
       setUsingSampleData(true);
+      setStatsFailed(false);
+      setChatsFailed(false);
       setError(err instanceof Error ? err.message : null);
-    });
+    }
+
+    const startedAt = performance.now();
+    const cachedProfile = readProfileCache();
+    if (cachedProfile) {
+      setProfile(cachedProfile);
+      setUsingSampleData(false);
+      loadSections(cachedProfile.id);
+      console.info(
+        "[dashboard] hero ready ms=%.0f source=cache",
+        performance.now() - startedAt,
+      );
+    }
+
+    loadProfile().then(
+      (me) => {
+        if (cancelled) return;
+        if (me.user_id && cachedProfile && cachedProfile.user_id !== me.user_id) {
+          setStats(null);
+          setRecentThreads(null);
+          setDocuments(null);
+          setMemories(null);
+        }
+        setProfile(me);
+        setUsingSampleData(false);
+        setError(null);
+        if (!cachedProfile || cachedProfile.id !== me.id) {
+          console.info(
+            "[dashboard] hero ready ms=%.0f source=network",
+            performance.now() - startedAt,
+          );
+          loadSections(me.id);
+        }
+      },
+      (err: unknown) => {
+        if (cancelled) return;
+        const status = err instanceof ApiError ? err.status : 0;
+        if (status === 401 && !isUiPreview()) {
+          clearOwnerCache();
+          router.replace("/sign-in?next=/app");
+          return;
+        }
+        if (status === 404 && !isUiPreview()) {
+          clearOwnerCache();
+          router.replace("/onboarding/create");
+          return;
+        }
+        if (isUiPreview() || status !== 401) {
+          showSample(err);
+        }
+      },
+    );
+
     return () => {
       cancelled = true;
     };
   }, [router]);
 
-  // Knowledge + memory lists feed "AI snapshot" and "Keep your AI up to date".
-  // Independent of analytics, so they run as soon as we know the profile id.
-  useEffect(() => {
-    if (!apiProfileId) return;
-    let cancelled = false;
-    apiFetch<KnowledgeDocument[]>(`/ai/${apiProfileId}/documents`).then(
-      (docs) => {
-        if (!cancelled) setDocuments(docs);
-      },
-      (err: unknown) => {
-        console.warn("[dashboard] documents request failed", err);
-        if (!cancelled) setDocuments(undefined);
-      },
-    );
-    apiFetch<MemoryItem[]>(`/ai/${apiProfileId}/memories`).then(
-      (rows) => {
-        if (!cancelled) setMemories(rows);
-      },
-      (err: unknown) => {
-        console.warn("[dashboard] memories request failed", err);
-        if (!cancelled) setMemories(undefined);
-      },
-    );
-    return () => {
-      cancelled = true;
-    };
-  }, [apiProfileId]);
-
-  const publicPath = stats?.public_url_path ?? "";
+  const publicPath =
+    stats?.public_url_path ??
+    (profile?.username ? `/u/${profile.username}` : "");
   const published = (stats?.visibility ?? profile?.visibility) === "published";
-  const loading = profile === null || stats === null;
+  const profileLoading = profile === null;
+  const actionsPending =
+    profile !== null && !published && stats === null && !statsFailed && !usingSampleData;
 
   const nextStep = useMemo(() => {
     const c = stats?.completeness_checklist;
@@ -286,21 +320,21 @@ export default function DashboardPage() {
       animate="visible"
       variants={container}
     >
-      <motion.div variants={item}>
-        <AiStatusCard
-          loading={loading}
-          name={profile?.name}
-          headline={profile?.headline}
-          published={published}
-          username={stats?.username ?? profile?.username}
-          publicPath={publicPath}
-          publicHost={publicHost}
-          completeness={completeness}
-          nextStep={nextStep}
-          copied={copied}
-          onCopyLink={() => void copyLink()}
-        />
-      </motion.div>
+      <AiStatusCard
+        loading={profileLoading}
+        actionsPending={actionsPending}
+        setupUnknown={statsFailed && !published}
+        name={profile?.name}
+        headline={profile?.headline}
+        published={published}
+        username={stats?.username ?? profile?.username}
+        publicPath={publicPath}
+        publicHost={publicHost}
+        completeness={completeness}
+        nextStep={nextStep}
+        copied={copied}
+        onCopyLink={() => void copyLink()}
+      />
 
       <motion.div
         className="grid items-stretch gap-4 lg:grid-cols-2 lg:gap-5"
@@ -309,20 +343,29 @@ export default function DashboardPage() {
         <RecentVisitorChats
           published={published}
           threads={recentVisible}
+          unavailable={chatsFailed && recentThreads === null}
           username={stats?.username ?? profile?.username}
           publicPath={publicPath}
           copied={copied}
           onCopyLink={() => void copyLink()}
           onOpenThread={showThread}
         />
-        <NeedsAttention threads={recentThreads} onOpenThread={showThread} />
+        <NeedsAttention
+          threads={recentThreads}
+          unavailable={chatsFailed && recentThreads === null}
+          onOpenThread={showThread}
+        />
       </motion.div>
 
       <motion.div
         className="grid items-stretch gap-4 lg:grid-cols-2 lg:gap-5"
         variants={item}
       >
-        <AiSnapshot stats={stats} knowledgeSources={knowledgeSources} />
+        <AiSnapshot
+          stats={stats}
+          activityUnavailable={statsFailed && stats === null}
+          knowledgeSources={knowledgeSources}
+        />
         <KeepUpToDate documents={documents} memories={memories} />
       </motion.div>
 
@@ -345,6 +388,15 @@ export default function DashboardPage() {
   );
 }
 
+function threadsForProfile(
+  profileId: string | undefined,
+): RecentPublicThread[] | null {
+  if (!profileId) return null;
+  const cached = readRecentPublicChats();
+  if (!cached || cached.profileId !== profileId) return null;
+  return cached.threads;
+}
+
 function previewThreadsToRecent(threads: PreviewThread[]): RecentPublicThread[] {
   return threads.map((t) => ({
     id: t.id,
@@ -356,24 +408,3 @@ function previewThreadsToRecent(threads: PreviewThread[]): RecentPublicThread[] 
   }));
 }
 
-async function loadRecentPublicThreads(
-  profileId: string,
-): Promise<RecentPublicThread[]> {
-  const list = await apiFetch<ConversationListItem[]>(
-    `/ai/${profileId}/conversations?channel=public&limit=${PUBLIC_THREADS_LIMIT}`,
-  );
-  console.info(
-    "[dashboard] recent visitor chats fetched count=%s",
-    list.length,
-  );
-
-  return list.map((row) => ({
-    id: row.id,
-    preview: truncate(row.preview?.trim() || "Visitor started a chat", 96),
-    updatedAt: row.updated_at,
-    needsReview: Boolean(row.needs_review),
-    unansweredPreview: row.unanswered_preview?.trim()
-      ? truncate(row.unanswered_preview.trim(), 96)
-      : null,
-  }));
-}

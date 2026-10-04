@@ -8,6 +8,7 @@ from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy.orm import Session
 
 from app.auth import get_current_user
+from app.completeness import refresh_completeness
 from app.db import get_db
 from app.logging_config import get_logger
 from app.models import Memory, User
@@ -89,6 +90,7 @@ def delete_memory(
     get_owned_profile(db, user, mem.ai_profile_id)
     profile_id = mem.ai_profile_id
     db.delete(mem)
+    refresh_completeness(db, profile_id)
     db.commit()
     logger.info("memory deleted id=%s profile_id=%s", memory_id, profile_id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)

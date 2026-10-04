@@ -23,19 +23,31 @@ export function KeepUpToDate({
   documents: KnowledgeDocument[] | null | undefined;
   memories: MemoryItem[] | null | undefined;
 }) {
-  const loading = documents === null || memories === null;
+  const bothLoading = documents === null && memories === null;
 
   return (
     <DashboardCard
       title="Keep your AI up to date"
       subtitle="Recent changes to what your AI knows"
     >
-      {loading ? (
+      {bothLoading ? (
         <CardSkeleton rows={2} />
       ) : (
         <ul className="divide-y divide-border">
-          <KnowledgeRow documents={documents} />
-          <MemoryRow memories={memories} />
+          {documents === null ? (
+            <li className="px-1.5 py-3" aria-hidden>
+              <span className="inline-block h-4 w-48 animate-pulse rounded bg-[var(--atmosphere-1)]" />
+            </li>
+          ) : (
+            <KnowledgeRow documents={documents} />
+          )}
+          {memories === null ? (
+            <li className="px-1.5 py-3" aria-hidden>
+              <span className="inline-block h-4 w-48 animate-pulse rounded bg-[var(--atmosphere-1)]" />
+            </li>
+          ) : (
+            <MemoryRow memories={memories} />
+          )}
         </ul>
       )}
     </DashboardCard>

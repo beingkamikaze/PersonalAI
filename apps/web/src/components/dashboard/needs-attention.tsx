@@ -21,10 +21,13 @@ import { formatWhen } from "./format";
  */
 export function NeedsAttention({
   threads,
+  unavailable = false,
   onOpenThread,
 }: {
   /** null = never loaded */
   threads: RecentPublicThread[] | null;
+  /** The request failed and there is no cached list to show. */
+  unavailable?: boolean;
   onOpenThread: (thread: RecentPublicThread) => void;
 }) {
   const loading = threads === null;
@@ -41,7 +44,14 @@ export function NeedsAttention({
       }
     >
       {loading ? (
-        <CardSkeleton rows={2} />
+        unavailable ? (
+          <CardEmptyState
+            title="Couldn't load questions that need attention."
+            description="The rest of your dashboard is still available."
+          />
+        ) : (
+          <CardSkeleton rows={2} />
+        )
       ) : flagged.length === 0 ? (
         <CardEmptyState
           title="You're all caught up."
