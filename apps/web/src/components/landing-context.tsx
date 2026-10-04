@@ -388,7 +388,7 @@ function CenterMark({
   inView: boolean;
   reduce: boolean;
   assembledAt: number;
-  centerRef: RefObject<HTMLDivElement | null>;
+  centerRef: RefObject<HTMLDivElement>;
 }) {
   return (
     <div
