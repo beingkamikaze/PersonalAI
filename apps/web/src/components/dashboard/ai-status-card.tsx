@@ -3,7 +3,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useMemo } from "react";
-import { motion, useReducedMotion, type Variants } from "motion/react";
+import { motion, type Variants } from "motion/react";
+import { useHydratedReducedMotion } from "@/lib/motion";
 import { Button, ButtonLink } from "@/components/ui/button";
 import {
   ChatIcon,
@@ -54,7 +55,7 @@ export function AiStatusCard({
   copied: boolean;
   onCopyLink: () => void;
 }) {
-  const reduceMotion = useReducedMotion();
+  const reduceMotion = useHydratedReducedMotion();
   const reduce = !!reduceMotion;
   const aiName = possessiveAiName(name);
   const setupDone =

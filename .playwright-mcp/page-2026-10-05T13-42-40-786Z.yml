@@ -1,0 +1,97 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - link "PersonaAI" [ref=e4] [cursor=pointer]:
+        - /url: /
+      - generic [ref=e5]:
+        - link "Account, Signed in" [ref=e6] [cursor=pointer]:
+          - /url: /app/profile
+          - generic [aria-hidden] [ref=e7]: AC
+          - generic [ref=e8]:
+            - generic [ref=e9]: Account
+            - generic [ref=e10]: Signed in
+        - link "Skip to app" [ref=e11] [cursor=pointer]:
+          - /url: /app
+        - button "Sign out" [ref=e13] [cursor=pointer]
+    - main [ref=e17]:
+      - generic [ref=e18]:
+        - generic [ref=e19]:
+          - paragraph [ref=e20]: Test your AI
+          - heading "See how your AI responds." [level=1] [ref=e21]
+          - paragraph [ref=e22]: Ask the questions someone else would ask. Check whether it sounds like you and uses what you've taught it.
+        - navigation "Onboarding progress" [ref=e24]:
+          - list [ref=e25]:
+            - listitem [ref=e26]:
+              - generic [ref=e30]:
+                - generic [ref=e31]: "Completed:"
+                - text: Create
+            - listitem [aria-hidden] [ref=e32]
+            - listitem [ref=e34]:
+              - generic [ref=e38]:
+                - generic [ref=e39]: "Completed:"
+                - text: Interview
+            - listitem [aria-hidden] [ref=e40]
+            - listitem [ref=e42]:
+              - generic [ref=e46]:
+                - generic [ref=e47]: "Completed:"
+                - text: Knowledge
+            - listitem [aria-hidden] [ref=e48]
+            - listitem [ref=e50]:
+              - generic [aria-hidden] [ref=e51]: "04"
+              - generic [ref=e52]: Test
+            - listitem [aria-hidden] [ref=e53]
+            - listitem [ref=e55]:
+              - generic [aria-hidden] [ref=e56]: "05"
+              - generic [ref=e57]: Share
+        - generic [ref=e58]:
+          - generic [ref=e60]:
+            - paragraph [ref=e61]: Private preview — only you can see this.
+            - generic [ref=e62]:
+              - generic [ref=e63]:
+                - generic [aria-hidden] [ref=e64]: MS
+                - generic [ref=e65]:
+                  - heading "Mayank Sharma" [level=2] [ref=e66]
+                  - paragraph [ref=e67]: Software engineer building personal AI products
+                  - paragraph [ref=e68]: I help teams ship calm, credible product UI.
+                  - paragraph [ref=e69]:
+                    - link "Contact" [ref=e70] [cursor=pointer]:
+                      - /url: mailto:mayank@example.com
+                    - link "Book" [ref=e71] [cursor=pointer]:
+                      - /url: https://cal.com/mayank
+              - generic [ref=e72]:
+                - button "What does Mayank Sharma do?" [disabled] [ref=e73]
+                - button "What are Mayank Sharma's main skills?" [disabled] [ref=e74]
+                - button "How does Mayank Sharma prefer to work?" [disabled] [ref=e75]
+                - button "What kind of work is Mayank Sharma open to?" [disabled] [ref=e76]
+                - button "Tell me about Mayank Sharma's recent projects." [disabled] [ref=e77]
+              - generic [ref=e78]:
+                - generic [ref=e94]:
+                  - generic [ref=e96]:
+                    - generic [ref=e97]: "You:"
+                    - paragraph [ref=e99]: What does Mayank Sharma do?
+                  - generic [ref=e108]:
+                    - generic [ref=e109]: "Mayank Sharma:"
+                    - paragraph [ref=e111]: "Preview mode: this is a sample reply. Connect the API and sign in for real answers from your knowledge and personality."
+                  - generic [ref=e113]:
+                    - generic [ref=e114]: "You:"
+                    - paragraph [ref=e116]: What should I know before we work together?
+                  - status "Composing a reply" [ref=e121]
+                - generic [ref=e79]:
+                  - generic [ref=e80]: Message Mayank Sharma's AI
+                  - textbox "Message Mayank Sharma's AI" [disabled] [ref=e81]:
+                    - /placeholder: Ask anything about Mayank Sharma's work...
+                  - button "Send message" [disabled] [ref=e82]
+          - paragraph [ref=e85]:
+            - text: Something wrong? Update your
+            - link "Knowledge" [ref=e86] [cursor=pointer]:
+              - /url: /onboarding/knowledge
+            - text: or
+            - link "Memory" [ref=e87] [cursor=pointer]:
+              - /url: /app/memories
+            - text: and test again.
+          - generic [ref=e88]:
+            - link "Continue to share" [ref=e89] [cursor=pointer]:
+              - /url: /onboarding/publish
+            - link "Back to knowledge" [ref=e92] [cursor=pointer]:
+              - /url: /onboarding/knowledge
+  - alert [ref=e93]

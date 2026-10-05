@@ -1,0 +1,65 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - link "PersonaAI" [ref=e4] [cursor=pointer]:
+        - /url: /
+      - navigation [ref=e5]:
+        - link "Pricing" [ref=e6] [cursor=pointer]:
+          - /url: /pricing
+        - link "Sign in" [ref=e7] [cursor=pointer]:
+          - /url: /sign-in
+        - link "Create your AI" [ref=e8] [cursor=pointer]:
+          - /url: /sign-up
+    - main [ref=e9]:
+      - generic [ref=e10]:
+        - generic [ref=e11]:
+          - paragraph [ref=e12]: Your assistant is saved here
+          - heading "Welcome back to PersonaAI." [level=1] [ref=e14]:
+            - generic [ref=e15]: Welcome back
+            - generic [ref=e16]: to PersonaAI.
+          - paragraph [ref=e17]: Sign in to manage your AI, update your knowledge, and see how people are interacting with it.
+        - generic [ref=e18]:
+          - list [ref=e19]:
+            - listitem [ref=e20]:
+              - generic [ref=e24]:
+                - generic [ref=e25]: Track conversations
+                - generic [ref=e26]: See how people use your AI
+            - listitem [ref=e27]:
+              - generic [ref=e32]:
+                - generic [ref=e33]: Update anytime
+                - generic [ref=e34]: Keep your AI aligned with your latest work
+            - listitem [ref=e35]:
+              - generic [ref=e40]:
+                - generic [ref=e41]: Share your link
+                - generic [ref=e42]: Use it anywhere — LinkedIn, your site, or email
+          - figure [ref=e43]:
+            - generic [ref=e44]:
+              - blockquote [ref=e45]: “PersonaAI helps me share my work and experience without repeating myself.”
+              - generic [ref=e46]:
+                - generic [ref=e47]: Mayank Sandilya
+                - generic [ref=e48]: Software Developer
+        - generic [ref=e49]:
+          - heading "Sign in" [level=2] [ref=e50]
+          - paragraph [ref=e51]: Welcome back! Sign in to your account.
+          - generic [ref=e52]:
+            - generic [ref=e53]:
+              - text: Email
+              - textbox "Email" [ref=e55]:
+                - /placeholder: you@example.com
+            - generic [ref=e56]:
+              - text: Password
+              - generic [ref=e57]:
+                - textbox "Password" [ref=e58]:
+                  - /placeholder: Enter your password
+                - button "Show password" [ref=e60] [cursor=pointer]
+            - paragraph [ref=e64]:
+              - link "Forgot password?" [ref=e65] [cursor=pointer]:
+                - /url: /forgot-password
+            - button "Sign in" [ref=e66] [cursor=pointer]
+          - generic [ref=e67]: Or
+          - button "Continue with Google" [ref=e70] [cursor=pointer]
+          - paragraph [ref=e76]:
+            - text: No account?
+            - link "Sign up" [ref=e77] [cursor=pointer]:
+              - /url: /sign-up
+  - alert [ref=e78]

@@ -1,0 +1,111 @@
+- generic [active] [ref=f1e1]:
+  - generic [ref=f1e2]:
+    - banner [ref=f1e3]:
+      - link "PersonaAI" [ref=f1e4] [cursor=pointer]:
+        - /url: /
+      - generic [ref=f1e5]:
+        - link "Account, Signed in" [ref=f1e6] [cursor=pointer]:
+          - /url: /app/profile
+          - generic [aria-hidden] [ref=f1e7]: AC
+          - generic [ref=f1e8]:
+            - generic [ref=f1e9]: Account
+            - generic [ref=f1e10]: Signed in
+        - link "Skip to app" [ref=f1e11] [cursor=pointer]:
+          - /url: /app
+        - button "Sign out" [ref=f1e13] [cursor=pointer]
+    - main [ref=f1e17]:
+      - generic [ref=f1e20]:
+        - generic [ref=f1e22]:
+          - paragraph [ref=f1e23]: Share your AI
+          - heading "Your AI is ready to meet people." [level=1] [ref=f1e24]
+          - paragraph [ref=f1e25]: Choose your public link, add a few optional details, preview the experience, then publish.
+        - navigation "Onboarding progress" [ref=f1e27]:
+          - list [ref=f1e28]:
+            - listitem [ref=f1e29]:
+              - generic [ref=f1e33]:
+                - generic [ref=f1e34]: "Completed:"
+                - text: Create
+            - listitem [aria-hidden] [ref=f1e35]
+            - listitem [ref=f1e37]:
+              - generic [ref=f1e41]:
+                - generic [ref=f1e42]: "Completed:"
+                - text: Interview
+            - listitem [aria-hidden] [ref=f1e43]
+            - listitem [ref=f1e45]:
+              - generic [ref=f1e49]:
+                - generic [ref=f1e50]: "Completed:"
+                - text: Knowledge
+            - listitem [aria-hidden] [ref=f1e51]
+            - listitem [ref=f1e53]:
+              - generic [ref=f1e57]:
+                - generic [ref=f1e58]: "Completed:"
+                - text: Test
+            - listitem [aria-hidden] [ref=f1e59]
+            - listitem [ref=f1e61]:
+              - generic [aria-hidden] [ref=f1e62]: "05"
+              - generic [ref=f1e63]: Share
+        - generic [ref=f1e64]:
+          - generic [ref=f1e65]:
+            - generic [ref=f1e66]:
+              - heading "Public profile" [level=2] [ref=f1e67]
+              - paragraph [ref=f1e68]: Choose what visitors will see on your public page.
+              - generic [ref=f1e69]:
+                - text: Username
+                - paragraph [ref=f1e70]: This becomes your public URL.
+                - generic [ref=f1e71]:
+                  - generic [ref=f1e72]: /u/
+                  - textbox "Username" [ref=f1e73]:
+                    - /placeholder: your-name
+                    - text: mayank
+                  - generic [ref=f1e76]: Username format is valid
+              - generic [ref=f1e77]:
+                - generic [ref=f1e78]:
+                  - generic [ref=f1e79]: Short bio (optional)
+                  - paragraph [ref=f1e80]: A short introduction visitors can see.
+                  - textbox "Short bio (optional)" [ref=f1e81]: I help teams ship calm, credible product UI.
+                - generic [ref=f1e82]:
+                  - generic [ref=f1e83]: Contact email (optional)
+                  - paragraph [ref=f1e84]: Optional — visitors can use this to contact you.
+                  - textbox "Contact email (optional)" [ref=f1e85]: mayank@example.com
+                - generic [ref=f1e86]:
+                  - generic [ref=f1e87]: Calendar / booking link (optional)
+                  - paragraph [ref=f1e88]: Optional — let visitors book time with you.
+                  - textbox "Calendar / booking link (optional)" [ref=f1e89]:
+                    - /placeholder: https://
+                    - text: https://cal.com/mayank
+            - complementary [ref=f1e90]:
+              - paragraph [ref=f1e91]: What visitors can see
+              - paragraph [ref=f1e92]: Visitors can see your public profile and AI responses. Your private conversations, uploaded documents, and Memory list stay private.
+            - generic [ref=f1e94]:
+              - button "Publish your AI" [ref=f1e95] [cursor=pointer]
+              - link "Back to test" [ref=f1e98] [cursor=pointer]:
+                - /url: /onboarding/test
+          - region "Live preview" [ref=f1e99]:
+            - generic [ref=f1e100]:
+              - paragraph [ref=f1e101]: Live preview
+              - paragraph [ref=f1e102]: This is what visitors will see.
+              - paragraph [ref=f1e103]: localhost:3010/u/mayank
+            - generic [ref=f1e106]:
+              - generic [ref=f1e107]:
+                - generic [aria-hidden] [ref=f1e108]: MS
+                - generic [ref=f1e109]:
+                  - heading "Mayank Sharma" [level=2] [ref=f1e110]
+                  - paragraph [ref=f1e111]: Software engineer building personal AI products
+                  - paragraph [ref=f1e112]: I help teams ship calm, credible product UI.
+                  - paragraph [ref=f1e113]:
+                    - link "Contact" [ref=f1e114] [cursor=pointer]:
+                      - /url: mailto:mayank@example.com
+                    - link "Book" [ref=f1e115] [cursor=pointer]:
+                      - /url: https://cal.com/mayank
+              - generic [ref=f1e116]:
+                - button "What does Mayank Sharma do?" [ref=f1e117] [cursor=pointer]
+                - button "What are Mayank Sharma's main skills?" [ref=f1e118] [cursor=pointer]
+                - button "How does Mayank Sharma prefer to work?" [ref=f1e119] [cursor=pointer]
+                - button "What kind of work is Mayank Sharma open to?" [ref=f1e120] [cursor=pointer]
+                - button "Tell me about Mayank Sharma's recent projects." [ref=f1e121] [cursor=pointer]
+              - generic [ref=f1e123]:
+                - generic [ref=f1e124]: Message Mayank Sharma's AI
+                - textbox "Message Mayank Sharma's AI" [ref=f1e125]:
+                  - /placeholder: Ask anything about Mayank Sharma's work...
+                - button "Send message" [disabled] [ref=f1e126]
+  - alert [ref=f1e129]

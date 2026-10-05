@@ -1,0 +1,256 @@
+- generic [active] [ref=f9e1]:
+  - generic [ref=f9e2]:
+    - banner [ref=f9e3]:
+      - link "PersonaAI" [ref=f9e4] [cursor=pointer]:
+        - /url: /
+      - navigation [ref=f9e5]:
+        - link "Pricing" [ref=f9e6] [cursor=pointer]:
+          - /url: /pricing
+        - link "Sign in" [ref=f9e7] [cursor=pointer]:
+          - /url: /sign-in
+        - link "Create your AI" [ref=f9e8] [cursor=pointer]:
+          - /url: /sign-up
+    - generic [ref=f9e11]:
+      - generic [ref=f9e12]:
+        - paragraph [ref=f9e13]: For freelancers, consultants, and independent professionals
+        - heading "Create your own AI assistant. No code required." [level=1] [ref=f9e15]:
+          - generic [ref=f9e16]: Create your own
+          - generic [ref=f9e17]: AI assistant.
+          - generic [ref=f9e18]: No code required.
+        - paragraph [ref=f9e19]: A personal AI assistant you create yourself. Teach it with your information, knowledge, memories, preferences, and boundaries — then test it and share it.
+        - generic [ref=f9e20]:
+          - link "Create your AI" [ref=f9e21] [cursor=pointer]:
+            - /url: /sign-up
+            - text: Create your AI
+            - generic [aria-hidden] [ref=f9e22]: →
+          - link [ref=f9e23] [cursor=pointer]:
+            - /url: "#how-it-works"
+        - list [ref=f9e27]:
+          - listitem [ref=f9e28]: No credit card required
+          - listitem [ref=f9e31]: You decide what it can say
+      - generic [ref=f9e34]:
+        - paragraph [ref=f9e35]:
+          - text: Someone asks your AI about your work.
+          - generic [ref=f9e36]: It answers using what you’ve taught it.
+        - generic "Example of someone asking a consultant’s AI about new clients, answered from their work, preferences, and boundaries" [ref=f9e37]:
+          - paragraph [ref=f9e38]
+          - generic [ref=f9e39]:
+            - generic [ref=f9e41]:
+              - paragraph [ref=f9e42]: Alex’s AI
+              - paragraph [ref=f9e43]: Online · Independent consultant
+            - paragraph [ref=f9e45]:
+              - text: persona.ai/u/alex
+              - generic [aria-hidden] [ref=f9e46]: →
+          - paragraph [ref=f9e50]: Ask anything about my work…
+    - generic [ref=f9e54]:
+      - paragraph [ref=f9e55]: How it works
+      - heading "Create, teach, customize, test, share." [level=2] [ref=f9e56]
+      - paragraph [ref=f9e57]: One path. You stay in control the whole way.
+      - list [ref=f9e58]:
+        - listitem [ref=f9e59]:
+          - generic [ref=f9e60]: "01"
+          - heading "Tell us about you" [level=3] [ref=f9e62]
+          - paragraph [ref=f9e63]: A short interview about your work and what it should never invent.
+          - generic [aria-hidden] [ref=f9e65]:
+            - paragraph [ref=f9e66]: Interview
+            - paragraph [ref=f9e67]: What do you do day to day?
+            - paragraph [ref=f9e68]: I advise clients, write the plan, and stay with the work until it ships.
+        - listitem [ref=f9e69]:
+          - generic [ref=f9e70]: "02"
+          - heading "Teach your AI" [level=3] [ref=f9e72]
+          - paragraph [ref=f9e73]: Upload documents, notes, or a link it can answer from.
+          - generic [aria-hidden] [ref=f9e75]:
+            - paragraph [ref=f9e76]: Knowledge
+            - list [ref=f9e77]:
+              - listitem [ref=f9e78]:
+                - generic [ref=f9e79]: Resume.pdf
+                - generic [ref=f9e80]: Ready
+              - listitem [ref=f9e81]:
+                - generic [ref=f9e82]: Project notes
+                - generic [ref=f9e83]: Ready
+              - listitem [ref=f9e84]:
+                - generic [ref=f9e85]: yoursite.com
+                - generic [ref=f9e86]: Ready
+        - listitem [ref=f9e87]:
+          - generic [ref=f9e88]: "03"
+          - heading "Customize it" [level=3] [ref=f9e90]
+          - paragraph [ref=f9e91]: Set memories, preferences, boundaries, and how it talks.
+          - generic [aria-hidden] [ref=f9e93]:
+            - paragraph [ref=f9e94]: Memory and settings
+            - list [ref=f9e95]:
+              - listitem [ref=f9e96]:
+                - generic [ref=f9e97]: Preference
+                - generic [ref=f9e98]: Async first
+              - listitem [ref=f9e99]:
+                - generic [ref=f9e100]: Boundary
+                - generic [ref=f9e101]: No fees
+              - listitem [ref=f9e102]:
+                - generic [ref=f9e103]: Personality
+                - generic [ref=f9e104]: Concise
+        - listitem [ref=f9e105]:
+          - generic [ref=f9e106]: "04"
+          - heading "Chat and test" [level=3] [ref=f9e108]
+          - paragraph [ref=f9e109]: Ask real questions, then correct anything it gets wrong.
+          - generic [aria-hidden] [ref=f9e111]:
+            - paragraph [ref=f9e112]: Private chat
+            - paragraph [ref=f9e113]: How do you usually start a project?
+            - paragraph [ref=f9e114]: A short call first, then I work async.
+        - listitem [ref=f9e115]:
+          - generic [ref=f9e116]: "05"
+          - heading "Share it" [level=3] [ref=f9e118]
+          - paragraph [ref=f9e119]: Publish a link so other people can ask about your work.
+          - generic [aria-hidden] [ref=f9e121]:
+            - paragraph [ref=f9e122]: Your public page
+            - paragraph [ref=f9e123]: persona.ai/u/alex
+            - paragraph [ref=f9e124]: Published. People can ask about your work.
+    - generic [ref=f9e125]:
+      - paragraph [ref=f9e126]: What you can add
+      - heading "Give your AI the context that makes it yours." [level=2] [ref=f9e127]
+      - paragraph [ref=f9e128]: Teach it what to know, remember, how to work, and what never to say.
+      - generic [ref=f9e130]:
+        - generic [ref=f9e132]:
+          - paragraph [ref=f9e137]: Your AI
+          - paragraph [ref=f9e138]: Built around you
+        - article [ref=f9e142]:
+          - heading "Knowledge" [level=3] [ref=f9e147]
+          - paragraph [ref=f9e148]: Documents, notes, and links it can answer from.
+          - paragraph [ref=f9e149]: Resume.pdf · Project notes · Your website
+        - article [ref=f9e153]:
+          - heading "Memory" [level=3] [ref=f9e159]
+          - paragraph [ref=f9e160]: Facts and project details you want remembered.
+          - paragraph [ref=f9e161]: Led the client workshop series in 2024
+        - article [ref=f9e165]:
+          - heading "Preferences" [level=3] [ref=f9e177]
+          - paragraph [ref=f9e178]: How you like to work and communicate.
+          - paragraph [ref=f9e179]: Async first. Short written updates.
+        - article [ref=f9e183]:
+          - heading "Boundaries" [level=3] [ref=f9e187]
+          - paragraph [ref=f9e188]: What it should never invent or share.
+          - paragraph [ref=f9e189]: Do not invent fees or private contacts.
+        - article [ref=f9e193]:
+          - heading "Personality" [level=3] [ref=f9e198]
+          - paragraph [ref=f9e199]: "Tone: formal or warm, brief or detailed."
+          - paragraph [ref=f9e200]: Clear, warm, and concise
+        - article [ref=f9e204]:
+          - heading "Conversations" [level=3] [ref=f9e208]
+          - paragraph [ref=f9e209]: Private chats where you check answers and save what matters.
+          - paragraph [ref=f9e210]: How do you start a project? — saved to memory
+      - paragraph [ref=f9e211]: Memories stay private to you. You can edit or remove them anytime.
+    - generic [ref=f9e213]:
+      - generic [ref=f9e214]:
+        - paragraph [ref=f9e215]: Who it is for
+        - heading "For people who keep answering the same questions." [level=2] [ref=f9e216]
+        - paragraph [ref=f9e217]: If people repeatedly ask about your work, experience, services, process, or point of view, your assistant can handle those questions.
+        - list [ref=f9e218]:
+          - listitem [ref=f9e219]:
+            - heading "Freelancers" [level=3] [ref=f9e220]
+            - paragraph [ref=f9e221]: Services, experience, and how you like to work.
+          - listitem [ref=f9e222]:
+            - heading "Consultants and experts" [level=3] [ref=f9e223]
+            - paragraph [ref=f9e224]: The questions you already answer, ready for someone to ask.
+          - listitem [ref=f9e225]:
+            - heading "Creators" [level=3] [ref=f9e226]
+            - paragraph [ref=f9e227]: Your work and point of view, for the people who follow you.
+          - listitem [ref=f9e228]:
+            - heading "Professionals" [level=3] [ref=f9e229]
+            - paragraph [ref=f9e230]: Your background, preferences, and the facts you choose to share.
+      - list [ref=f9e231]:
+        - listitem [ref=f9e232]:
+          - generic [ref=f9e233]: What do you do?
+        - listitem [ref=f9e235]:
+          - generic [ref=f9e236]: Are you taking on new work?
+        - listitem [ref=f9e238]:
+          - generic [ref=f9e239]: How do you like to work?
+        - listitem [ref=f9e241]:
+          - generic [ref=f9e242]: What should I know before we talk?
+        - listitem [ref=f9e244]:
+          - generic [ref=f9e245]: What projects have you worked on?
+    - generic [ref=f9e247]:
+      - paragraph [ref=f9e248]: Why PersonaAI
+      - heading "Built around your work, not a blank chat." [level=2] [ref=f9e249]
+      - generic [ref=f9e250]:
+        - article [ref=f9e251]:
+          - heading "A generic AI" [level=3] [ref=f9e252]
+          - paragraph [ref=f9e253]: Start conversations by repeatedly explaining your context, preferences, and work.
+        - article [ref=f9e254]:
+          - heading "PersonaAI" [level=3] [ref=f9e255]
+          - paragraph [ref=f9e256]: Keep your knowledge, preferences, boundaries, and context in one assistant you can refine and share.
+      - paragraph [ref=f9e257]: The value is not another chatbot. It’s having an assistant that’s already set up around your work.
+    - generic [ref=f9e258]:
+      - generic [ref=f9e259]:
+        - generic [ref=f9e260]:
+          - paragraph [ref=f9e261]: What other people see
+          - heading "Someone asks. Your AI answers from your work." [level=2] [ref=f9e262]
+          - paragraph [ref=f9e263]: After you publish, anyone with your link can ask about your work. The reply uses your context, preferences, knowledge, and boundaries — not a blank chat.
+          - paragraph [ref=f9e264]:
+            - text: persona.ai/u/alex
+            - generic [aria-hidden] [ref=f9e268]: →
+        - article [ref=f9e269]:
+          - generic [ref=f9e271]:
+            - paragraph [ref=f9e272]: Alex
+            - paragraph [ref=f9e274]: Independent consultant
+          - generic [ref=f9e275]:
+            - paragraph [ref=f9e276]: Are you taking on new consulting clients?
+            - paragraph [ref=f9e277]: Yes — a few advisory clients at a time. I start with a short call, then work async. I can walk through past projects. I don’t share fees or private client details.
+            - paragraph [ref=f9e278]: From your work, your preference for async, your project notes, and a boundary you set.
+          - list [ref=f9e279]:
+            - listitem [ref=f9e280]:
+              - generic [ref=f9e281]: What kind of work do you take on?
+            - listitem [ref=f9e284]:
+              - generic [ref=f9e285]: How do you like to work?
+            - listitem [ref=f9e288]:
+              - generic [ref=f9e289]: What should I know before we talk?
+      - generic [ref=f9e294]:
+        - paragraph [ref=f9e295]: Share your AI anywhere
+        - list [ref=f9e296]:
+          - listitem [ref=f9e297]:
+            - generic [ref=f9e302]: LinkedIn
+          - listitem [ref=f9e303]:
+            - generic [ref=f9e307]: Email signature
+          - listitem [ref=f9e308]:
+            - generic [ref=f9e312]: Resume
+          - listitem [ref=f9e313]:
+            - generic [ref=f9e317]: Your website
+          - listitem [ref=f9e318]:
+            - generic [ref=f9e322]: Social profile
+    - generic [ref=f9e323]:
+      - paragraph [ref=f9e324]: Pricing
+      - heading "Start free. Upgrade when your assistant needs more room." [level=2] [ref=f9e325]
+      - paragraph [ref=f9e326]: Free is the assistant itself. Plus raises the limits once people are using it.
+      - generic [ref=f9e327]:
+        - article [ref=f9e328]:
+          - generic [ref=f9e329]:
+            - heading "Free" [level=3] [ref=f9e330]
+            - paragraph [ref=f9e331]: ₹0
+          - paragraph [ref=f9e332]: Create and teach one assistant, then share the link. About 40 chats a day and about 8 knowledge sources during the soft launch. Visitor chats are limited too.
+        - article [ref=f9e333]:
+          - generic [ref=f9e334]:
+            - heading "Plus" [level=3] [ref=f9e335]
+            - paragraph [ref=f9e336]: Soon
+          - paragraph [ref=f9e337]: Higher daily chat and knowledge limits. Billing starts after the soft launch.
+      - paragraph [ref=f9e338]:
+        - link "See pricing" [ref=f9e339] [cursor=pointer]:
+          - /url: /pricing
+    - generic [ref=f9e348]:
+      - paragraph [ref=f9e349]: Get started
+      - heading "Create your AI assistant today." [level=2] [ref=f9e350]
+      - paragraph [ref=f9e351]: Start with a short interview. Add what you want it to know. Share it when the answers sound right.
+      - link "Create your AI" [ref=f9e353] [cursor=pointer]:
+        - /url: /sign-up
+        - text: Create your AI
+        - generic [aria-hidden] [ref=f9e354]: →
+      - paragraph [ref=f9e355]: No credit card required
+    - contentinfo [ref=f9e356]:
+      - generic [ref=f9e357]:
+        - link "PersonaAI" [ref=f9e358] [cursor=pointer]:
+          - /url: /
+        - navigation [ref=f9e359]:
+          - link "Pricing" [ref=f9e360] [cursor=pointer]:
+            - /url: /pricing
+          - link "Sign in" [ref=f9e361] [cursor=pointer]:
+            - /url: /sign-in
+          - link "Create your AI" [ref=f9e362] [cursor=pointer]:
+            - /url: /sign-up
+          - generic [ref=f9e363]: Privacy
+          - generic [ref=f9e364]: Terms
+  - alert [ref=f9e365]

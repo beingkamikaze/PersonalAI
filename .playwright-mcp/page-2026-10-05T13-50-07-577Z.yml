@@ -1,0 +1,85 @@
+- generic [active] [ref=f4e1]:
+  - generic [ref=f4e2]:
+    - banner [ref=f4e3]:
+      - link "PersonaAI" [ref=f4e4] [cursor=pointer]:
+        - /url: /
+      - generic [ref=f4e5]:
+        - link "Account, Signed in" [ref=f4e6] [cursor=pointer]:
+          - /url: /app/profile
+          - generic [aria-hidden] [ref=f4e7]: AC
+          - generic [ref=f4e8]:
+            - generic [ref=f4e9]: Account
+            - generic [ref=f4e10]: Signed in
+        - link "Skip to app" [ref=f4e11] [cursor=pointer]:
+          - /url: /app
+        - button "Sign out" [ref=f4e13] [cursor=pointer]
+    - main [ref=f4e17]:
+      - generic [ref=f4e18]:
+        - generic [ref=f4e19]:
+          - paragraph [ref=f4e20]: Test your AI
+          - heading "See how your AI responds." [level=1] [ref=f4e21]
+          - paragraph [ref=f4e22]: Ask the questions someone else would ask. Check whether it sounds like you and uses what you've taught it.
+        - navigation "Onboarding progress" [ref=f4e24]:
+          - list [ref=f4e25]:
+            - listitem [ref=f4e26]:
+              - generic [ref=f4e30]:
+                - generic [ref=f4e31]: "Completed:"
+                - text: Create
+            - listitem [aria-hidden] [ref=f4e32]
+            - listitem [ref=f4e34]:
+              - generic [ref=f4e38]:
+                - generic [ref=f4e39]: "Completed:"
+                - text: Interview
+            - listitem [aria-hidden] [ref=f4e40]
+            - listitem [ref=f4e42]:
+              - generic [ref=f4e46]:
+                - generic [ref=f4e47]: "Completed:"
+                - text: Knowledge
+            - listitem [aria-hidden] [ref=f4e48]
+            - listitem [ref=f4e50]:
+              - generic [aria-hidden] [ref=f4e51]: "04"
+              - generic [ref=f4e52]: Test
+            - listitem [aria-hidden] [ref=f4e53]
+            - listitem [ref=f4e55]:
+              - generic [aria-hidden] [ref=f4e56]: "05"
+              - generic [ref=f4e57]: Share
+        - generic [ref=f4e58]:
+          - generic [ref=f4e60]:
+            - paragraph [ref=f4e61]: Private preview — only you can see this.
+            - generic [ref=f4e62]:
+              - generic [ref=f4e63]:
+                - generic [aria-hidden] [ref=f4e64]: MS
+                - generic [ref=f4e65]:
+                  - heading "Mayank Sharma" [level=2] [ref=f4e66]
+                  - paragraph [ref=f4e67]: Software engineer building personal AI products
+                  - paragraph [ref=f4e68]: I help teams ship calm, credible product UI.
+                  - paragraph [ref=f4e69]:
+                    - link "Contact" [ref=f4e70] [cursor=pointer]:
+                      - /url: mailto:mayank@example.com
+                    - link "Book" [ref=f4e71] [cursor=pointer]:
+                      - /url: https://cal.com/mayank
+              - generic [ref=f4e72]:
+                - button "What does Mayank Sharma do?" [ref=f4e73] [cursor=pointer]
+                - button "What are Mayank Sharma's main skills?" [ref=f4e74] [cursor=pointer]
+                - button "How does Mayank Sharma prefer to work?" [ref=f4e75] [cursor=pointer]
+                - button "What kind of work is Mayank Sharma open to?" [ref=f4e76] [cursor=pointer]
+                - button "Tell me about Mayank Sharma's recent projects." [ref=f4e77] [cursor=pointer]
+              - generic [ref=f4e79]:
+                - generic [ref=f4e80]: Message Mayank Sharma's AI
+                - textbox "Message Mayank Sharma's AI" [ref=f4e81]:
+                  - /placeholder: Ask anything about Mayank Sharma's work...
+                - button "Send message" [disabled] [ref=f4e82]
+          - paragraph [ref=f4e85]:
+            - text: Something wrong? Update your
+            - link "Knowledge" [ref=f4e86] [cursor=pointer]:
+              - /url: /onboarding/knowledge
+            - text: or
+            - link "Memory" [ref=f4e87] [cursor=pointer]:
+              - /url: /app/memories
+            - text: and test again.
+          - generic [ref=f4e88]:
+            - link "Continue to share" [ref=f4e89] [cursor=pointer]:
+              - /url: /onboarding/publish
+            - link "Back to knowledge" [ref=f4e92] [cursor=pointer]:
+              - /url: /onboarding/knowledge
+  - alert [ref=f4e93]

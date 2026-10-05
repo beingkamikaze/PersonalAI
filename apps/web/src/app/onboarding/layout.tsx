@@ -9,7 +9,7 @@ export default function OnboardingLayout({
   children: ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-bg">
+    <div className="min-h-screen bg-bg app-surface">
       <header className="flex items-center justify-between border-b border-border px-6 py-4 md:px-10">
         <Link href="/" className="font-display text-lg text-fg">
           PersonaAI
@@ -22,7 +22,7 @@ export default function OnboardingLayout({
           <SignOutButton />
         </div>
       </header>
-      <main className="px-6 py-10 md:px-10 md:py-14">{children}</main>
+      <main className="px-6 py-8 md:px-10 md:py-8">{children}</main>
     </div>
   );
 }

@@ -1,0 +1,45 @@
+- generic [ref=f17e2]:
+  - banner [ref=f17e3]:
+    - link "PersonaAI" [ref=f17e4] [cursor=pointer]:
+      - /url: /
+    - generic [ref=f17e5]:
+      - link "Account, Signed in" [ref=f17e6] [cursor=pointer]:
+        - /url: /app/profile
+        - generic [aria-hidden] [ref=f17e7]: AC
+        - generic [ref=f17e8]: AccountSigned in
+      - link "Skip to app" [ref=f17e9] [cursor=pointer]:
+        - /url: /app
+      - button "Sign out" [ref=f17e11]
+  - main [ref=f17e15]:
+    - generic [ref=f17e16]:
+      - generic [ref=f17e17]:
+        - paragraph [ref=f17e18]: Interview
+        - heading "Let's teach your AI." [level=1] [ref=f17e19]
+        - paragraph [ref=f17e20]: A few questions about your work, how you communicate, and what your AI should know. Your answers help shape how it responds.
+      - navigation "Onboarding progress" [ref=f17e22]:
+        - list [ref=f17e23]:
+          - listitem [ref=f17e24]:
+            - generic [ref=f17e28]: "Completed: Create"
+          - listitem [aria-hidden] [ref=f17e29]
+          - listitem [ref=f17e30]: 02Interview
+          - listitem [aria-hidden] [ref=f17e31]
+          - listitem [ref=f17e32]: 03Knowledge
+          - listitem [aria-hidden] [ref=f17e33]
+          - listitem [ref=f17e34]: 04Test
+          - listitem [aria-hidden] [ref=f17e35]
+          - listitem [ref=f17e36]: 05Share
+      - generic [ref=f17e37]:
+        - generic [ref=f17e39]:
+          - paragraph [ref=f17e40]: Question 1 of 10
+          - paragraph [ref=f17e41]: About 3 minutes
+        - generic [ref=f17e42]:
+          - paragraph [ref=f17e47]: Interview
+          - generic [ref=f17e48]:
+            - heading "What's your full name, and what should people call you?" [level=2] [ref=f17e49]
+            - textbox "What's your full name, and what should people call you?" [ref=f17e50]:
+              - /placeholder: Your answer...
+          - generic [ref=f17e51]:
+            - button "Continue" [disabled] [ref=f17e52]
+            - button "Skip for now" [ref=f17e55]
+            - button "Back" [ref=f17e56]
+        - paragraph [ref=f17e57]: You can edit these answers later.

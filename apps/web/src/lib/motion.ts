@@ -1,4 +1,24 @@
-import { type Variants } from "motion/react";
+"use client";
+
+import { useLayoutEffect, useState } from "react";
+import { useReducedMotion, type Variants } from "motion/react";
+
+/**
+ * `useReducedMotion()` reads the device setting on the first client render.
+ * The server always sees "no preference", so using that value in the first
+ * paint (transforms, durations) makes hydration fail. This stays null until
+ * after hydration, then follows the device.
+ */
+export function useHydratedReducedMotion(): boolean | null {
+  const prefersReduced = useReducedMotion();
+  const [reduceMotion, setReduceMotion] = useState<boolean | null>(null);
+
+  useLayoutEffect(() => {
+    setReduceMotion(prefersReduced ? true : null);
+  }, [prefersReduced]);
+
+  return reduceMotion;
+}
 
 export function revealContainer(reduceMotion: boolean | null): Variants {
   return {

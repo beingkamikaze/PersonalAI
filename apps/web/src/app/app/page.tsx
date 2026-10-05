@@ -2,8 +2,12 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { motion, useReducedMotion } from "motion/react";
-import { revealContainer, revealItem } from "@/lib/motion";
+import { motion } from "motion/react";
+import {
+  revealContainer,
+  revealItem,
+  useHydratedReducedMotion,
+} from "@/lib/motion";
 import {
   ApiError,
   type AiProfile,
@@ -58,7 +62,7 @@ const CHECKLIST_KEYS = [
 
 export default function DashboardPage() {
   const router = useRouter();
-  const reduceMotion = useReducedMotion();
+  const reduceMotion = useHydratedReducedMotion();
   const container = useMemo(
     () => revealContainer(reduceMotion),
     [reduceMotion],

@@ -1,0 +1,30 @@
+- generic [ref=f6e2]:
+  - banner [ref=f6e3]:
+    - link "PersonaAI" [ref=f6e4] [cursor=pointer]:
+      - /url: /
+    - navigation [ref=f6e5]:
+      - link "Pricing" [ref=f6e6] [cursor=pointer]:
+        - /url: /pricing
+      - link "Sign in" [ref=f6e7] [cursor=pointer]:
+        - /url: /sign-in
+      - link "CreateCreate Your AI" [ref=f6e8] [cursor=pointer]:
+        - /url: /sign-up
+  - main [ref=f6e9]:
+    - generic [ref=f6e10]:
+      - heading "Simple pricing" [level=1] [ref=f6e11]
+      - paragraph [ref=f6e12]: Create an assistant around your own information. Start free. Paid plans raise the limits after the soft launch.
+      - generic [ref=f6e13]:
+        - list [ref=f6e14]:
+          - listitem [ref=f6e15]:
+            - generic [ref=f6e16]:
+              - heading "Free" [level=2] [ref=f6e17]
+              - text: ₹0
+            - paragraph [ref=f6e18]: One AI profile you create and teach yourself. Publish and share a link, with limited daily chats and knowledge sources while we soft-launch.
+          - listitem [ref=f6e19]:
+            - generic [ref=f6e20]:
+              - heading "Plus" [level=2] [ref=f6e21]
+              - text: Soon
+            - paragraph [ref=f6e22]: Higher chat and document limits. Billing starts after the soft launch, once we know which limits matter.
+        - link "Create your AI" [ref=f6e24] [cursor=pointer]:
+          - /url: /sign-up
+        - paragraph [ref=f6e25]: "Free soft-launch limits: about 40 chats with your AI a day, about 8 knowledge sources, and a limit on how often each visitor can chat."

@@ -1,0 +1,59 @@
+- generic [active] [ref=f6e1]:
+  - generic [ref=f6e2]:
+    - banner [ref=f6e3]:
+      - link "PersonaAI" [ref=f6e4] [cursor=pointer]:
+        - /url: /
+      - generic [ref=f6e5]:
+        - link "Account, Signed in" [ref=f6e6] [cursor=pointer]:
+          - /url: /app/profile
+          - generic [aria-hidden] [ref=f6e7]: AC
+          - generic [ref=f6e8]:
+            - generic [ref=f6e9]: Account
+            - generic [ref=f6e10]: Signed in
+        - link "Skip to app" [ref=f6e11] [cursor=pointer]:
+          - /url: /app
+        - button "Sign out" [ref=f6e13] [cursor=pointer]
+    - main [ref=f6e17]:
+      - generic [ref=f6e18]:
+        - generic [ref=f6e19]:
+          - paragraph [ref=f6e20]: Interview
+          - heading "Let's teach your AI." [level=1] [ref=f6e21]
+          - paragraph [ref=f6e22]: A few questions about your work, how you communicate, and what your AI should know. Your answers help shape how it responds.
+        - navigation "Onboarding progress" [ref=f6e24]:
+          - list [ref=f6e25]:
+            - listitem [ref=f6e26]:
+              - generic [ref=f6e30]:
+                - generic [ref=f6e31]: "Completed:"
+                - text: Create
+            - listitem [aria-hidden] [ref=f6e32]
+            - listitem [ref=f6e34]:
+              - generic [aria-hidden] [ref=f6e35]: "02"
+              - generic [ref=f6e36]: Interview
+            - listitem [aria-hidden] [ref=f6e37]
+            - listitem [ref=f6e39]:
+              - generic [aria-hidden] [ref=f6e40]: "03"
+              - generic [ref=f6e41]: Knowledge
+            - listitem [aria-hidden] [ref=f6e42]
+            - listitem [ref=f6e44]:
+              - generic [aria-hidden] [ref=f6e45]: "04"
+              - generic [ref=f6e46]: Test
+            - listitem [aria-hidden] [ref=f6e47]
+            - listitem [ref=f6e49]:
+              - generic [aria-hidden] [ref=f6e50]: "05"
+              - generic [ref=f6e51]: Share
+        - generic [ref=f6e52]:
+          - generic [ref=f6e53]:
+            - paragraph [ref=f6e54]: Question 1 of 10
+            - paragraph [ref=f6e55]: About 3 minutes
+          - generic [ref=f6e56]:
+            - paragraph [ref=f6e61]: Interview
+            - generic [ref=f6e62]:
+              - heading "What's your full name, and what should people call you?" [level=2] [ref=f6e63]
+              - textbox "What's your full name, and what should people call you?" [ref=f6e64]:
+                - /placeholder: Your answer...
+            - generic [ref=f6e65]:
+              - button "Continue" [disabled] [ref=f6e66]
+              - button "Skip for now" [ref=f6e69] [cursor=pointer]
+              - button "Back" [ref=f6e70] [cursor=pointer]
+          - paragraph [ref=f6e71]: You can edit these answers later.
+  - alert [ref=f6e72]

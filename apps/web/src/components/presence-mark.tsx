@@ -2,7 +2,8 @@
 
 import Image from "next/image";
 import { useMemo } from "react";
-import { motion, useReducedMotion } from "motion/react";
+import { motion } from "motion/react";
+import { useHydratedReducedMotion } from "@/lib/motion";
 
 /**
  * Soft 3D presence companion for the dashboard (soft-launch welcome).
@@ -18,7 +19,7 @@ export function PresenceMark({
   size?: "md" | "lg";
   className?: string;
 }) {
-  const reduceMotion = useReducedMotion();
+  const reduceMotion = useHydratedReducedMotion();
   const idle = useMemo(
     () => (reduceMotion ? undefined : { y: [0, -8, 0] }),
     [reduceMotion],

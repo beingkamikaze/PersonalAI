@@ -9,7 +9,8 @@ import {
   type PointerEvent as ReactPointerEvent,
   type RefObject,
 } from "react";
-import { motion, useInView, useReducedMotion } from "motion/react";
+import { motion, useInView } from "motion/react";
+import { useHydratedReducedMotion } from "@/lib/motion";
 import {
   ChatIcon,
   KnowledgeIcon,
@@ -200,7 +201,7 @@ function connectorPath(from: Box, to: Box, bend: number) {
 }
 
 export function ContextAssembly() {
-  const reduce = useReducedMotion() ?? false;
+  const reduce = useHydratedReducedMotion() ?? false;
   const orbital = useMediaQuery("(min-width: 768px)");
   const finePointer = useMediaQuery("(hover: hover) and (pointer: fine)");
   const stageRef = useRef<HTMLDivElement>(null);

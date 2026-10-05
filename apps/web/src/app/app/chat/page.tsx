@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useState, type ComponentType, type SVGProps } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { AuthCurveMark } from "@/components/auth-edge-curves";
@@ -16,6 +16,32 @@ import {
 import { ApiError, type AiProfile } from "@/lib/api";
 import { loadProfile } from "@/lib/owner-cache";
 import { isUiPreview, PREVIEW_PROFILE } from "@/lib/ui-preview";
+
+const CAPABILITIES: {
+  title: string;
+  subtitle: string;
+  tone: string;
+  Icon: ComponentType<SVGProps<SVGSVGElement>>;
+}[] = [
+  {
+    title: "Ask anything",
+    subtitle: "See how your AI answers",
+    tone: "bg-[var(--tone-mint)] text-accent",
+    Icon: ChatIcon,
+  },
+  {
+    title: "Save to memory",
+    subtitle: "Keep a fact or preference",
+    tone: "bg-[var(--tone-purple)] text-[var(--tone-purple-ink)]",
+    Icon: BrainIcon,
+  },
+  {
+    title: "Use your knowledge",
+    subtitle: "Answer from your documents",
+    tone: "bg-[#fff4e6] text-[var(--tone-amber)]",
+    Icon: KnowledgeIcon,
+  },
+];
 
 const SUGGESTIONS = [
   "What do I do professionally?",
@@ -122,27 +148,38 @@ export default function AppChatPage() {
           </div>
         </div>
 
-        <div className="mt-5 grid grid-cols-1 gap-3 md:grid-cols-2 xl:col-start-1 xl:row-start-2 xl:grid-cols-3">
-          <FeatureCard
-            tone="mint"
-            icon={<ChatIcon className="h-4 w-4" />}
-            title="Ask anything"
-            subtitle="See how it answers"
-          />
-          <FeatureCard
-            tone="purple"
-            icon={<BrainIcon className="h-4 w-4" />}
-            title="Save to memory"
-            subtitle="Keep a fact or a rule"
-          />
-          <FeatureCard
-            tone="amber"
-            icon={<KnowledgeIcon className="h-4 w-4" />}
-            title="Uses knowledge"
-            subtitle="From your documents"
-            className="md:col-span-2 xl:col-span-1"
-          />
-        </div>
+        <section
+          aria-label="What your AI can do"
+          className="mt-6 xl:col-start-1 xl:row-start-2"
+        >
+          <ul className="grid grid-cols-1 lg:grid-cols-3">
+            {CAPABILITIES.map((item, index) => (
+              <li
+                key={item.title}
+                className={`flex min-w-0 items-center gap-3 py-2.5 lg:px-5 lg:py-1 ${
+                  index > 0
+                    ? "border-t border-border lg:border-l lg:border-t-0"
+                    : "lg:pl-0"
+                } ${index === CAPABILITIES.length - 1 ? "lg:pr-0" : ""}`}
+              >
+                <span
+                  className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${item.tone}`}
+                  aria-hidden
+                >
+                  <item.Icon className="h-4 w-4" />
+                </span>
+                <div className="min-w-0">
+                  <p className="text-sm font-medium leading-tight text-fg">
+                    {item.title}
+                  </p>
+                  <p className="mt-0.5 text-xs leading-relaxed text-balance text-muted">
+                    {item.subtitle}
+                  </p>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </section>
       </header>
 
       {profile ? (
@@ -180,42 +217,6 @@ export default function AppChatPage() {
           <ChevronRightIcon className="h-3.5 w-3.5" />
         </ButtonLink>
       </div>
-    </div>
-  );
-}
-
-function FeatureCard({
-  tone,
-  icon,
-  title,
-  subtitle,
-  className = "",
-}: {
-  tone: "mint" | "purple" | "amber";
-  icon: ReactNode;
-  title: string;
-  subtitle: string;
-  className?: string;
-}) {
-  const tones = {
-    mint: "bg-[var(--tone-mint)] text-accent",
-    purple: "bg-[var(--tone-purple)] text-[var(--tone-purple-ink)]",
-    amber: "bg-[#fff4e6] text-[var(--tone-amber)]",
-  } as const;
-
-  return (
-    <div className={`flex min-h-[4.75rem] min-w-0 items-center gap-3 rounded-2xl border border-border bg-white px-3.5 py-3 shadow-[0_8px_20px_-16px_rgba(15,31,28,0.4)] ${className}`}>
-      <span
-        className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${tones[tone]}`}
-        aria-hidden
-      >
-        {icon}
-      </span>
-      <div className="min-w-0 flex-1">
-        <p className="text-sm font-semibold leading-tight text-fg">{title}</p>
-        <p className="mt-0.5 text-xs leading-tight text-muted">{subtitle}</p>
-      </div>
-      <ChevronRightIcon className="h-4 w-4 shrink-0 text-muted/80" />
     </div>
   );
 }

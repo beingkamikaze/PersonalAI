@@ -1,8 +1,12 @@
 "use client";
 
 import { useMemo, type ReactNode } from "react";
-import { motion, useReducedMotion } from "motion/react";
-import { revealContainer, revealItem } from "@/lib/motion";
+import { motion } from "motion/react";
+import {
+  revealContainer,
+  revealItem,
+  useHydratedReducedMotion,
+} from "@/lib/motion";
 
 /**
  * Shared onboarding / app screen chrome.
@@ -17,7 +21,7 @@ export function ScreenIntro({
   description: string;
   children?: ReactNode;
 }) {
-  const reduceMotion = useReducedMotion();
+  const reduceMotion = useHydratedReducedMotion();
   const container = useMemo(
     () => revealContainer(reduceMotion),
     [reduceMotion],

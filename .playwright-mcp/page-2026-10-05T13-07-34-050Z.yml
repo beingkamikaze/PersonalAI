@@ -1,0 +1,92 @@
+- generic [active] [ref=f18e1]:
+  - generic [ref=f18e2]:
+    - banner [ref=f18e3]:
+      - link "PersonaAI" [ref=f18e4] [cursor=pointer]:
+        - /url: /
+      - generic [ref=f18e5]:
+        - link "Account, Signed in" [ref=f18e6] [cursor=pointer]:
+          - /url: /app/profile
+          - generic [aria-hidden] [ref=f18e7]: AC
+          - generic [ref=f18e8]:
+            - generic [ref=f18e9]: Account
+            - generic [ref=f18e10]: Signed in
+        - link "Skip to app" [ref=f18e11] [cursor=pointer]:
+          - /url: /app
+        - button "Sign out" [ref=f18e13] [cursor=pointer]
+    - main [ref=f18e17]:
+      - generic [ref=f18e18]:
+        - generic [ref=f18e19]:
+          - paragraph [ref=f18e20]: Knowledge
+          - heading "Teach your AI what it should know." [level=1] [ref=f18e21]
+          - paragraph [ref=f18e22]: Add documents, notes, or links your AI can use when answering questions. Keep facts, preferences, and boundaries in Memory.
+        - navigation "Onboarding progress" [ref=f18e24]:
+          - list [ref=f18e25]:
+            - listitem [ref=f18e26]:
+              - generic [ref=f18e30]:
+                - generic [ref=f18e31]: "Completed:"
+                - text: Create
+            - listitem [aria-hidden] [ref=f18e32]
+            - listitem [ref=f18e34]:
+              - generic [ref=f18e38]:
+                - generic [ref=f18e39]: "Completed:"
+                - text: Interview
+            - listitem [aria-hidden] [ref=f18e40]
+            - listitem [ref=f18e42]:
+              - generic [aria-hidden] [ref=f18e43]: "03"
+              - generic [ref=f18e44]: Knowledge
+            - listitem [aria-hidden] [ref=f18e45]
+            - listitem [ref=f18e47]:
+              - generic [aria-hidden] [ref=f18e48]: "04"
+              - generic [ref=f18e49]: Test
+            - listitem [aria-hidden] [ref=f18e50]
+            - listitem [ref=f18e52]:
+              - generic [aria-hidden] [ref=f18e53]: "05"
+              - generic [ref=f18e54]: Share
+        - generic [ref=f18e56]:
+          - generic [ref=f18e57]:
+            - paragraph [ref=f18e62]: Knowledge
+            - heading "Upload your knowledge" [level=2] [ref=f18e63]
+            - paragraph [ref=f18e64]: Give your AI reference material it can use when answering questions.
+            - button "Choose File" [ref=f18e65]
+            - button "Drop your files here or choose files from your computer PDF · DOCX · TXT · max 8 MB Choose files" [ref=f18e66] [cursor=pointer]:
+              - paragraph [ref=f18e71]: Drop your files here
+              - paragraph [ref=f18e72]: or choose files from your computer
+              - paragraph [ref=f18e73]: PDF · DOCX · TXT · max 8 MB
+              - generic [ref=f18e74]: Choose files
+          - generic [ref=f18e75]:
+            - paragraph [ref=f18e76]: Or add something another way
+            - generic [ref=f18e77]:
+              - button "Add a note Add a fact or piece of context." [ref=f18e78] [cursor=pointer]:
+                - generic [ref=f18e83]:
+                  - generic [ref=f18e84]: Add a note
+                  - generic [ref=f18e85]: Add a fact or piece of context.
+              - button "Add a URL Let your AI learn from a webpage." [ref=f18e86] [cursor=pointer]:
+                - generic [ref=f18e91]:
+                  - generic [ref=f18e92]: Add a URL
+                  - generic [ref=f18e93]: Let your AI learn from a webpage.
+          - generic [ref=f18e94]:
+            - heading "Your knowledge" [level=2] [ref=f18e95]
+            - list [ref=f18e96]:
+              - listitem [ref=f18e97]:
+                - generic [ref=f18e103]:
+                  - paragraph [ref=f18e104]: Mayank_Sharma_Resume.pdf
+                  - paragraph [ref=f18e105]: upload · Ready
+                - button "Delete" [ref=f18e106] [cursor=pointer]
+              - listitem [ref=f18e107]:
+                - generic [ref=f18e113]:
+                  - paragraph [ref=f18e114]: notes.txt
+                  - paragraph [ref=f18e115]: notes · Processing
+                - button "Delete" [ref=f18e116] [cursor=pointer]
+              - listitem [ref=f18e117]:
+                - generic [ref=f18e123]:
+                  - paragraph [ref=f18e124]: old-site
+                  - paragraph [ref=f18e125]: url · Failed — Could not fetch URL
+                - button "Delete" [ref=f18e126] [cursor=pointer]
+          - generic [ref=f18e127]:
+            - generic [ref=f18e128]:
+              - link "Continue to testing" [ref=f18e129] [cursor=pointer]:
+                - /url: /onboarding/test
+              - link "Skip for now" [ref=f18e132] [cursor=pointer]:
+                - /url: /onboarding/test
+            - paragraph [ref=f18e133]: You can add or update knowledge anytime.
+  - alert [ref=f18e134]

@@ -1,7 +1,6 @@
 "use client";
 
 import { Fragment } from "react";
-import { motion, useReducedMotion } from "motion/react";
 
 const steps = [
   { href: "/onboarding/create", label: "Create" },
@@ -12,14 +11,13 @@ const steps = [
 ] as const;
 
 /**
- * Onboarding stepper: ①——②——③ with teal (--accent) for done/current.
+ * Onboarding journey: 01 Create —— 02 Interview —— …
+ * Teal marks the current and completed steps. `step` is 1-based.
  */
 export function OnboardingProgress({ step }: { step: number }) {
-  const reduceMotion = useReducedMotion();
-
   return (
     <nav aria-label="Onboarding progress" className="w-full">
-      <ol className="flex w-full items-start">
+      <ol className="flex w-full items-start md:items-center">
         {steps.map((item, index) => {
           const n = index + 1;
           const done = n < step;
@@ -28,51 +26,24 @@ export function OnboardingProgress({ step }: { step: number }) {
 
           return (
             <Fragment key={item.href}>
-              <li className="flex min-w-0 shrink-0 flex-col items-center gap-1.5">
-                <motion.span
-                  className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-semibold tabular-nums ${
+              <li
+                className="flex min-w-0 shrink-0 flex-col items-center gap-1.5 md:flex-row md:gap-2"
+                aria-current={current ? "step" : undefined}
+              >
+                <span
+                  aria-hidden
+                  className={`flex h-7 w-7 items-center justify-center rounded-full text-[10px] font-semibold tabular-nums transition-[background-color,color,box-shadow] duration-300 ease-out motion-reduce:transition-none ${
                     current
-                      ? "bg-accent text-white ring-4 ring-accent-soft"
+                      ? "bg-accent text-white shadow-[0_0_0_4px_var(--accent-soft)]"
                       : done
                         ? "bg-accent text-white"
-                        : "border border-border bg-elevated text-muted"
+                        : "border border-border bg-white text-muted"
                   }`}
-                  aria-current={current ? "step" : undefined}
-                  initial={false}
-                  animate={
-                    reduceMotion
-                      ? undefined
-                      : current
-                        ? { scale: [1, 1.06, 1] }
-                        : { scale: 1 }
-                  }
-                  transition={{ duration: 0.35, ease: "easeOut" }}
                 >
-                  {done ? (
-                    <svg
-                      viewBox="0 0 16 16"
-                      className="h-3.5 w-3.5"
-                      fill="none"
-                      aria-hidden
-                    >
-                      <path
-                        d="M3.5 8.5 6.5 11.5 12.5 4.5"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  ) : (
-                    n
-                  )}
-                  <span className="sr-only">
-                    {done ? "Completed: " : current ? "Current: " : ""}
-                    {item.label}
-                  </span>
-                </motion.span>
+                  {done ? <CheckIcon /> : String(n).padStart(2, "0")}
+                </span>
                 <span
-                  className={`max-w-[4.5rem] text-center text-[11px] leading-tight sm:max-w-none sm:text-xs ${
+                  className={`max-w-[3.6rem] text-center text-[10px] leading-tight sm:max-w-[4.25rem] sm:text-[11px] md:max-w-none md:text-left md:text-[13px] ${
                     current
                       ? "font-medium text-accent"
                       : done
@@ -80,17 +51,18 @@ export function OnboardingProgress({ step }: { step: number }) {
                         : "text-muted"
                   }`}
                 >
+                  {done ? <span className="sr-only">Completed: </span> : null}
                   {item.label}
                 </span>
               </li>
               {index < steps.length - 1 ? (
                 <li
-                  className="mx-1 mt-4 min-w-[0.75rem] flex-1 list-none sm:mx-2"
+                  className="mx-1 mt-[13px] h-px min-w-[0.5rem] flex-1 list-none sm:mx-1.5 md:mx-2.5 md:mt-0"
                   aria-hidden
                 >
                   <div
-                    className={`h-0.5 w-full rounded-full transition-colors ${
-                      lineDone ? "bg-accent" : "bg-border"
+                    className={`h-px w-full transition-colors duration-300 motion-reduce:transition-none ${
+                      lineDone ? "bg-accent/70" : "bg-border"
                     }`}
                   />
                 </li>
@@ -100,5 +72,19 @@ export function OnboardingProgress({ step }: { step: number }) {
         })}
       </ol>
     </nav>
+  );
+}
+
+function CheckIcon() {
+  return (
+    <svg viewBox="0 0 16 16" className="h-3.5 w-3.5" fill="none">
+      <path
+        d="M3.5 8.5 6.5 11.5 12.5 4.5"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
   );
 }

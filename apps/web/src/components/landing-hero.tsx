@@ -2,7 +2,7 @@
 
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
-import { MotionConfig, motion, useAnimation, useReducedMotion } from "motion/react";
+import { MotionConfig, motion, useAnimation } from "motion/react";
 import { ButtonLink } from "@/components/ui/button";
 import { ContextAssembly } from "@/components/landing-context";
 import {
@@ -14,7 +14,7 @@ import {
   ProfileIcon,
 } from "@/components/ui/icons";
 import { isUiPreview } from "@/lib/env";
-import { revealContainer, revealItem } from "@/lib/motion";
+import { revealContainer, revealItem, useHydratedReducedMotion } from "@/lib/motion";
 
 const QUESTIONS = [
   "What do you do?",
@@ -98,7 +98,7 @@ const PILL =
 
 export function LandingHero() {
   const preview = isUiPreview();
-  const reduceMotion = useReducedMotion();
+  const reduceMotion = useHydratedReducedMotion();
   const container = useMemo(
     () => revealContainer(reduceMotion),
     [reduceMotion],
@@ -725,7 +725,7 @@ function Reveal({
   className: string;
   id?: string;
 }) {
-  const reduceMotion = useReducedMotion();
+  const reduceMotion = useHydratedReducedMotion();
   const item = useMemo(() => revealItem(reduceMotion), [reduceMotion]);
 
   return (
@@ -1208,7 +1208,7 @@ function ShareBar() {
 }
 
 function QuestionStack() {
-  const reduceMotion = useReducedMotion();
+  const reduceMotion = useHydratedReducedMotion();
   const offsets = ["md:ml-10", "md:ml-0", "md:ml-16", "md:ml-4", "md:ml-12"];
   const faces = [
     "/landing/visitor.jpg",

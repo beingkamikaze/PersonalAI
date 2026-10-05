@@ -1,0 +1,97 @@
+- generic [active] [ref=f25e1]:
+  - generic [ref=f25e2]:
+    - banner [ref=f25e3]:
+      - link "PersonaAI" [ref=f25e4] [cursor=pointer]:
+        - /url: /
+      - generic [ref=f25e5]:
+        - link "Account, Signed in" [ref=f25e6] [cursor=pointer]:
+          - /url: /app/profile
+          - generic [aria-hidden] [ref=f25e7]: AC
+          - generic [ref=f25e8]:
+            - generic [ref=f25e9]: Account
+            - generic [ref=f25e10]: Signed in
+        - link "Skip to app" [ref=f25e11] [cursor=pointer]:
+          - /url: /app
+        - button "Sign out" [ref=f25e13] [cursor=pointer]
+    - main [ref=f25e17]:
+      - generic [ref=f25e18]:
+        - generic [ref=f25e19]:
+          - paragraph [ref=f25e20]: Create your AI
+          - heading "Let's create your AI." [level=1] [ref=f25e21]
+          - paragraph [ref=f25e22]: Start with the basics. Give your AI a name, a short description, and a face. You'll teach it about your work in the next steps.
+        - navigation "Onboarding progress" [ref=f25e24]:
+          - list [ref=f25e25]:
+            - listitem [ref=f25e26]:
+              - generic [aria-hidden] [ref=f25e27]: "01"
+              - generic [ref=f25e28]: Create
+            - listitem [aria-hidden] [ref=f25e29]
+            - listitem [ref=f25e31]:
+              - generic [aria-hidden] [ref=f25e32]: "02"
+              - generic [ref=f25e33]: Interview
+            - listitem [aria-hidden] [ref=f25e34]
+            - listitem [ref=f25e36]:
+              - generic [aria-hidden] [ref=f25e37]: "03"
+              - generic [ref=f25e38]: Knowledge
+            - listitem [aria-hidden] [ref=f25e39]
+            - listitem [ref=f25e41]:
+              - generic [aria-hidden] [ref=f25e42]: "04"
+              - generic [ref=f25e43]: Test
+            - listitem [aria-hidden] [ref=f25e44]
+            - listitem [ref=f25e46]:
+              - generic [aria-hidden] [ref=f25e47]: "05"
+              - generic [ref=f25e48]: Share
+        - generic [ref=f25e49]:
+          - generic [ref=f25e50]:
+            - heading "Create your AI" [level=2] [ref=f25e51]
+            - paragraph [ref=f25e52]: Start with the basics. You can change these later.
+            - generic [ref=f25e53]:
+              - generic [ref=f25e54]:
+                - text: Full name
+                - textbox "Full name" [ref=f25e55]:
+                  - /placeholder: Mayank Sharma
+              - generic [ref=f25e56]:
+                - text: Display name
+                - textbox "Display name" [ref=f25e57]:
+                  - /placeholder: What should people call your AI?
+              - generic [ref=f25e58]:
+                - text: Headline
+                - textbox "Headline" [ref=f25e59]:
+                  - /placeholder: e.g. Software Engineer building AI products
+              - generic [ref=f25e60]:
+                - text: Profile photo
+                - paragraph [ref=f25e61]: JPEG, PNG, or WebP — max 2 MB. Optional.
+                - generic [ref=f25e62]:
+                  - generic [ref=f25e63]:
+                    - generic [aria-hidden] [ref=f25e64]: YO
+                    - button "Add profile photo" [ref=f25e65] [cursor=pointer]
+                  - button "Add photo" [ref=f25e69] [cursor=pointer]
+                - button "Profile photo" [ref=f25e70]
+            - button "Continue to interview" [disabled] [ref=f25e72]
+          - region "AI preview" [ref=f25e75]:
+            - generic [ref=f25e76]:
+              - heading "Your AI" [level=2] [ref=f25e80]
+              - paragraph [ref=f25e81]: Your headline will appear here
+              - generic [ref=f25e83]:
+                - paragraph [ref=f25e84]: Your AI is taking shape.
+                - list [ref=f25e85]:
+                  - listitem [ref=f25e86]:
+                    - generic [ref=f25e90]:
+                      - generic [ref=f25e91]: "Done:"
+                      - text: Identity
+                  - listitem [ref=f25e92]:
+                    - generic [ref=f25e94]:
+                      - generic [ref=f25e95]: "Not started:"
+                      - text: Interview
+                  - listitem [ref=f25e96]:
+                    - generic [ref=f25e98]:
+                      - generic [ref=f25e99]: "Not started:"
+                      - text: Knowledge
+                  - listitem [ref=f25e100]:
+                    - generic [ref=f25e102]:
+                      - generic [ref=f25e103]: "Not started:"
+                      - text: Test
+                  - listitem [ref=f25e104]:
+                    - generic [ref=f25e106]:
+                      - generic [ref=f25e107]: "Not started:"
+                      - text: Share
+  - alert [ref=f25e108]
