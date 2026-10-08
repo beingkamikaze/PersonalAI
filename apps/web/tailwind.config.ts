@@ -22,8 +22,8 @@ const config: Config = {
         DEFAULT: "var(--radius)",
       },
       fontFamily: {
-        display: ["var(--font-fraunces)", "ui-serif", "Georgia", "serif"],
-        sans: ["var(--font-figtree)", "ui-sans-serif", "sans-serif"],
+        display: ["Fraunces", "Georgia", "serif"],
+        sans: ["Figtree", "ui-sans-serif", "sans-serif"],
       },
       keyframes: {
         "chat-dot": {

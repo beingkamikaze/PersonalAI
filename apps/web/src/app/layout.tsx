@@ -1,18 +1,8 @@
 import type { Metadata } from "next";
-import { Figtree, Fraunces } from "next/font/google";
 import "./globals.css";
 
-const fraunces = Fraunces({
-  subsets: ["latin"],
-  variable: "--font-fraunces",
-  display: "swap",
-});
-
-const figtree = Figtree({
-  subsets: ["latin"],
-  variable: "--font-figtree",
-  display: "swap",
-});
+const fontStylesheet =
+  "https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,300..900;1,300..900&family=Fraunces:ital,opsz,wght@0,9..144,100..900;1,9..144,100..900&display=swap";
 
 export const metadata: Metadata = {
   title: "PersonaAI",
@@ -27,11 +17,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${fraunces.variable} ${figtree.variable} min-h-screen font-sans antialiased`}
-      >
-        {children}
-      </body>
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link href={fontStylesheet} rel="stylesheet" />
+      </head>
+      <body className="min-h-screen font-sans antialiased">{children}</body>
     </html>
   );
 }
