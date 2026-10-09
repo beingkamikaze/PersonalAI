@@ -1,0 +1,87 @@
+- generic [ref=f13e2]:
+  - navigation "Workspace" [ref=f13e3]:
+    - generic [ref=f13e4]:
+      - link "Home" [ref=f13e5] [cursor=pointer]:
+        - /url: /app
+      - link "Chats" [ref=f13e12] [cursor=pointer]:
+        - /url: /app/chat
+      - link "Knowledge" [ref=f13e16] [cursor=pointer]:
+        - /url: /app/knowledge
+      - link "Memory" [ref=f13e21] [cursor=pointer]:
+        - /url: /app/memories
+      - link "Settings" [ref=f13e27] [cursor=pointer]:
+        - /url: /app/settings
+  - generic [ref=f13e32]:
+    - banner [ref=f13e33]:
+      - link "PersonaAI" [ref=f13e34] [cursor=pointer]:
+        - /url: /app
+      - link "39/40 Upgrade" [ref=f13e35] [cursor=pointer]:
+        - /url: /pricing
+        - generic [ref=f13e39]: 39/40
+        - generic [ref=f13e40]: Upgrade
+      - generic [ref=f13e42]:
+        - link "Search conversations" [ref=f13e43] [cursor=pointer]:
+          - /url: /app/conversations
+        - button "Profile menu" [ref=f13e48] [cursor=pointer]:
+          - generic [aria-hidden] [ref=f13e49]: PR
+    - generic [ref=f13e53]:
+      - region [ref=f13e54]:
+        - generic [ref=f13e56]:
+          - paragraph [ref=f13e57]: Checking your AI…
+          - heading [level=1] [ref=f13e60]
+          - paragraph [ref=f13e62]
+      - generic [ref=f13e67]:
+        - generic [ref=f13e68]:
+          - generic [ref=f13e69]:
+            - generic [ref=f13e70]:
+              - heading "Recent visitor chats" [level=2] [ref=f13e71]
+              - paragraph [ref=f13e72]: Questions people asked your AI
+            - link "View all" [ref=f13e73] [cursor=pointer]:
+              - /url: /app/conversations
+          - list [aria-hidden] [ref=f13e77]:
+            - listitem [ref=f13e78]
+            - listitem [ref=f13e83]
+            - listitem [ref=f13e88]
+        - generic [ref=f13e93]:
+          - generic [ref=f13e95]:
+            - heading "Needs your attention" [level=2] [ref=f13e96]
+            - paragraph [ref=f13e97]: Questions your AI said it couldn't answer
+          - list [aria-hidden] [ref=f13e99]:
+            - listitem [ref=f13e100]
+            - listitem [ref=f13e105]
+      - generic [ref=f13e110]:
+        - generic [ref=f13e111]:
+          - generic [ref=f13e113]:
+            - heading "AI snapshot" [level=2] [ref=f13e114]
+            - paragraph [ref=f13e115]: Activity from the last 7 days
+          - generic [ref=f13e117]:
+            - generic [ref=f13e118]:
+              - term [ref=f13e119]:
+                - generic [ref=f13e125]: Visitors
+              - definition [ref=f13e126]
+              - definition [ref=f13e128]: Visitors
+            - generic [ref=f13e129]:
+              - term [ref=f13e130]:
+                - generic [ref=f13e133]: Conversations
+              - definition [ref=f13e134]
+              - definition [ref=f13e136]: Conversations
+            - generic [ref=f13e137]:
+              - term [ref=f13e138]:
+                - generic [ref=f13e142]: Messages
+              - definition [ref=f13e143]
+              - definition [ref=f13e145]: Messages
+            - generic [ref=f13e146]:
+              - term [ref=f13e147]:
+                - generic [ref=f13e151]: Knowledge sources
+              - definition [ref=f13e152]
+              - definition [ref=f13e154]:
+                - text: Knowledge sources
+                - generic [ref=f13e155]: all time
+        - generic [ref=f13e156]:
+          - generic [ref=f13e158]:
+            - heading "Keep your AI up to date" [level=2] [ref=f13e159]
+            - paragraph [ref=f13e160]: Recent changes to what your AI knows
+          - list [aria-hidden] [ref=f13e162]:
+            - listitem [ref=f13e163]
+            - listitem [ref=f13e168]
+      - paragraph [ref=f13e173]

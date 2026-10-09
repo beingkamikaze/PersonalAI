@@ -1,0 +1,54 @@
+- generic [ref=f15e2]:
+  - banner [ref=f15e3]:
+    - link "PersonaAI" [ref=f15e4] [cursor=pointer]:
+      - /url: /
+    - navigation [ref=f15e5]:
+      - link "Sign in" [ref=f15e6] [cursor=pointer]:
+        - /url: /sign-in
+      - link "Create your AI" [ref=f15e7] [cursor=pointer]:
+        - /url: /sign-up
+  - main [ref=f15e8]:
+    - generic [ref=f15e9]:
+      - generic [ref=f15e10]:
+        - paragraph [ref=f15e11]: Your assistant is saved here
+        - heading "Welcome back to PersonaAI." [level=1] [ref=f15e13]:
+          - generic [ref=f15e14]: Welcome back
+          - generic [ref=f15e15]: to PersonaAI.
+        - paragraph [ref=f15e16]: Sign in to manage your AI, update your knowledge, and see how people are interacting with it.
+      - list [ref=f15e18]:
+        - listitem [ref=f15e19]:
+          - generic [ref=f15e23]:
+            - generic [ref=f15e24]: Track conversations
+            - generic [ref=f15e25]: See how people use your AI
+        - listitem [ref=f15e26]:
+          - generic [ref=f15e31]:
+            - generic [ref=f15e32]: Update anytime
+            - generic [ref=f15e33]: Keep your AI aligned with your latest work
+        - listitem [ref=f15e34]:
+          - generic [ref=f15e39]:
+            - generic [ref=f15e40]: Share your link
+            - generic [ref=f15e41]: Use it anywhere — LinkedIn, your site, or email
+      - generic [ref=f15e42]:
+        - heading "Sign in" [level=2] [ref=f15e43]
+        - paragraph [ref=f15e44]: Welcome back! Sign in to your account.
+        - generic [ref=f15e45]:
+          - generic [ref=f15e46]:
+            - text: Email
+            - textbox "Email" [ref=f15e48]:
+              - /placeholder: you@example.com
+          - generic [ref=f15e49]:
+            - text: Password
+            - generic [ref=f15e50]:
+              - textbox "Password" [ref=f15e51]:
+                - /placeholder: Enter your password
+              - button "Show password" [ref=f15e53] [cursor=pointer]
+          - paragraph [ref=f15e57]:
+            - link "Forgot password?" [ref=f15e58] [cursor=pointer]:
+              - /url: /forgot-password
+          - button "Sign in" [ref=f15e59] [cursor=pointer]
+        - generic [ref=f15e60]: Or
+        - button "Continue with Google" [ref=f15e63] [cursor=pointer]
+        - paragraph [ref=f15e69]:
+          - text: No account?
+          - link "Sign up" [ref=f15e70] [cursor=pointer]:
+            - /url: /sign-up

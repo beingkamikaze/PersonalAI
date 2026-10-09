@@ -1,0 +1,100 @@
+- generic [ref=f18e2]:
+  - complementary [ref=f18e3]:
+    - link "PersonaAI" [ref=f18e4] [cursor=pointer]:
+      - /url: /app
+    - navigation "Workspace" [ref=f18e5]:
+      - link "Dashboard" [ref=f18e6] [cursor=pointer]:
+        - /url: /app
+      - link "Chats" [ref=f18e12] [cursor=pointer]:
+        - /url: /app/chat
+      - link "Knowledge" [ref=f18e15] [cursor=pointer]:
+        - /url: /app/knowledge
+      - link "Memory" [ref=f18e19] [cursor=pointer]:
+        - /url: /app/memories
+      - link "Settings" [ref=f18e24] [cursor=pointer]:
+        - /url: /app/settings
+    - generic [ref=f18e28]:
+      - paragraph [ref=f18e33]: Free Plan
+      - paragraph [ref=f18e34]: 39/40 chats left today
+      - progressbar "Daily chat usage" [ref=f18e35]
+      - link "Upgrade Plan" [ref=f18e37] [cursor=pointer]:
+        - /url: /pricing
+  - generic [ref=f18e38]:
+    - banner [ref=f18e39]:
+      - generic [ref=f18e40]:
+        - searchbox "Search conversations" [ref=f18e42]
+        - button "Profile menu" [ref=f18e45] [cursor=pointer]:
+          - generic [aria-hidden] [ref=f18e46]: PR
+    - generic [ref=f18e50]:
+      - banner [ref=f18e51]:
+        - paragraph [ref=f18e52]: Settings
+        - heading "Your AI's personality, behavior, and privacy." [level=1] [ref=f18e53]
+        - paragraph [ref=f18e54]: Control how your AI speaks, what it can use, and what visitors can see.
+      - generic [ref=f18e55]:
+        - heading "AI personality" [level=2] [ref=f18e56]
+        - paragraph [ref=f18e57]: Shape how your AI communicates with people.
+        - paragraph [ref=f18e59]: Loading saved values…
+      - generic [ref=f18e60]:
+        - heading "AI behavior" [level=2] [ref=f18e61]
+        - paragraph [ref=f18e62]: Control what your AI can use when answering. There is no separate switch — answers use the memories and knowledge you have saved.
+        - generic [ref=f18e63]:
+          - link "Memory Saved preferences, facts, and boundaries are used when you have them. Open Memory" [ref=f18e64] [cursor=pointer]:
+            - /url: /app/memories
+            - generic [ref=f18e65]:
+              - generic [ref=f18e66]: Memory
+              - generic [ref=f18e67]: Saved preferences, facts, and boundaries are used when you have them.
+            - generic [ref=f18e68]: Open Memory
+          - link "Knowledge Uploaded documents, notes, and links are used when you have them. Open Knowledge" [ref=f18e71] [cursor=pointer]:
+            - /url: /app/knowledge
+            - generic [ref=f18e72]:
+              - generic [ref=f18e73]: Knowledge
+              - generic [ref=f18e74]: Uploaded documents, notes, and links are used when you have them.
+            - generic [ref=f18e75]: Open Knowledge
+      - generic [ref=f18e78]:
+        - heading "Privacy & sharing" [level=2] [ref=f18e79]
+        - paragraph [ref=f18e80]: Control what visitors can access through your public AI.
+        - paragraph [ref=f18e81]: Your memories are private. Your documents are private. Visitors only receive answers through your public AI.
+        - generic [ref=f18e82]:
+          - link "Public AI Loading… Open profile" [ref=f18e83] [cursor=pointer]:
+            - /url: /app/profile
+            - generic [ref=f18e84]:
+              - generic [ref=f18e85]: Public AI
+              - generic [ref=f18e86]: Loading…
+            - generic [ref=f18e87]: Open profile
+          - link "Visitor conversations Only you can read these threads. They are not shown on your public page. View conversations" [ref=f18e90] [cursor=pointer]:
+            - /url: /app/conversations
+            - generic [ref=f18e91]:
+              - generic [ref=f18e92]: Visitor conversations
+              - generic [ref=f18e93]: Only you can read these threads. They are not shown on your public page.
+            - generic [ref=f18e94]: View conversations
+      - generic [ref=f18e97]:
+        - heading "Account" [level=2] [ref=f18e98]
+        - generic [ref=f18e99]:
+          - generic [ref=f18e100]:
+            - paragraph [ref=f18e101]: Email
+            - paragraph [ref=f18e102]: Loading…
+          - generic [ref=f18e103]:
+            - generic [ref=f18e104]:
+              - paragraph [ref=f18e105]: Plan
+              - paragraph [ref=f18e106]: Free
+            - link "Upgrade" [ref=f18e107] [cursor=pointer]:
+              - /url: /pricing
+          - link "Profile Manage your public identity and AI profile. Open profile" [ref=f18e110] [cursor=pointer]:
+            - /url: /app/profile
+            - generic [ref=f18e111]:
+              - generic [ref=f18e112]: Profile
+              - generic [ref=f18e113]: Manage your public identity and AI profile.
+            - generic [ref=f18e114]: Open profile
+      - generic [ref=f18e117]:
+        - heading "Danger zone" [level=2] [ref=f18e118]
+        - generic [ref=f18e119]:
+          - heading "Delete account" [level=3] [ref=f18e120]
+          - paragraph [ref=f18e121]:
+            - text: Permanently removes your AI, knowledge, memories, conversations and account. This cannot be undone. To hide your public page only,
+            - link "unpublish it on Profile" [ref=f18e122] [cursor=pointer]:
+              - /url: /app/profile
+            - text: .
+          - generic [ref=f18e123]:
+            - generic [ref=f18e124]: Type DELETE to confirm
+            - textbox "Type DELETE to confirm" [ref=f18e125]
+          - button "Delete account" [disabled] [ref=f18e126]

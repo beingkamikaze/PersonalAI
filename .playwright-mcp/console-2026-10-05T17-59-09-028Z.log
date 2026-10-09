@@ -1,7 +1,0 @@
-[     202ms] [LOG] [Fast Refresh] rebuilding @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/react-dev-overlay/app/hot-reloader-client.js:186
-[     855ms] [LOG] [Fast Refresh] done in 653ms @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/react-dev-overlay/app/hot-reloader-client.js:43
-[    2860ms] [INFO] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:38559
-[    4053ms] [ERROR] Access to fetch at 'http://localhost:8000/public/mayank' from origin 'http://localhost:3010' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource. @ http://localhost:3010/u/mayank:0
-[    4056ms] [ERROR] Failed to load resource: net::ERR_FAILED @ http://localhost:8000/public/mayank:0
-[    4057ms] [ERROR] Access to fetch at 'http://localhost:8000/public/mayank' from origin 'http://localhost:3010' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource. @ http://localhost:3010/u/mayank:0
-[    4057ms] [ERROR] Failed to load resource: net::ERR_FAILED @ http://localhost:8000/public/mayank:0

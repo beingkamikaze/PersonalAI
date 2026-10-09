@@ -4,6 +4,7 @@ import { FormEvent, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
 import { DASHBOARD_CARD_CLASS } from "@/components/dashboard/dashboard-card";
+import { FeedbackDialog } from "@/components/feedback-dialog";
 import { OnboardingProgress } from "@/components/onboarding-progress";
 import {
   PublicChat,
@@ -61,6 +62,7 @@ export default function OnboardingPublishPage() {
   const [publishedUsername, setPublishedUsername] = useState<string | null>(
     null,
   );
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const [host, setHost] = useState("");
 
@@ -242,6 +244,17 @@ export default function OnboardingPublishPage() {
                   {error}
                 </p>
               ) : null}
+              <div className="mt-5">
+                <p className="text-sm text-muted">How did that go?</p>
+                <button
+                  type="button"
+                  onClick={() => setFeedbackOpen(true)}
+                  className="mt-1 inline-flex items-center gap-0.5 text-sm font-medium text-accent transition hover:text-accent-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                >
+                  Send feedback
+                  <ChevronRightIcon className="h-3.5 w-3.5" />
+                </button>
+              </div>
             </div>
           </motion.div>
         ) : (
@@ -499,6 +512,10 @@ export default function OnboardingPublishPage() {
           </motion.div>
         )}
       </AnimatePresence>
+      <FeedbackDialog
+        open={feedbackOpen}
+        onClose={() => setFeedbackOpen(false)}
+      />
     </div>
   );
 }

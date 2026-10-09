@@ -1,0 +1,137 @@
+- generic [active] [ref=f13e1]:
+  - generic [ref=f13e2]:
+    - complementary [ref=f13e174]:
+      - link "PersonaAI" [ref=f13e175] [cursor=pointer]:
+        - /url: /app
+      - navigation "Workspace" [ref=f13e176]:
+        - link "Dashboard" [ref=f13e177] [cursor=pointer]:
+          - /url: /app
+        - link "Chats" [ref=f13e183] [cursor=pointer]:
+          - /url: /app/chat
+        - link "Knowledge" [ref=f13e186] [cursor=pointer]:
+          - /url: /app/knowledge
+        - link "Memory" [ref=f13e190] [cursor=pointer]:
+          - /url: /app/memories
+        - link "Settings" [ref=f13e195] [cursor=pointer]:
+          - /url: /app/settings
+      - generic [ref=f13e199]:
+        - paragraph [ref=f13e204]: Free Plan
+        - paragraph [ref=f13e205]: 40/40 chats left today
+        - progressbar "Daily chat usage" [ref=f13e206]
+        - link "Upgrade Plan" [ref=f13e207] [cursor=pointer]:
+          - /url: /pricing
+    - generic [ref=f13e32]:
+      - banner [ref=f13e33]:
+        - generic [ref=f13e41]:
+          - searchbox "Search conversations" [ref=f13e209]
+          - button "Profile menu" [ref=f13e48] [cursor=pointer]
+          - dialog [ref=f13e328]:
+            - generic [ref=f13e329]:
+              - heading "Send feedback" [level=2] [ref=f13e330]
+              - button "Close" [disabled] [ref=f13e331]
+            - generic [ref=f13e335]:
+              - paragraph [ref=f13e336]: What's on your mind?
+              - generic [ref=f13e337]: Your feedback
+              - textbox "Your feedback" [disabled] [ref=f13e338]:
+                - /placeholder: Tell us what you think...
+                - text: "In-app feedback check: the dialog submits without leaving the dashboard."
+              - generic [ref=f13e339]:
+                - button "Cancel" [disabled] [ref=f13e340]
+                - button "Sending…" [disabled] [ref=f13e344]
+      - generic [ref=f13e53]:
+        - region [ref=f13e210]:
+          - generic [ref=f13e56]:
+            - paragraph [ref=f13e211]: Your AI is live
+            - generic [ref=f13e59]:
+              - heading "Anshu's AI" [level=1] [ref=f13e213]
+              - generic [ref=f13e214]: Published
+            - paragraph [ref=f13e217]: Software Engineer building AI Products
+            - link "localhost:3000/u/mayankchoudhary" [ref=f13e219] [cursor=pointer]:
+              - /url: /u/mayankchoudhary
+            - generic [ref=f13e228]:
+              - link "Talk to your AI" [ref=f13e230] [cursor=pointer]:
+                - /url: /app/chat
+              - link "Open public page" [ref=f13e236] [cursor=pointer]:
+                - /url: /u/mayankchoudhary
+              - button "Copy link" [ref=f13e242] [cursor=pointer]
+        - generic [ref=f13e67]:
+          - generic [ref=f13e68]:
+            - generic [ref=f13e69]:
+              - generic [ref=f13e70]:
+                - heading "Recent visitor chats" [level=2] [ref=f13e71]
+                - paragraph [ref=f13e72]: Questions people asked your AI
+              - link "View all" [ref=f13e73] [cursor=pointer]:
+                - /url: /app/conversations
+            - list [ref=f13e248]:
+              - listitem [ref=f13e249]:
+                - button "What are Anshu's main skills? Oct 1 · 3:54 PM Answered" [ref=f13e250] [cursor=pointer]:
+                  - generic [ref=f13e254]:
+                    - generic [ref=f13e255]: What are Anshu's main skills?
+                    - generic [ref=f13e256]: Oct 1 · 3:54 PM
+                  - generic [ref=f13e257]: Answered
+              - listitem [ref=f13e261]:
+                - button "How does Anshu prefer to work? Oct 1 · 1:53 PM Answered" [ref=f13e262] [cursor=pointer]:
+                  - generic [ref=f13e266]:
+                    - generic [ref=f13e267]: How does Anshu prefer to work?
+                    - generic [ref=f13e268]: Oct 1 · 1:53 PM
+                  - generic [ref=f13e269]: Answered
+              - listitem [ref=f13e273]:
+                - button "What does Anshu do? Oct 1 · 1:50 PM Answered" [ref=f13e274] [cursor=pointer]:
+                  - generic [ref=f13e278]:
+                    - generic [ref=f13e279]: What does Anshu do?
+                    - generic [ref=f13e280]: Oct 1 · 1:50 PM
+                  - generic [ref=f13e281]: Answered
+          - generic [ref=f13e93]:
+            - generic [ref=f13e95]:
+              - heading "Needs your attention" [level=2] [ref=f13e96]
+              - paragraph [ref=f13e97]: Questions your AI said it couldn't answer
+            - generic [ref=f13e285]:
+              - paragraph [ref=f13e286]: You're all caught up.
+              - paragraph [ref=f13e287]: No visitor questions currently need your attention. When your AI tells someone it doesn't have the answer, that question will show up here.
+        - generic [ref=f13e110]:
+          - generic [ref=f13e111]:
+            - generic [ref=f13e113]:
+              - heading "AI snapshot" [level=2] [ref=f13e114]
+              - paragraph [ref=f13e115]: Activity from the last 7 days
+            - generic [ref=f13e117]:
+              - generic [ref=f13e118]:
+                - term [ref=f13e119]:
+                  - generic [ref=f13e125]: Visitors
+                - definition [ref=f13e126]: "2"
+                - definition [ref=f13e128]: Visitors
+              - generic [ref=f13e129]:
+                - term [ref=f13e130]:
+                  - generic [ref=f13e133]: Conversations
+                - definition [ref=f13e134]: "0"
+                - definition [ref=f13e136]: Conversations
+              - generic [ref=f13e137]:
+                - term [ref=f13e138]:
+                  - generic [ref=f13e142]: Messages
+                - definition [ref=f13e143]: "0"
+                - definition [ref=f13e145]: Messages
+              - generic [ref=f13e146]:
+                - term [ref=f13e147]:
+                  - generic [ref=f13e151]: Knowledge sources
+                - definition [ref=f13e152]: "1"
+                - definition [ref=f13e154]:
+                  - text: Knowledge sources
+                  - generic [ref=f13e155]: all time
+          - generic [ref=f13e156]:
+            - generic [ref=f13e158]:
+              - heading "Keep your AI up to date" [level=2] [ref=f13e159]
+              - paragraph [ref=f13e160]: Recent changes to what your AI knows
+            - list [ref=f13e288]:
+              - listitem [ref=f13e289]:
+                - generic [ref=f13e294]:
+                  - paragraph [ref=f13e295]: Knowledge updated
+                  - paragraph [ref=f13e296]: Sep 12 · 1 source ready
+                - link "Manage knowledge" [ref=f13e297] [cursor=pointer]:
+                  - /url: /app/knowledge
+              - listitem [ref=f13e300]:
+                - generic [ref=f13e306]:
+                  - paragraph [ref=f13e307]: Memory updated
+                  - paragraph [ref=f13e308]: Sep 16 · 2 memories saved
+                - link "Manage memory" [ref=f13e309] [cursor=pointer]:
+                  - /url: /app/memories
+        - paragraph [ref=f13e173]
+  - alert [ref=f13e312]

@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { FormEvent, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ChevronRightIcon, SearchIcon } from "@/components/ui/icons";
+import { FeedbackDialog } from "@/components/feedback-dialog";
+import { ChevronRightIcon, FeedbackIcon, SearchIcon } from "@/components/ui/icons";
 import { UserAvatar } from "@/components/user-avatar";
 import { SignOutButton } from "@/components/sign-out-button";
 import {
@@ -27,7 +28,9 @@ export function AppTopBar() {
     readProfileCache(),
   );
   const [menuOpen, setMenuOpen] = useState(false);
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const profileButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -134,6 +137,7 @@ export function AppTopBar() {
 
       <div className="relative shrink-0" ref={menuRef}>
         <button
+          ref={profileButtonRef}
           type="button"
           onClick={() => setMenuOpen((o) => !o)}
           className="inline-flex items-center gap-1 rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
@@ -177,6 +181,18 @@ export function AppTopBar() {
             >
               Settings
             </Link>
+            <button
+              type="button"
+              role="menuitem"
+              className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-fg hover:bg-[var(--atmosphere-1)]"
+              onClick={() => {
+                setMenuOpen(false);
+                setFeedbackOpen(true);
+              }}
+            >
+              <FeedbackIcon className="h-3.5 w-3.5 text-muted" />
+              Send feedback
+            </button>
             <div className="border-t border-border px-1 py-1">
               <SignOutButton fullWidth className="w-full" />
             </div>
@@ -184,6 +200,11 @@ export function AppTopBar() {
         ) : null}
       </div>
       </div>
+      <FeedbackDialog
+        open={feedbackOpen}
+        onClose={() => setFeedbackOpen(false)}
+        returnFocusRef={profileButtonRef}
+      />
     </div>
   );
 }

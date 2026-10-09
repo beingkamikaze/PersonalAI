@@ -10,13 +10,13 @@ import {
 } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { InfoFeatureStrip } from "@/components/info-feature-strip";
 import { Button, ButtonLink } from "@/components/ui/button";
 import {
   BrainIcon,
   BriefcaseIcon,
   CalendarIcon,
   ChatIcon,
-  ChevronRightIcon,
   ExternalIcon,
   LightbulbIcon,
   LockIcon,
@@ -242,53 +242,31 @@ export default function MemoriesPage() {
   const noMemories = memories.length === 0;
 
   return (
-    <div className="relative w-full space-y-4">
-      <header className="relative">
-        <div className="min-w-0 xl:pr-[12rem]">
+    <div className="relative w-full space-y-3.5 md:px-2">
+      <header className="relative z-10 grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_9.35rem] xl:gap-x-3">
+        <div className="min-w-0 xl:col-start-1 xl:row-start-1">
           <p className="text-[11px] font-medium tracking-[0.16em] text-muted uppercase">
             Memories
           </p>
-          <h1 className="mt-2 font-display text-[2.05rem] leading-[1.08] tracking-tight text-fg sm:text-[2.35rem]">
+          <h1 className="mt-2 font-display text-[2.05rem] leading-[1.08] tracking-tight text-fg sm:text-[2.3rem]">
             Your saved <span className="text-accent">memories</span>
           </h1>
-          <p className="mt-2 max-w-xl text-sm leading-snug text-muted">
+          <p className="mt-2 max-w-[34rem] text-sm leading-snug text-muted">
             Short facts, preferences, and boundaries you want your AI to follow.
             This list is private. Visitors never see it, but answers can use
             what you save. Longer documents belong in Knowledge.
           </p>
-
-          <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:mt-6 xl:gap-3.5 xl:grid-cols-3">
-            <FeatureChip
-              tone="mint"
-              icon={<BrainIcon className="h-4 w-4" />}
-              title="Used in answers"
-              subtitle="Your AI can follow these"
-            />
-            <FeatureChip
-              tone="purple"
-              icon={<LockIcon className="h-4 w-4" />}
-              title="Private list"
-              subtitle="Visitors never see this page"
-            />
-            <FeatureChip
-              tone="amber"
-              icon={<ShieldIcon className="h-4 w-4" />}
-              title="In your control"
-              subtitle="Edit anytime"
-              className="sm:col-span-2 xl:col-span-1"
-            />
-          </div>
         </div>
 
-        <div className="pointer-events-none absolute inset-y-0 right-0 hidden w-[11.75rem] xl:block">
-          <p className="absolute top-1 -left-[6.4rem] w-[7.2rem] text-right font-display text-[13px] leading-[1.25] font-medium text-accent italic">
+        <div className="pointer-events-none relative hidden h-full xl:col-start-2 xl:row-span-2 xl:row-start-1 xl:block">
+          <p className="absolute top-1 right-[8.4rem] w-[7.25rem] text-right font-display text-[13px] leading-tight font-medium text-accent italic">
             A more you,
             <br />
             a better AI.
           </p>
           <svg
             viewBox="0 0 72 36"
-            className="absolute top-[2.7rem] -left-1 h-6 w-12 text-accent"
+            className="absolute top-10 right-[8.15rem] h-7 w-12 text-accent"
             fill="none"
             aria-hidden
           >
@@ -306,21 +284,48 @@ export default function MemoriesPage() {
               strokeLinejoin="round"
             />
           </svg>
-          <div className="absolute inset-0 origin-top-right scale-[0.87] overflow-hidden">
-            <Image
-              src="/dashboard/memory-companion-3d.png"
-              alt=""
-              width={1024}
-              height={1024}
-              priority
-              className="absolute h-auto max-w-none select-none"
-              style={{ width: "149%", left: "-39%", top: "-10%" }}
-            />
+          <div className="absolute right-0 bottom-0 h-[9.6rem] w-[8rem]">
+            <div className="absolute inset-0 overflow-hidden">
+              <Image
+                src="/dashboard/memory-companion-3d.png"
+                alt=""
+                width={1024}
+                height={1024}
+                priority
+                className="absolute h-auto max-w-none select-none"
+                style={{ width: "145.42%", left: "-37.21%", top: "-7.57%" }}
+              />
+            </div>
           </div>
         </div>
+
+        <InfoFeatureStrip
+          label="How memory works"
+          items={[
+            {
+              title: "Used in answers",
+              description: "Your AI can follow these facts and preferences.",
+              tone: "mint",
+              icon: <BrainIcon className="h-4 w-4" />,
+            },
+            {
+              title: "Private",
+              description: "Visitors never see your memory list.",
+              tone: "purple",
+              icon: <LockIcon className="h-4 w-4" />,
+            },
+            {
+              title: "In your control",
+              description: "Edit or remove anything anytime.",
+              tone: "amber",
+              icon: <ShieldIcon className="h-4 w-4" />,
+            },
+          ]}
+          className="mt-5 xl:col-start-1 xl:row-start-2"
+        />
       </header>
 
-      <section className="rounded-[22px] border border-border bg-white px-4 pt-5 pb-4 shadow-[0_16px_40px_-24px_rgba(18,40,32,0.28)] md:px-5 md:pt-6 md:pb-5">
+      <section className="rounded-[20px] border border-border bg-white px-4 pt-5 pb-4 shadow-[0_16px_40px_-24px_rgba(18,40,32,0.28)] md:px-5 md:pt-6 md:pb-5">
         <div className="flex flex-col gap-2.5 lg:flex-row lg:items-center">
           <div className="relative min-w-0 flex-1">
             <SearchIcon className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
@@ -487,7 +492,7 @@ export default function MemoriesPage() {
         )}
       </section>
 
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-[20px] border border-border bg-[#f6faf8] px-4 py-2.5 sm:flex-nowrap sm:px-5">
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border bg-[#f6faf8] px-4 py-3.5 sm:flex-nowrap sm:px-5">
         <div className="flex min-w-0 items-center gap-2.5">
           <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white text-accent">
             <LightbulbIcon className="h-4 w-4" />
@@ -517,48 +522,6 @@ export default function MemoriesPage() {
           {message}
         </p>
       ) : null}
-    </div>
-  );
-}
-
-function FeatureChip({
-  tone,
-  icon,
-  title,
-  subtitle,
-  className = "",
-}: {
-  tone: "mint" | "purple" | "amber";
-  icon: ReactNode;
-  title: string;
-  subtitle: string;
-  className?: string;
-}) {
-  const tones = {
-    mint: "bg-[var(--tone-mint)] text-accent",
-    purple: "bg-[var(--tone-purple)] text-[var(--tone-purple-ink)]",
-    amber: "bg-[#fff7e6] text-[var(--tone-amber)]",
-  } as const;
-
-  return (
-    <div
-      className={`flex h-full min-h-[4.35rem] min-w-0 items-center gap-2.5 rounded-[20px] border border-border bg-white px-3.5 py-2.5 shadow-[0_8px_20px_-16px_rgba(15,31,28,0.4)] ${className}`}
-    >
-      <span
-        className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${tones[tone]}`}
-        aria-hidden
-      >
-        {icon}
-      </span>
-      <span className="min-w-0 flex-1">
-        <span className="block truncate text-sm font-semibold leading-tight text-fg">
-          {title}
-        </span>
-        <span className="mt-0.5 block truncate text-xs leading-tight text-muted">
-          {subtitle}
-        </span>
-      </span>
-      <ChevronRightIcon className="h-4 w-4 shrink-0 text-muted/80" />
     </div>
   );
 }

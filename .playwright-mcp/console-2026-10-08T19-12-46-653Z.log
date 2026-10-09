@@ -1,0 +1,6 @@
+[    4320ms] [INFO] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:38559
+[    6878ms] [INFO] [dashboard] hero ready ms=%.0f source=network 2274.899999856949 @ webpack-internal:///(app-pages-browser)/./src/app/app/page.tsx:176
+[   11259ms] [INFO] [dashboard] recent visitor chats fetched count=%s 10 @ webpack-internal:///(app-pages-browser)/./src/lib/owner-cache.ts:270
+[   11260ms] [INFO] [dashboard] recent visitor chats updated count=%s 10 @ webpack-internal:///(app-pages-browser)/./src/lib/owner-cache.ts:283
+[   71223ms] [ERROR] Access to fetch at 'http://localhost:8000/feedback' from origin 'http://localhost:3000' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource. @ http://localhost:3000/app:0
+[   71223ms] [ERROR] Failed to load resource: net::ERR_FAILED @ http://localhost:8000/feedback:0

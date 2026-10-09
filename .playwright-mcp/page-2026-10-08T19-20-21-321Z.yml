@@ -1,0 +1,79 @@
+- generic [ref=f14e2]:
+  - banner [ref=f14e3]:
+    - link "PersonaAI" [ref=f14e4] [cursor=pointer]:
+      - /url: /
+    - generic [ref=f14e5]:
+      - link "Account, Signed in" [ref=f14e6] [cursor=pointer]:
+        - /url: /app/profile
+        - generic [aria-hidden] [ref=f14e7]: AC
+      - button "Sign out" [ref=f14e9] [cursor=pointer]
+  - main [ref=f14e13]:
+    - generic [ref=f14e16]:
+      - generic [ref=f14e18]:
+        - paragraph [ref=f14e19]: Share your AI
+        - heading "Your AI is ready to meet people." [level=1] [ref=f14e20]
+        - paragraph [ref=f14e21]: Choose your public link, add a few optional details, preview the experience, then publish.
+      - navigation "Onboarding progress" [ref=f14e23]:
+        - list [ref=f14e24]:
+          - listitem [ref=f14e25]:
+            - generic [ref=f14e29]:
+              - generic [ref=f14e30]: "Completed:"
+              - text: Create
+          - listitem [aria-hidden] [ref=f14e31]
+          - listitem [ref=f14e33]:
+            - generic [ref=f14e37]:
+              - generic [ref=f14e38]: "Completed:"
+              - text: Interview
+          - listitem [aria-hidden] [ref=f14e39]
+          - listitem [ref=f14e41]:
+            - generic [ref=f14e45]:
+              - generic [ref=f14e46]: "Completed:"
+              - text: Knowledge
+          - listitem [aria-hidden] [ref=f14e47]
+          - listitem [ref=f14e49]:
+            - generic [ref=f14e53]:
+              - generic [ref=f14e54]: "Completed:"
+              - text: Test
+          - listitem [aria-hidden] [ref=f14e55]
+          - listitem [ref=f14e57]:
+            - generic [aria-hidden] [ref=f14e58]: "05"
+            - generic [ref=f14e59]: Share
+      - generic [ref=f14e60]:
+        - generic [ref=f14e61]:
+          - generic [ref=f14e62]:
+            - heading "Public profile" [level=2] [ref=f14e63]
+            - paragraph [ref=f14e64]: Choose what visitors will see on your public page.
+            - generic [ref=f14e65]:
+              - text: Username
+              - paragraph [ref=f14e66]: This becomes your public URL.
+              - generic [ref=f14e67]:
+                - generic [ref=f14e68]: /u/
+                - textbox "Username" [disabled] [ref=f14e69]:
+                  - /placeholder: your-name
+            - generic [ref=f14e70]:
+              - generic [ref=f14e71]:
+                - generic [ref=f14e72]: Short bio (optional)
+                - paragraph [ref=f14e73]: A short introduction visitors can see.
+                - textbox "Short bio (optional)" [disabled] [ref=f14e74]
+              - generic [ref=f14e75]:
+                - generic [ref=f14e76]: Contact email (optional)
+                - paragraph [ref=f14e77]: Optional — visitors can use this to contact you.
+                - textbox "Contact email (optional)" [disabled] [ref=f14e78]
+              - generic [ref=f14e79]:
+                - generic [ref=f14e80]: Calendar / booking link (optional)
+                - paragraph [ref=f14e81]: Optional — let visitors book time with you.
+                - textbox "Calendar / booking link (optional)" [disabled] [ref=f14e82]:
+                  - /placeholder: https://
+          - complementary [ref=f14e83]:
+            - paragraph [ref=f14e84]: What visitors can see
+            - paragraph [ref=f14e85]: Visitors can see your public profile and AI responses. Your private conversations, uploaded documents, and Memory list stay private.
+          - generic [ref=f14e87]:
+            - button "Publish your AI" [disabled] [ref=f14e88]
+            - link "Back to test" [ref=f14e91] [cursor=pointer]:
+              - /url: /onboarding/test
+        - region "Live preview" [ref=f14e92]:
+          - generic [ref=f14e93]:
+            - paragraph [ref=f14e94]: Live preview
+            - paragraph [ref=f14e95]: This is what visitors will see.
+            - paragraph [ref=f14e96]: /u/…
+          - generic [ref=f14e97]: Loading profile

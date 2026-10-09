@@ -1,9 +1,13 @@
 "use client";
 
-import { useEffect, useState, type ComponentType, type SVGProps } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { AuthCurveMark } from "@/components/auth-edge-curves";
+import {
+  InfoFeatureStrip,
+  type InfoFeatureItem,
+} from "@/components/info-feature-strip";
 import { OwnerChat } from "@/components/owner-chat";
 import { ButtonLink } from "@/components/ui/button";
 import {
@@ -17,29 +21,24 @@ import { ApiError, type AiProfile } from "@/lib/api";
 import { loadProfile } from "@/lib/owner-cache";
 import { isUiPreview, PREVIEW_PROFILE } from "@/lib/ui-preview";
 
-const CAPABILITIES: {
-  title: string;
-  subtitle: string;
-  tone: string;
-  Icon: ComponentType<SVGProps<SVGSVGElement>>;
-}[] = [
+const HOW_IT_WORKS: InfoFeatureItem[] = [
   {
     title: "Ask anything",
-    subtitle: "See how your AI answers",
-    tone: "bg-[var(--tone-mint)] text-accent",
-    Icon: ChatIcon,
+    description: "Ask your AI questions and see how it responds.",
+    tone: "mint",
+    icon: <ChatIcon className="h-4 w-4" />,
   },
   {
     title: "Save to memory",
-    subtitle: "Keep a fact or preference",
-    tone: "bg-[var(--tone-purple)] text-[var(--tone-purple-ink)]",
-    Icon: BrainIcon,
+    description: "Save a fact, preference, or boundary.",
+    tone: "purple",
+    icon: <BrainIcon className="h-4 w-4" />,
   },
   {
-    title: "Use your knowledge",
-    subtitle: "Answer from your documents",
-    tone: "bg-[#fff4e6] text-[var(--tone-amber)]",
-    Icon: KnowledgeIcon,
+    title: "Uses knowledge",
+    description: "Your AI can use your uploaded sources when answering.",
+    tone: "amber",
+    icon: <KnowledgeIcon className="h-4 w-4" />,
   },
 ];
 
@@ -148,38 +147,11 @@ export default function AppChatPage() {
           </div>
         </div>
 
-        <section
-          aria-label="What your AI can do"
-          className="mt-6 xl:col-start-1 xl:row-start-2"
-        >
-          <ul className="grid grid-cols-1 lg:grid-cols-3">
-            {CAPABILITIES.map((item, index) => (
-              <li
-                key={item.title}
-                className={`flex min-w-0 items-center gap-3 py-2.5 lg:px-5 lg:py-1 ${
-                  index > 0
-                    ? "border-t border-border lg:border-l lg:border-t-0"
-                    : "lg:pl-0"
-                } ${index === CAPABILITIES.length - 1 ? "lg:pr-0" : ""}`}
-              >
-                <span
-                  className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${item.tone}`}
-                  aria-hidden
-                >
-                  <item.Icon className="h-4 w-4" />
-                </span>
-                <div className="min-w-0">
-                  <p className="text-sm font-medium leading-tight text-fg">
-                    {item.title}
-                  </p>
-                  <p className="mt-0.5 text-xs leading-relaxed text-balance text-muted">
-                    {item.subtitle}
-                  </p>
-                </div>
-              </li>
-            ))}
-          </ul>
-        </section>
+        <InfoFeatureStrip
+          label="How your AI works"
+          items={HOW_IT_WORKS}
+          className="mt-5 xl:col-start-1 xl:row-start-2"
+        />
       </header>
 
       {profile ? (

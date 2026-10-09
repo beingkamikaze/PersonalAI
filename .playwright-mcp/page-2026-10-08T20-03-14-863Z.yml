@@ -1,0 +1,154 @@
+- generic [ref=f17e1]:
+  - generic [ref=f17e2]:
+    - complementary [ref=f17e209]:
+      - link "PersonaAI" [ref=f17e210] [cursor=pointer]:
+        - /url: /app
+      - navigation "Workspace" [ref=f17e211]:
+        - link "Dashboard" [ref=f17e212] [cursor=pointer]:
+          - /url: /app
+        - link "Chats" [ref=f17e218] [cursor=pointer]:
+          - /url: /app/chat
+        - link "Knowledge" [ref=f17e221] [cursor=pointer]:
+          - /url: /app/knowledge
+        - link "Memory" [ref=f17e225] [cursor=pointer]:
+          - /url: /app/memories
+        - link "Settings" [ref=f17e230] [cursor=pointer]:
+          - /url: /app/settings
+      - generic [ref=f17e234]:
+        - paragraph [ref=f17e239]: Free Plan
+        - paragraph [ref=f17e240]: 39/40 chats left today
+        - progressbar "Daily chat usage" [ref=f17e241]
+        - link "Upgrade Plan" [ref=f17e243] [cursor=pointer]:
+          - /url: /pricing
+    - generic [ref=f17e32]:
+      - banner [ref=f17e33]:
+        - generic [ref=f17e41]:
+          - searchbox "Search conversations" [ref=f17e245]
+          - button "Profile menu" [ref=f17e48] [cursor=pointer]:
+            - generic [aria-hidden] [ref=f17e49]: MS
+      - generic [ref=f17e53]:
+        - banner [ref=f17e54]:
+          - paragraph [ref=f17e55]: Settings
+          - heading "Your AI's personality, behavior, and privacy." [level=1] [ref=f17e56]
+          - paragraph [ref=f17e57]: Control how your AI speaks, what it can use, and what visitors can see.
+        - generic [ref=f17e58]:
+          - heading "AI personality" [level=2] [ref=f17e59]
+          - paragraph [ref=f17e60]: Shape how your AI communicates with people.
+          - generic [ref=f17e61]:
+            - generic [ref=f17e62]:
+              - generic [ref=f17e63]:
+                - generic [ref=f17e64]:
+                  - paragraph [ref=f17e65]: Communication style
+                  - paragraph [ref=f17e66]: How your AI naturally communicates.
+                - button "Edit Communication style. Current value Clear, warm, concise" [ref=f17e67] [cursor=pointer]:
+                  - generic [ref=f17e68]: Clear, warm, concise
+              - generic [ref=f17e72]:
+                - generic [ref=f17e73]:
+                  - paragraph [ref=f17e74]: Formality
+                  - paragraph [ref=f17e75]: How formal should the responses feel?
+                - button "Edit Formality. Current value Casual" [ref=f17e249] [cursor=pointer]:
+                  - generic [ref=f17e250]: Casual
+              - generic [ref=f17e81]:
+                - generic [ref=f17e82]:
+                  - paragraph [ref=f17e83]: Humor
+                  - paragraph [ref=f17e84]: How much humor should your AI use?
+                - generic [ref=f17e258]:
+                  - textbox "Humor" [active] [ref=f17e259]:
+                    - /placeholder: Not set
+                    - text: Light, never sarcastic
+                  - button "Done" [ref=f17e260] [cursor=pointer]
+              - generic [ref=f17e90]:
+                - generic [ref=f17e91]:
+                  - paragraph [ref=f17e92]: Response length
+                  - paragraph [ref=f17e93]: How detailed should responses be?
+                - button "Edit Response length. Current value Short answers first, detail on request" [ref=f17e94] [cursor=pointer]:
+                  - generic [ref=f17e95]: Short answers first, detail on request
+              - generic [ref=f17e99]:
+                - generic [ref=f17e100]:
+                  - paragraph [ref=f17e101]: Directness
+                  - paragraph [ref=f17e102]: How directly should your AI answer?
+                - button "Edit Directness. Current value Direct" [ref=f17e103] [cursor=pointer]:
+                  - generic [ref=f17e104]: Direct
+              - generic [ref=f17e108]:
+                - generic [ref=f17e109]:
+                  - paragraph [ref=f17e110]: Traits
+                  - paragraph [ref=f17e111]: Characteristics that describe your AI.
+                - button "Edit Traits. Current value calm, precise" [ref=f17e112] [cursor=pointer]:
+                  - generic [ref=f17e113]: calm, precise
+            - status [ref=f17e255]: Changes saved
+            - generic [ref=f17e117]:
+              - heading "See how your AI sounds" [level=3] [ref=f17e118]
+              - paragraph [ref=f17e119]: These settings shape the tone of every answer.
+              - generic [ref=f17e120]:
+                - generic [ref=f17e126]:
+                  - paragraph [ref=f17e127]: You
+                  - paragraph [ref=f17e130]: Tell me what you do.
+                - generic [ref=f17e135]:
+                  - paragraph [ref=f17e136]: Your AI
+                  - paragraph [ref=f17e139]: I'll say what I do first. I'll start short, then add detail if you need it. A light touch is welcome.
+              - paragraph [ref=f17e140]: "Shaped by: Clear, warm, concise · Casual · Light, never sarcastic · Short answers first, detail on request · Direct · calm, precise. This is a sample of tone, not a description of you."
+        - generic [ref=f17e141]:
+          - heading "AI behavior" [level=2] [ref=f17e142]
+          - paragraph [ref=f17e143]: Control what your AI can use when answering. There is no separate switch — answers use the memories and knowledge you have saved.
+          - generic [ref=f17e144]:
+            - link "Memory Saved preferences, facts, and boundaries are used when you have them. Open Memory" [ref=f17e145] [cursor=pointer]:
+              - /url: /app/memories
+              - generic [ref=f17e146]:
+                - generic [ref=f17e147]: Memory
+                - generic [ref=f17e148]: Saved preferences, facts, and boundaries are used when you have them.
+              - generic [ref=f17e149]: Open Memory
+            - link "Knowledge Uploaded documents, notes, and links are used when you have them. Open Knowledge" [ref=f17e152] [cursor=pointer]:
+              - /url: /app/knowledge
+              - generic [ref=f17e153]:
+                - generic [ref=f17e154]: Knowledge
+                - generic [ref=f17e155]: Uploaded documents, notes, and links are used when you have them.
+              - generic [ref=f17e156]: Open Knowledge
+        - generic [ref=f17e159]:
+          - heading "Privacy & sharing" [level=2] [ref=f17e160]
+          - paragraph [ref=f17e161]: Control what visitors can access through your public AI.
+          - paragraph [ref=f17e162]: Your memories are private. Your documents are private. Visitors only receive answers through your public AI.
+          - generic [ref=f17e163]:
+            - link "Public AI Live. Visitors can open your page. Publish and unpublish live on Profile. Open profile" [ref=f17e164] [cursor=pointer]:
+              - /url: /app/profile
+              - generic [ref=f17e165]:
+                - generic [ref=f17e166]: Public AI
+                - generic [ref=f17e167]: Live. Visitors can open your page. Publish and unpublish live on Profile.
+              - generic [ref=f17e168]: Open profile
+            - link "Visitor conversations Only you can read these threads. They are not shown on your public page. View conversations" [ref=f17e171] [cursor=pointer]:
+              - /url: /app/conversations
+              - generic [ref=f17e172]:
+                - generic [ref=f17e173]: Visitor conversations
+                - generic [ref=f17e174]: Only you can read these threads. They are not shown on your public page.
+              - generic [ref=f17e175]: View conversations
+        - generic [ref=f17e178]:
+          - heading "Account" [level=2] [ref=f17e179]
+          - generic [ref=f17e180]:
+            - generic [ref=f17e181]:
+              - paragraph [ref=f17e182]: Email
+              - paragraph [ref=f17e183]: mayank@example.com
+            - generic [ref=f17e184]:
+              - generic [ref=f17e185]:
+                - paragraph [ref=f17e186]: Plan
+                - paragraph [ref=f17e187]: Free
+              - link "Upgrade" [ref=f17e188] [cursor=pointer]:
+                - /url: /pricing
+            - link "Profile Manage your public identity and AI profile. Open profile" [ref=f17e191] [cursor=pointer]:
+              - /url: /app/profile
+              - generic [ref=f17e192]:
+                - generic [ref=f17e193]: Profile
+                - generic [ref=f17e194]: Manage your public identity and AI profile.
+              - generic [ref=f17e195]: Open profile
+        - generic [ref=f17e198]:
+          - heading "Danger zone" [level=2] [ref=f17e199]
+          - generic [ref=f17e200]:
+            - heading "Delete account" [level=3] [ref=f17e201]
+            - paragraph [ref=f17e202]:
+              - text: Permanently removes your AI, knowledge, memories, conversations and account. This cannot be undone. To hide your public page only,
+              - link "unpublish it on Profile" [ref=f17e203] [cursor=pointer]:
+                - /url: /app/profile
+              - text: .
+            - generic [ref=f17e204]:
+              - generic [ref=f17e205]: Type mayank@example.com to confirm
+              - textbox "Type mayank@example.com to confirm" [ref=f17e206]
+            - button "Delete account" [disabled] [ref=f17e207]
+  - alert [ref=f17e208]
