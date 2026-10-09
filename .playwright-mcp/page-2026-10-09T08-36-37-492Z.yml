@@ -1,0 +1,70 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - link "PersonaAI" [ref=e4] [cursor=pointer]:
+        - /url: /
+      - navigation [ref=e5]:
+        - link "Pricing" [ref=e6] [cursor=pointer]:
+          - /url: /pricing
+        - link "Sign in" [ref=e7] [cursor=pointer]:
+          - /url: /sign-in
+        - link "Create your AI" [ref=e8] [cursor=pointer]:
+          - /url: /sign-up
+    - main [ref=e9]:
+      - generic [ref=e10]:
+        - generic [ref=e11]:
+          - paragraph [ref=e12]: No code required
+          - heading "Create your AI assistant." [level=1] [ref=e14]:
+            - generic [ref=e15]: Create your
+            - generic [ref=e16]: AI assistant.
+          - paragraph [ref=e17]: Answer a short interview, add what it should know, then share a link. No coding.
+        - generic [ref=e18]:
+          - list [ref=e19]:
+            - listitem [ref=e20]:
+              - generic [ref=e25]:
+                - generic [ref=e26]: Tell it about you
+                - generic [ref=e27]: A short interview about your work, preferences, and limits
+            - listitem [ref=e28]:
+              - generic [ref=e33]:
+                - generic [ref=e34]: Add what it should know
+                - generic [ref=e35]: Documents, notes, memories, and boundaries
+            - listitem [ref=e36]:
+              - generic [ref=e41]:
+                - generic [ref=e42]: Share a link
+                - generic [ref=e43]: People can ask about your work when you are not available
+          - figure [ref=e44]:
+            - generic [ref=e45]:
+              - blockquote [ref=e46]: “PersonaAI helps me share my work and experience without repeating myself.”
+              - generic [ref=e47]:
+                - generic [ref=e48]: Mayank Sandilya
+                - generic [ref=e49]: Uses PersonaAI to answer repeat questions
+        - generic [ref=e50]:
+          - heading "Create your account" [level=2] [ref=e51]
+          - paragraph [ref=e52]: After sign-up you’ll name your AI and start a short interview.
+          - generic [ref=e53]:
+            - generic [ref=e54]:
+              - text: Full name
+              - textbox "Full name" [ref=e56]:
+                - /placeholder: John Doe
+                - text: Mayank Sandilya
+            - generic [ref=e57]:
+              - text: Email
+              - textbox "Email" [ref=e59]:
+                - /placeholder: you@example.com
+                - text: mayankc973@gmail.com
+            - generic [ref=e60]:
+              - text: Password
+              - generic [ref=e61]:
+                - textbox "Password" [ref=e62]:
+                  - /placeholder: Create a password
+                  - text: test-duplicate-check
+                - button "Show password" [ref=e64] [cursor=pointer]
+            - alert [ref=e80]: An account with this email already exists. Sign in instead.
+            - button "Sign up" [ref=e68] [cursor=pointer]
+          - generic [ref=e69]: Or
+          - button "Continue with Google" [ref=e72] [cursor=pointer]
+          - paragraph [ref=e78]:
+            - text: Already have an account?
+            - link "Sign in" [ref=e79] [cursor=pointer]:
+              - /url: /sign-in
+  - alert [ref=e81]

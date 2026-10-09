@@ -57,6 +57,14 @@ export default function SignUpPage() {
       setError(signUpError.message);
       return;
     }
+    const alreadyRegistered =
+      data.user != null &&
+      Array.isArray(data.user.identities) &&
+      data.user.identities.length === 0;
+    if (alreadyRegistered) {
+      setError("An account with this email already exists. Sign in instead.");
+      return;
+    }
     if (data.session) {
       router.push(POST_SIGNUP_PATH);
       router.refresh();
